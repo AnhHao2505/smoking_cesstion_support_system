@@ -1,0 +1,21 @@
+footer {
+  margin-top: auto;
+}
+
+footer h5 {
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+footer ul li {
+  margin-bottom: 8px;
+}
+
+footer a {
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}

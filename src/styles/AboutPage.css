@@ -1,0 +1,91 @@
+.about-header {
+  padding: 4rem 0;
+  background: linear-gradient(to right, #e0eafc, #cfdef3);
+  margin-bottom: 2rem;
+}
+
+.about-header h1 {
+  font-weight: 700;
+}
+
+.mission p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.step-card {
+  padding: 2rem;
+  height: 100%;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-10px);
+}
+
+.step-number {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  line-height: 50px;
+  background: #007bff;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+}
+
+.stat-card {
+  padding: 2rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #007bff;
+  margin-bottom: 0;
+}
+
+.stat-label {
+  font-size: 1.1rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+.team-img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border: 5px solid #f8f9fa;
+}
+
+.team-member {
+  height: 100%;
+}
+
+.about-cta {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 5rem 0;
+}
+
+.about-cta h2 {
+  color: white;
+}
+
+.about-cta .btn-outline-primary {
+  color: white;
+  border-color: white;
+}
+
+.about-cta .btn-outline-primary:hover {
+  background-color: white;
+  color: #764ba2;
+}

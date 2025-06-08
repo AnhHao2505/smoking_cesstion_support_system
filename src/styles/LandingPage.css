@@ -1,0 +1,87 @@
+.hero {
+  padding: 5rem 0;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.hero h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #2d3748;
+}
+
+.hero .lead {
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+  color: #4a5568;
+}
+
+.hero-cta {
+  margin-top: 2rem;
+}
+
+.hero-image {
+  max-height: 400px;
+}
+
+.features {
+  background-color: #ffffff;
+}
+
+.feature-card {
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+.feature-icon {
+  font-size: 3rem;
+  color: #007bff;
+}
+
+.testimonials {
+  background-color: #f8f9fa;
+}
+
+.testimonial-card {
+  height: 100%;
+}
+
+.testimonial-content {
+  position: relative;
+  padding: 10px 0;
+}
+
+.testimonial-content p {
+  font-style: italic;
+}
+
+.testimonial-author h5 {
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.cta {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 5rem 0;
+}
+
+.cta h2 {
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.cta .lead {
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 3rem 0;
+    text-align: center;
+  }
+  
+  .hero-image {
+    margin-top: 2rem;
+  }
+}
