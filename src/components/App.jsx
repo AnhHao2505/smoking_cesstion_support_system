@@ -17,6 +17,10 @@ import RegisterPage from './auth/RegisterPage';
 // Dashboard pages
 import Dashboard from './dashboard/Dashboard';
 
+// Import blog pages
+import BlogListPage from '../pages/blog/BlogListPage';
+import BlogDetailPage from '../pages/blog/BlogDetailPage';
+
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = authService.isAuthenticated();
@@ -48,6 +52,13 @@ const App = () => {
               <Route path="/about" element={<AboutPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              
+              {/* Blog Routes */}
+              <Route path="/blog" element={<BlogListPage />} />
+              <Route path="/blog/featured" element={<BlogListPage featuredOnly={true} />} />
+              <Route path="/blog/:id" element={<BlogDetailPage />} />
+              <Route path="/blog/category/:categoryId" element={<BlogListPage />} />
+              <Route path="/blog/author/:authorId" element={<BlogListPage />} />
               
               {/* Protected Routes */}
               <Route 
