@@ -1,38 +1,11 @@
-// filepath: d:\qwer\swp_caithuoc\smoking_cessation_support_system_fe\src\components\layout\Navbar.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import '../../styles/Navbar.css'; // Ensure you have the appropriate CSS file
+// Remove custom CSS import
+// import '../../styles/Navbar.css';
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-
-  // Add scroll listener for sticky behavior
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Handle window resize for mobile menu
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 768 && isOpen) {
-        setIsOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [isOpen]);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -43,54 +16,102 @@ const NavBar = () => {
     setIsOpen(!isOpen);
   };
 
+  // Function to check if user is logged in and get user data
+  const getUserData = () => {
+    const userData = localStorage.getItem('user');
+    return userData ? JSON.parse(userData) : null;
+  };
+
+  // Logout handler function
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    // Additional logout logic - redirect or refresh
+    window.location.reload();
+  };
+
+  // Component rendering logic
+  const renderAuthSection = () => {
+    const user = getUserData();
+
+    if (user && user.fullName) {
+      return (
+        <div className="d-flex align-items-center">
+          <span className="me-3 text-white">{user.fullName}</span>
+          <button onClick={handleLogout} className="btn btn-outline-danger">Logout</button>
+        </div>
+      );
+    } else {
+      return (
+        <div className="d-flex">
+          <Link to="/login" className="btn btn-outline-light me-2">Login</Link>
+          <Link to="/register" className="btn btn-success">Register</Link>
+        </div>
+      );
+    }
+  };
+
   return (
-    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
-      <div className="navbar-container">
-        <Link to="/" className="navbar-logo" aria-label="Home">
-          <img src="/logo.svg" alt="Logo" />
-          <span>Smoking Cessation Support</span>
+    <nav className="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+      <div className="container">
+        <Link to="/" className="navbar-brand d-flex align-items-center">
+          <img src="/logo.svg" alt="Logo" height="32" className="me-2" />
         </Link>
 
-        {/* Hamburger menu button for mobile */}
-        <div className="menu-icon" onClick={toggleMenu} aria-label={isOpen ? "Close menu" : "Open menu"} role="button" tabIndex={0}>
-          <div className={`hamburger ${isOpen ? 'active' : ''}`}>
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </div>
+        <button 
+          className="navbar-toggler" 
+          type="button" 
+          onClick={toggleMenu}
+          aria-controls="navbarNav" 
+          aria-expanded={isOpen ? "true" : "false"} 
+          aria-label="Toggle navigation"
+        >
+          <span className="navbar-toggler-icon"></span>
+        </button>
 
-        {/* Navigation menu */}
-        <ul className={`nav-menu ${isOpen ? 'active' : ''}`}>
-          <li className="nav-item">
-            <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
-              Home
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>
-              Dashboard
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/articles" className={location.pathname.startsWith('/articles') ? 'active' : ''}>
-              Articles
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/community" className={location.pathname.startsWith('/community') ? 'active' : ''}>
-              Community
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''}>
-              Contact
-            </Link>
-          </li>
-        </ul>
-        <div>
-          <Link to="/login" className="login-button mr-3">Login</Link>
-          <Link to="/register" className="register-button">Register</Link>
+        <div className={`collapse navbar-collapse ${isOpen ? 'show' : ''}`} id="navbarNav">
+          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+            <li className="nav-item">
+              <Link 
+                to="/" 
+                className={`nav-link ${location.pathname === '/' ? 'active fw-bold' : ''}`}
+              >
+                Home
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link 
+                to="/dashboard" 
+                className={`nav-link ${location.pathname === '/dashboard' ? 'active fw-bold' : ''}`}
+              >
+                Dashboard
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link 
+                to="/articles" 
+                className={`nav-link ${location.pathname.startsWith('/articles') ? 'active fw-bold' : ''}`}
+              >
+                Articles
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link 
+                to="/community" 
+                className={`nav-link ${location.pathname.startsWith('/community') ? 'active fw-bold' : ''}`}
+              >
+                Community
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link 
+                to="/contact" 
+                className={`nav-link ${location.pathname === '/contact' ? 'active fw-bold' : ''}`}
+              >
+                Contact
+              </Link>
+            </li>
+          </ul>
+          {renderAuthSection()}
         </div>
       </div>
     </nav>
