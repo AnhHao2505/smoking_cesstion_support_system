@@ -15,9 +15,7 @@ import LoginPage from './auth/LoginPage';
 import RegisterPage from './auth/RegisterPage';
 
 // Dashboard pages
-// import Dashboard from './dashboard/Dashboard';
-// import ProfilePage from './dashboard/ProfilePage';
-// import MemberDashboard from './member/MemberDashboard';
+import Dashboard from './dashboard/Dashboard';
 
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
@@ -56,7 +54,7 @@ const App = () => {
                 path="/dashboard" 
                 element={
                   <PrivateRoute>
-                    {/* <Dashboard /> */}
+                    <Dashboard />
                   </PrivateRoute>
                 } 
               />
