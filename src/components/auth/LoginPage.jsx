@@ -1,34 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
+import { Form, Input, Button, Checkbox, Typography, Row, Col, Card, Alert, Divider } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
-import '../../styles/AuthPages.css';
+import '../../styles/global.css';
 
-const LoginSchema = Yup.object().shape({
-  email: Yup.string()
-    .email('Invalid email address')
-    .required('Email is required'),
-  password: Yup.string()
-    .required('Password is required')
-    .min(8, 'Password must be at least 8 characters'),
-});
+const { Title, Text } = Typography;
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [form] = Form.useForm();
 
-  const handleSubmit = async (values, { setSubmitting }) => {
+  const handleSubmit = async (values) => {
     setIsLoading(true);
     setLoginError('');
     
     try {
       const response = await authService.login(values.email, values.password);
       
-      // Successful login
       setIsLoading(false);
-      setSubmitting(false);
       
       // Redirect based on user role
       const { role } = response.user;
@@ -43,127 +35,111 @@ const LoginPage = () => {
       }
     } catch (error) {
       setIsLoading(false);
-      setSubmitting(false);
       setLoginError(error.message || 'An error occurred during login');
     }
   };
 
   return (
     <div className="auth-page">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-md-8 col-lg-6">
-            <div className="auth-card card">
-              <div className="card-body p-5">
-                <h2 className="text-center mb-4">Login</h2>
-                
-                {loginError && (
-                  <div className="alert alert-danger" role="alert">
-                    {loginError}
-                  </div>
-                )}
-                
-                <Formik
-                  initialValues={{ email: '', password: '' }}
-                  validationSchema={LoginSchema}
-                  onSubmit={handleSubmit}
+      <Row justify="center" align="middle">
+        <Col xs={22} sm={20} md={16} lg={12} xl={8}>
+          <Card className="auth-card" bordered={false}>
+            <Title level={2} className="text-center">Login</Title>
+            
+            {loginError && (
+              <Alert 
+                message={loginError} 
+                type="error" 
+                showIcon 
+                className="mb-4" 
+              />
+            )}
+            
+            <Form
+              form={form}
+              name="login"
+              layout="vertical"
+              initialValues={{ remember: true }}
+              onFinish={handleSubmit}
+            >
+              <Form.Item
+                name="email"
+                label="Email Address"
+                rules={[
+                  { required: true, message: 'Please input your email!' },
+                  { type: 'email', message: 'Please enter a valid email address!' }
+                ]}
+              >
+                <Input 
+                  prefix={<UserOutlined />} 
+                  placeholder="Enter your email" 
+                  size="large"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="password"
+                label="Password"
+                rules={[
+                  { required: true, message: 'Please input your password!' },
+                  { min: 8, message: 'Password must be at least 8 characters' }
+                ]}
+              >
+                <Input.Password 
+                  prefix={<LockOutlined />} 
+                  placeholder="Enter your password" 
+                  size="large"
+                />
+              </Form.Item>
+
+              <Form.Item>
+                <Row justify="space-between" align="middle">
+                  <Form.Item name="remember" valuePropName="checked" noStyle>
+                    <Checkbox>Remember me</Checkbox>
+                  </Form.Item>
+                  <Link to="/forgot-password" className="text-primary">
+                    Forgot Password?
+                  </Link>
+                </Row>
+              </Form.Item>
+
+              <Form.Item>
+                <Button 
+                  type="primary" 
+                  htmlType="submit" 
+                  loading={isLoading}
+                  size="large"
+                  block
                 >
-                  {({ isSubmitting, touched, errors }) => (
-                    <Form>
-                      <div className="mb-3">
-                        <label htmlFor="email" className="form-label">
-                          Email Address
-                        </label>
-                        <Field
-                          type="email"
-                          name="email"
-                          className={`form-control ${
-                            touched.email && errors.email ? 'is-invalid' : ''
-                          }`}
-                          placeholder="Enter your email"
-                        />
-                        <ErrorMessage
-                          name="email"
-                          component="div"
-                          className="invalid-feedback"
-                        />
-                      </div>
+                  Login
+                </Button>
+              </Form.Item>
+            </Form>
 
-                      <div className="mb-4">
-                        <label htmlFor="password" className="form-label">
-                          Password
-                        </label>
-                        <Field
-                          type="password"
-                          name="password"
-                          className={`form-control ${
-                            touched.password && errors.password ? 'is-invalid' : ''
-                          }`}
-                          placeholder="Enter your password"
-                        />
-                        <ErrorMessage
-                          name="password"
-                          component="div"
-                          className="invalid-feedback"
-                        />
-                      </div>
-
-                      <div className="d-flex justify-content-between align-items-center mb-4">
-                        <div className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id="rememberMe"
-                          />
-                          <label className="form-check-label" htmlFor="rememberMe">
-                            Remember me
-                          </label>
-                        </div>
-                        <Link to="/forgot-password" className="text-decoration-none">
-                          Forgot Password?
-                        </Link>
-                      </div>
-
-                      <button
-                        type="submit"
-                        className="btn btn-primary w-100"
-                        disabled={isSubmitting || isLoading}
-                      >
-                        {isLoading ? (
-                          <>
-                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            Logging in...
-                          </>
-                        ) : (
-                          'Login'
-                        )}
-                      </button>
-                    </Form>
-                  )}
-                </Formik>
-
-                <div className="mt-4 text-center">
-                  <p>
-                    Don't have an account?{' '}
-                    <Link to="/register" className="text-decoration-none">
-                      Register here
-                    </Link>
-                  </p>
-                </div>
-
-                <div className="demo-accounts mt-4">
-                  <p className="text-center mb-2 text-muted">Demo Accounts:</p>
-                  <div className="alert alert-info">
-                    <p className="mb-1"><small><strong>Member:</strong> member@example.com / password123</small></p>
-                    <p className="mb-1"><small><strong>Coach:</strong> coach@example.com / password123</small></p>
-                    <p className="mb-0"><small><strong>Admin:</strong> admin@example.com / password123</small></p>
-                  </div>
-                </div>
-              </div>
+            <div className="text-center">
+              <Text>
+                Don't have an account?{' '}
+                <Link to="/register" className="text-primary">
+                  Register here
+                </Link>
+              </Text>
             </div>
-          </div>
-        </div>
-      </div>
+
+            <Divider>Demo Accounts</Divider>
+            
+            <Alert
+              message={
+                <div>
+                  <p><strong>Member:</strong> member@example.com / password123</p>
+                  <p><strong>Coach:</strong> coach@example.com / password123</p>
+                  <p style={{ marginBottom: 0 }}><strong>Admin:</strong> admin@example.com / password123</p>
+                </div>
+              }
+              type="info"
+            />
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 };

@@ -1,141 +1,135 @@
-// filepath: d:\qwer\swp_caithuoc\smoking_cessation_support_system_fe\src\components\public\LandingPage.jsx
 import React from 'react';
+import { Layout, Typography, Button, Row, Col, Card, Divider, Space } from 'antd';
 import { Link } from 'react-router-dom';
-import '../../styles/LandingPage.css';
+import { ArrowRightOutlined } from '@ant-design/icons';
+// import heroImage from '../assets/images/hero-image.png';
+import '../../styles/LandingPage.css'; // Ensure you have the appropriate CSS file
+
+const { Header, Content, Footer } = Layout;
+const { Title, Paragraph, Text } = Typography;
 
 const LandingPage = () => {
   return (
-    <div className="landing-page">
-      {/* Hero Section */}
-      <section className="hero">
-        <div className="container">
-          <div className="row align-items-center">
-            <div className="col-lg-6">
-              <h1>Take Control of Your Life</h1>
-              <p className="lead">
-                Join our supportive community and quit smoking for good. Our proven methods and personalized plans make quitting easier than ever.
-              </p>
-              <div className="hero-cta">
-                <Link to="/register" className="btn btn-primary btn-lg me-3">
-                  Get Started
+    <Layout className="landing-page">
+      <Content>
+        {/* Hero Section */}
+        <section className="hero-section">
+          <Row gutter={[24, 24]} align="middle">
+            <Col xs={24} md={12}>
+              <Title level={1}>Hỗ trợ cai thuốc lá hiệu quả</Title>
+              <Paragraph className="hero-description">
+                Khám phá phương pháp cai thuốc lá khoa học, được hỗ trợ bởi cộng đồng và các chuyên gia y tế.
+              </Paragraph>
+              <Space>
+                <Link to="/register">
+                  <Button type="primary" size="large">
+                    Bắt đầu ngay <ArrowRightOutlined />
+                  </Button>
                 </Link>
-                <Link to="/about" className="btn btn-outline-secondary btn-lg">
-                  Learn More
+                <Link to="/about">
+                  <Button size="large">Tìm hiểu thêm</Button>
                 </Link>
-              </div>
-            </div>
-            <div className="col-lg-6">
-              <img
-                src="/images/hero-image.svg"
-                alt="Quit smoking illustration"
-                className="img-fluid hero-image"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+              </Space>
+            </Col>
+            <Col xs={24} md={12}>
+              {/* <img src={heroImage} alt="Cai thuốc lá" className="hero-image" /> */}
+            </Col>
+          </Row>
+        </section>
 
-      {/* Features Section */}
-      <section className="section features">
-        <div className="container">
-          <h2 className="text-center section-title">How We Help You Quit</h2>
-          <div className="row mt-5">
-            <div className="col-md-4">
-              <div className="feature-card card text-center p-4 mb-4">
-                <div className="feature-icon mb-3">
-                  <i className="bi bi-calendar-check"></i>
-                </div>
-                <h3>Personalized Plan</h3>
-                <p>
-                  Create a tailored quit plan that fits your lifestyle and smoking habits for the best chance of success.
-                </p>
-              </div>
-            </div>
-            <div className="col-md-4">
-              <div className="feature-card card text-center p-4 mb-4">
-                <div className="feature-icon mb-3">
-                  <i className="bi bi-people"></i>
-                </div>
-                <h3>Community Support</h3>
-                <p>
-                  Connect with others on the same journey to stay motivated and share experiences.
-                </p>
-              </div>
-            </div>
-            <div className="col-md-4">
-              <div className="feature-card card text-center p-4 mb-4">
-                <div className="feature-icon mb-3">
-                  <i className="bi bi-graph-up"></i>
-                </div>
-                <h3>Progress Tracking</h3>
-                <p>
-                  Monitor your smoke-free days, health improvements, and money saved to keep you motivated.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+        <Divider />
 
-      {/* Testimonials */}
-      <section className="section testimonials bg-light">
-        <div className="container">
-          <h2 className="text-center section-title">Success Stories</h2>
-          <div className="row mt-5">
-            <div className="col-md-4">
-              <div className="card testimonial-card p-4">
-                <div className="testimonial-content">
-                  <p>"After 15 years of smoking, I never thought I could quit. This platform gave me the tools and support I needed to finally become smoke-free."</p>
-                </div>
-                <div className="testimonial-author mt-3">
-                  <h5>Michael R.</h5>
-                  <p className="text-muted">Smoke-free for 2 years</p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-4">
-              <div className="card testimonial-card p-4">
-                <div className="testimonial-content">
-                  <p>"The daily tracking and coach support made all the difference. I can breathe better and have so much more energy now!"</p>
-                </div>
-                <div className="testimonial-author mt-3">
-                  <h5>Sarah T.</h5>
-                  <p className="text-muted">Smoke-free for 8 months</p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-4">
-              <div className="card testimonial-card p-4">
-                <div className="testimonial-content">
-                  <p>"Working with a quit buddy helped me stay accountable. The achievements and badges kept me motivated through the tough times."</p>
-                </div>
-                <div className="testimonial-author mt-3">
-                  <h5>David W.</h5>
-                  <p className="text-muted">Smoke-free for 1 year</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+        {/* Features Section */}
+        <section className="features-section">
+          <Title level={2} className="section-title">Tính năng nổi bật</Title>
+          <Row gutter={[32, 32]}>
+            <Col xs={24} sm={12} lg={8}>
+              <Card className="feature-card">
+                <Title level={4}>Theo dõi tiến trình</Title>
+                <Paragraph>
+                  Theo dõi quá trình cai thuốc lá của bạn với số liệu thống kê trực quan và cập nhật liên tục.
+                </Paragraph>
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Card className="feature-card">
+                <Title level={4}>Hỗ trợ cộng đồng</Title>
+                <Paragraph>
+                  Kết nối với cộng đồng người cai thuốc lá để chia sẻ kinh nghiệm và nhận được sự động viên.
+                </Paragraph>
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Card className="feature-card">
+                <Title level={4}>Tư vấn chuyên gia</Title>
+                <Paragraph>
+                  Nhận tư vấn từ các chuyên gia y tế về phương pháp cai thuốc lá phù hợp với bạn.
+                </Paragraph>
+              </Card>
+            </Col>
+          </Row>
+        </section>
 
-      {/* CTA Section */}
-      <section className="section cta">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-8 mx-auto text-center">
-              <h2>Ready to Start Your Journey?</h2>
-              <p className="lead">
-                Join thousands who have successfully quit smoking with our support system.
-              </p>
-              <Link to="/register" className="btn btn-primary btn-lg mt-4">
-                Sign Up Now
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+        {/* Testimonials Section */}
+        <section className="testimonials-section">
+          <Title level={2} className="section-title">Phản hồi từ người dùng</Title>
+          <Row gutter={[24, 24]}>
+            <Col xs={24} md={8}>
+              <Card className="testimonial-card">
+                <Paragraph>
+                  "Ứng dụng này đã giúp tôi cai thuốc lá thành công sau nhiều lần thất bại. Cảm ơn đội ngũ phát triển!"
+                </Paragraph>
+                <Text strong>Nguyễn Văn A</Text>
+              </Card>
+            </Col>
+            <Col xs={24} md={8}>
+              <Card className="testimonial-card">
+                <Paragraph>
+                  "Cộng đồng hỗ trợ tuyệt vời và các tính năng theo dõi giúp tôi có động lực mỗi ngày."
+                </Paragraph>
+                <Text strong>Trần Thị B</Text>
+              </Card>
+            </Col>
+            <Col xs={24} md={8}>
+              <Card className="testimonial-card">
+                <Paragraph>
+                  "Sau 10 năm hút thuốc, tôi đã cai được nhờ vào hệ thống này. Thật sự khuyến khích mọi người thử!"
+                </Paragraph>
+                <Text strong>Lê Văn C</Text>
+              </Card>
+            </Col>
+          </Row>
+        </section>
+      </Content>
+
+      <Footer className="landing-footer" style={{ background: 'white' }}>
+        <Row>
+          <Col xs={24} md={8}>
+            <Title level={4}>Về chúng tôi</Title>
+            <Paragraph>
+              Hệ thống hỗ trợ cai thuốc lá - giúp mọi người có một cuộc sống khỏe mạnh hơn.
+            </Paragraph>
+          </Col>
+          <Col xs={24} md={8}>
+            <Title level={4}>Liên hệ</Title>
+            <Paragraph>
+              Email: contact@caithoucla.com<br />
+              Điện thoại: 123-456-7890
+            </Paragraph>
+          </Col>
+          <Col xs={24} md={8}>
+            <Title level={4}>Theo dõi</Title>
+            <Space>
+              <Button type="text" icon={<i className="fab fa-facebook" />} />
+              <Button type="text" icon={<i className="fab fa-twitter" />} />
+              <Button type="text" icon={<i className="fab fa-instagram" />} />
+            </Space>
+          </Col>
+        </Row>
+        <Divider />
+        <Text>© 2025 Hệ thống hỗ trợ cai thuốc lá. All rights reserved.</Text>
+      </Footer>
+    </Layout>
   );
 };
 

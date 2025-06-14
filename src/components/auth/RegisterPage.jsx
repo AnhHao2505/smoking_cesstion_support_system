@@ -1,43 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
+import { Form, Input, Button, Select, Checkbox, Typography, Row, Col, Card, Alert } from 'antd';
+import { UserOutlined, MailOutlined, LockOutlined, PhoneOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
-import '../../styles/AuthPages.css';
+import '../../styles/global.css';
 
-const RegisterSchema = Yup.object().shape({
-  fullName: Yup.string()
-    .required('Full name is required')
-    .min(2, 'Name must be at least 2 characters'),
-  email: Yup.string()
-    .email('Invalid email address')
-    .required('Email is required'),
-  password: Yup.string()
-    .required('Password is required')
-    .min(8, 'Password must be at least 8 characters')
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-    ),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref('password'), null], 'Passwords must match')
-    .required('Confirm password is required'),
-  contactNumber: Yup.string()
-    .required('Phone number is required'),
-  role: Yup.string()
-    .oneOf(['member', 'coach'], 'Please select a valid role')
-    .required('Please select your role'),
-  agreeTerms: Yup.boolean()
-    .oneOf([true], 'You must agree to the terms and conditions')
-});
+const { Title, Text } = Typography;
+const { Option } = Select;
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const [registerError, setRegisterError] = useState('');
   const [registerSuccess, setRegisterSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [form] = Form.useForm();
 
-  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+  const handleSubmit = async (values) => {
     setIsLoading(true);
     setRegisterError('');
     setRegisterSuccess('');
@@ -49,10 +27,9 @@ const RegisterPage = () => {
       const response = await authService.register(userData);
       
       setIsLoading(false);
-      setSubmitting(false);
       setRegisterSuccess(response.message || 'Registration successful! You can now log in.');
       
-      resetForm();
+      form.resetFields();
       
       // Redirect to login after a short delay
       setTimeout(() => {
@@ -61,221 +38,201 @@ const RegisterPage = () => {
       
     } catch (error) {
       setIsLoading(false);
-      setSubmitting(false);
       setRegisterError(error.message || 'An error occurred during registration');
     }
   };
 
   return (
     <div className="auth-page">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-md-8">
-            <div className="auth-card card">
-              <div className="card-body p-5">
-                <h2 className="text-center mb-4">Create an Account</h2>
+      <Row justify="center" align="middle">
+        <Col xs={22} sm={22} md={20} lg={16} xl={14}>
+          <Card className="auth-card" bordered={false}>
+            <Title level={2} className="text-center">Create an Account</Title>
+            
+            {registerError && (
+              <Alert 
+                message={registerError} 
+                type="error" 
+                showIcon 
+                className="mb-4" 
+              />
+            )}
+            
+            {registerSuccess && (
+              <Alert 
+                message={registerSuccess} 
+                type="success" 
+                showIcon 
+                className="mb-4" 
+              />
+            )}
+            
+            <Form
+              form={form}
+              name="register"
+              layout="vertical"
+              onFinish={handleSubmit}
+              scrollToFirstError
+            >
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name="fullName"
+                    label="Full Name"
+                    rules={[
+                      { required: true, message: 'Please input your full name!' },
+                      { min: 2, message: 'Name must be at least 2 characters' }
+                    ]}
+                  >
+                    <Input 
+                      prefix={<UserOutlined />} 
+                      placeholder="Enter your full name"
+                      size="large" 
+                    />
+                  </Form.Item>
+                </Col>
                 
-                {registerError && (
-                  <div className="alert alert-danger" role="alert">
-                    {registerError}
-                  </div>
-                )}
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name="email"
+                    label="Email Address"
+                    rules={[
+                      { required: true, message: 'Please input your email!' },
+                      { type: 'email', message: 'Please enter a valid email address!' }
+                    ]}
+                  >
+                    <Input 
+                      prefix={<MailOutlined />} 
+                      placeholder="Enter your email"
+                      size="large" 
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name="password"
+                    label="Password"
+                    rules={[
+                      { required: true, message: 'Please input your password!' },
+                      { min: 8, message: 'Password must be at least 8 characters' },
+                      { 
+                        pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+                        message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+                      }
+                    ]}
+                    hasFeedback
+                  >
+                    <Input.Password 
+                      prefix={<LockOutlined />} 
+                      placeholder="Create a password"
+                      size="large" 
+                    />
+                  </Form.Item>
+                </Col>
                 
-                {registerSuccess && (
-                  <div className="alert alert-success" role="alert">
-                    {registerSuccess}
-                  </div>
-                )}
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name="confirmPassword"
+                    label="Confirm Password"
+                    dependencies={['password']}
+                    hasFeedback
+                    rules={[
+                      { required: true, message: 'Please confirm your password!' },
+                      ({ getFieldValue }) => ({
+                        validator(_, value) {
+                          if (!value || getFieldValue('password') === value) {
+                            return Promise.resolve();
+                          }
+                          return Promise.reject(new Error('The two passwords do not match!'));
+                        },
+                      }),
+                    ]}
+                  >
+                    <Input.Password 
+                      prefix={<LockOutlined />} 
+                      placeholder="Confirm your password"
+                      size="large" 
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name="contactNumber"
+                    label="Contact Number"
+                    rules={[
+                      { required: true, message: 'Please input your phone number!' }
+                    ]}
+                  >
+                    <Input 
+                      prefix={<PhoneOutlined />} 
+                      placeholder="Enter your phone number"
+                      size="large" 
+                    />
+                  </Form.Item>
+                </Col>
                 
-                <Formik
-                  initialValues={{ 
-                    fullName: '',
-                    email: '',
-                    password: '',
-                    confirmPassword: '',
-                    contactNumber: '',
-                    role: 'member',
-                    agreeTerms: false
-                  }}
-                  validationSchema={RegisterSchema}
-                  onSubmit={handleSubmit}
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name="role"
+                    label="I want to register as"
+                    initialValue="member"
+                    rules={[
+                      { required: true, message: 'Please select your role!' }
+                    ]}
+                  >
+                    <Select size="large">
+                      <Option value="member">Member (I want to quit smoking)</Option>
+                      <Option value="coach">Coach (I want to help others quit)</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item
+                name="agreeTerms"
+                valuePropName="checked"
+                rules={[
+                  {
+                    validator: (_, value) =>
+                      value ? Promise.resolve() : Promise.reject(new Error('You must agree to the terms and conditions')),
+                  },
+                ]}
+              >
+                <Checkbox>
+                  I agree to the <Link to="/terms">Terms and Conditions</Link> and <Link to="/privacy">Privacy Policy</Link>
+                </Checkbox>
+              </Form.Item>
+
+              <Form.Item>
+                <Button 
+                  type="primary" 
+                  htmlType="submit" 
+                  loading={isLoading}
+                  size="large"
+                  block
                 >
-                  {({ isSubmitting, touched, errors }) => (
-                    <Form>
-                      <div className="row">
-                        <div className="col-md-6 mb-3">
-                          <label htmlFor="fullName" className="form-label">
-                            Full Name
-                          </label>
-                          <Field
-                            type="text"
-                            name="fullName"
-                            className={`form-control ${
-                              touched.fullName && errors.fullName ? 'is-invalid' : ''
-                            }`}
-                            placeholder="Enter your full name"
-                          />
-                          <ErrorMessage
-                            name="fullName"
-                            component="div"
-                            className="invalid-feedback"
-                          />
-                        </div>
-                        
-                        <div className="col-md-6 mb-3">
-                          <label htmlFor="email" className="form-label">
-                            Email Address
-                          </label>
-                          <Field
-                            type="email"
-                            name="email"
-                            className={`form-control ${
-                              touched.email && errors.email ? 'is-invalid' : ''
-                            }`}
-                            placeholder="Enter your email"
-                          />
-                          <ErrorMessage
-                            name="email"
-                            component="div"
-                            className="invalid-feedback"
-                          />
-                        </div>
-                      </div>
+                  Register
+                </Button>
+              </Form.Item>
+            </Form>
 
-                      <div className="row">
-                        <div className="col-md-6 mb-3">
-                          <label htmlFor="password" className="form-label">
-                            Password
-                          </label>
-                          <Field
-                            type="password"
-                            name="password"
-                            className={`form-control ${
-                              touched.password && errors.password ? 'is-invalid' : ''
-                            }`}
-                            placeholder="Create a password"
-                          />
-                          <ErrorMessage
-                            name="password"
-                            component="div"
-                            className="invalid-feedback"
-                          />
-                        </div>
-                        
-                        <div className="col-md-6 mb-3">
-                          <label htmlFor="confirmPassword" className="form-label">
-                            Confirm Password
-                          </label>
-                          <Field
-                            type="password"
-                            name="confirmPassword"
-                            className={`form-control ${
-                              touched.confirmPassword && errors.confirmPassword ? 'is-invalid' : ''
-                            }`}
-                            placeholder="Confirm your password"
-                          />
-                          <ErrorMessage
-                            name="confirmPassword"
-                            component="div"
-                            className="invalid-feedback"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="row">
-                        <div className="col-md-6 mb-3">
-                          <label htmlFor="contactNumber" className="form-label">
-                            Contact Number
-                          </label>
-                          <Field
-                            type="tel"
-                            name="contactNumber"
-                            className={`form-control ${
-                              touched.contactNumber && errors.contactNumber ? 'is-invalid' : ''
-                            }`}
-                            placeholder="Enter your phone number"
-                          />
-                          <ErrorMessage
-                            name="contactNumber"
-                            component="div"
-                            className="invalid-feedback"
-                          />
-                        </div>
-                        
-                        <div className="col-md-6 mb-3">
-                          <label htmlFor="role" className="form-label">
-                            I want to register as
-                          </label>
-                          <Field
-                            as="select"
-                            name="role"
-                            className={`form-select ${
-                              touched.role && errors.role ? 'is-invalid' : ''
-                            }`}
-                          >
-                            <option value="member">Member (I want to quit smoking)</option>
-                            <option value="coach">Coach (I want to help others quit)</option>
-                          </Field>
-                          <ErrorMessage
-                            name="role"
-                            component="div"
-                            className="invalid-feedback"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mb-4">
-                        <div className="form-check">
-                          <Field
-                            type="checkbox"
-                            name="agreeTerms"
-                            className={`form-check-input ${
-                              touched.agreeTerms && errors.agreeTerms ? 'is-invalid' : ''
-                            }`}
-                            id="agreeTerms"
-                          />
-                          <label className="form-check-label" htmlFor="agreeTerms">
-                            I agree to the <Link to="/terms">Terms and Conditions</Link> and <Link to="/privacy">Privacy Policy</Link>
-                          </label>
-                          <ErrorMessage
-                            name="agreeTerms"
-                            component="div"
-                            className="invalid-feedback"
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        className="btn btn-primary w-100"
-                        disabled={isSubmitting || isLoading}
-                      >
-                        {isLoading ? (
-                          <>
-                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            Creating Account...
-                          </>
-                        ) : (
-                          'Register'
-                        )}
-                      </button>
-                    </Form>
-                  )}
-                </Formik>
-
-                <div className="mt-4 text-center">
-                  <p>
-                    Already have an account?{' '}
-                    <Link to="/login" className="text-decoration-none">
-                      Login here
-                    </Link>
-                  </p>
-                </div>
-              </div>
+            <div className="text-center">
+              <Text>
+                Already have an account?{' '}
+                <Link to="/login" className="text-primary">
+                  Login here
+                </Link>
+              </Text>
             </div>
-          </div>
-        </div>
-      </div>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 };
