@@ -1,15 +1,151 @@
 .navbar {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 64px;
+  background-color: #007bff; /* Màu xanh đẹp hơn, ít chói hơn */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  padding: 0 20px;
 }
 
-.navbar-brand i {
-  margin-right: 8px;
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
 }
 
-.nav-link {
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.navbar-logo img {
+  height: 32px;
+  margin-right: 12px;
+}
+
+.navbar-logo span {
+  color: white;
+  font-weight: 600;
+  font-size: 1.25rem;
+  letter-spacing: 0.5px;
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 32px; /* Tăng khoảng cách giữa các mục menu */
+}
+
+.nav-item a {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
   font-weight: 500;
+  font-size: 1rem;
+  padding: 8px 0;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
-.navbar-nav .nav-link:hover {
-  color: #e6e6e6;
+.nav-item a:hover {
+  color: white;
+}
+
+.nav-item a.active {
+  color: white;
+  font-weight: 600;
+}
+
+.nav-item a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: white;
+  border-radius: 2px;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.login-button, .register-button {
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  text-align: center;
+}
+
+.login-button {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.login-button:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.register-button {
+  background-color: #32CD32; /* Xanh lá tươi sáng */
+  color: white;
+  border: 1px solid #32CD32;
+}
+
+.register-button:hover {
+  background-color: #2FBC2F;
+  border-color: #2FBC2F;
+}
+
+/* Mobile styles */
+@media screen and (max-width: 768px) {
+  .menu-icon {
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-menu {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    width: 100%;
+    background-color: #007bff;
+    flex-direction: column;
+    padding: 20px 0;
+    gap: 15px;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    z-index: 999;
+  }
+  
+  .nav-menu.active {
+    transform: translateY(0);
+  }
+  
+  .hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 25px;
+    height: 20px;
+  }
+  
+  .auth-buttons {
+    margin-top: 10px;
+  }
 }

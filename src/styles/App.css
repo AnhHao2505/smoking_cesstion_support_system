@@ -3,6 +3,8 @@
  * appearance of the application.
  *******************************************************************************/
 
+@import '~antd/dist/antd.css';
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
