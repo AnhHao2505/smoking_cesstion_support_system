@@ -16,6 +16,8 @@ import RegisterPage from './auth/RegisterPage';
 
 // Dashboard pages
 import Dashboard from './dashboard/Dashboard';
+import CoachDashboard from './coach/CoachDashboard';
+import MemberDashboard from './member/MemberDashboard';
 
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
@@ -73,7 +75,7 @@ const App = () => {
                 path="/member/dashboard" 
                 element={
                   <PrivateRoute allowedRoles={['member']}>
-                    {/* <MemberDashboard /> */}
+                    <MemberDashboard />
                   </PrivateRoute>
                 } 
               />
@@ -82,12 +84,9 @@ const App = () => {
               <Route 
                 path="/coach/dashboard" 
                 element={
-                  <PrivateRoute allowedRoles={['coach']}>
-                    <div className="container py-5">
-                      <h1>Coach Dashboard</h1>
-                      <p>Welcome to the coach dashboard!</p>
-                    </div>
-                  </PrivateRoute>
+                    <CoachDashboard />
+                  // <PrivateRoute allowedRoles={['coach']}>
+                  // </PrivateRoute>
                 } 
               />
               
