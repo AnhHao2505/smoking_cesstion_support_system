@@ -19,6 +19,10 @@ import Dashboard from './dashboard/Dashboard';
 import CoachDashboard from './coach/CoachDashboard';
 import MemberDashboard from './member/MemberDashboard';
 
+// Member components
+import QuitProgressOverview from './member/QuitProgressOverview';
+import QuitPlanCreation from './member/QuitPlanCreation';
+
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = authService.isAuthenticated();
@@ -79,6 +83,10 @@ const App = () => {
                   </PrivateRoute>
                 } 
               />
+              
+              <Route path="/member/quit-progress" element={<QuitProgressOverview />} />
+              
+              <Route path="/member/create-quit-plan" element={<QuitPlanCreation />} />
               
               {/* Coach Routes */}
               <Route 

@@ -1,0 +1,77 @@
+.quit-progress-overview {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.page-title {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.stats-row {
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  text-align: center;
+  height: 100%;
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.streak-info {
+  margin-top: 8px;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.mt-3 {
+  margin-top: 12px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.badge-card {
+  border-radius: 8px;
+  background-color: #fffbe6;
+  border: 1px solid #faad14;
+  transition: all 0.3s;
+}
+
+.badge-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.badge-info-icon {
+  margin-left: 8px;
+  color: #1890ff;
+  cursor: pointer;
+}
+
+.health-intro {
+  margin-bottom: 24px;
+}
+
+.daily-checkin-card {
+  background-color: #e6f7ff;
+  border: 1px solid #91d5ff;
+  margin-top: 16px;
+  text-align: center;
+  padding: 16px;
+}
