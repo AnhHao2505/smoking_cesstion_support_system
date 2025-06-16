@@ -26,25 +26,12 @@ export const getUserStatistics = () => {
       { role: 'Guest', count: 50, color: '#faad14' }
     ],
     userGrowth: [
-      { month: 'Jan', count: 980 },
-      { month: 'Feb', count: 1030 },
-      { month: 'Mar', count: 1120 },
-      { month: 'Apr', count: 1190 },
-      { month: 'May', count: 1260 },
-      { month: 'Jun', count: 1350 }
-    ],
-    membershipDistribution: [
-      { type: 'Free', count: 750, percentage: 60 },
-      { type: 'Basic', count: 312, percentage: 25 },
-      { type: 'Premium', count: 188, percentage: 15 }
-    ],
-    userActivity: [
-      { day: 'Mon', activeUsers: 720 },
-      { day: 'Tue', activeUsers: 820 },
-      { day: 'Wed', activeUsers: 920 },
-      { day: 'Thu', activeUsers: 820 },
-      { day: 'Fri', activeUsers: 720 },
-      { day: 'Sat', activeUsers: 620 },
+      { day: 'Mon', activeUsers: 620 },
+      { day: 'Tue', activeUsers: 650 },
+      { day: 'Wed', activeUsers: 680 },
+      { day: 'Thu', activeUsers: 700 },
+      { day: 'Fri', activeUsers: 750 },
+      { day: 'Sat', activeUsers: 580 },
       { day: 'Sun', activeUsers: 520 }
     ]
   };
@@ -79,16 +66,15 @@ export const getQuitPlanStatistics = () => {
 // Get content statistics
 export const getContentStatistics = () => {
   return {
-    totalBlogs: 145,
-    totalBadges: 32,
-    mostPopularBlogs: [
-      { id: 1, title: '10 Tips for Quitting Smoking', views: 4520, author: 'Dr. Sarah Johnson' },
-      { id: 2, title: 'Understanding Nicotine Withdrawal', views: 3820, author: 'Dr. Michael Chen' },
-      { id: 3, title: 'The Benefits of Quitting Smoking', views: 3650, author: 'Nguyễn Thị Hương' },
-      { id: 4, title: 'Mindfulness Techniques for Cravings', views: 3120, author: 'Dr. Sarah Johnson' },
-      { id: 5, title: 'How to Support Someone Quitting', views: 2870, author: 'Lê Văn C' }
+    totalBlogs: 157,
+    totalBadges: 25,
+    totalResources: 63,
+    topBlogs: [
+      { id: 1, title: 'First Week of Quitting: What to Expect', views: 1250, likes: 320 },
+      { id: 2, title: '10 Strategies for Managing Cravings', views: 980, likes: 275 },
+      { id: 3, title: 'The Benefits of Quitting: Month by Month', views: 870, likes: 230 }
     ],
-    mostEarnedBadges: [
+    topBadges: [
       { id: 1, name: '1-Week Milestone', count: 450 },
       { id: 2, name: '1-Month Milestone', count: 320 },
       { id: 3, name: 'Craving Fighter', count: 280 },
@@ -114,19 +100,66 @@ export const getCoachPerformance = () => {
   return [
     { id: 1, name: 'Dr. Sarah Johnson', rating: 4.9, members: 28, successRate: 92 },
     { id: 2, name: 'Dr. Michael Chen', rating: 4.7, members: 22, successRate: 86 },
-    { id: 3, name: 'Nguyễn Thị Hương', rating: 4.8, members: 25, successRate: 88 },
-    { id: 4, name: 'Dr. James Wilson', rating: 4.6, members: 18, successRate: 83 },
-    { id: 5, name: 'Emma Davis', rating: 4.5, members: 15, successRate: 80 }
+    { id: 3, name: 'Dr. James Wilson', rating: 4.8, members: 24, successRate: 90 },
+    { id: 4, name: 'Dr. Emily Davis', rating: 4.6, members: 18, successRate: 83 },
+    { id: 5, name: 'Dr. Robert Lee', rating: 4.5, members: 16, successRate: 80 }
   ];
 };
 
-// Get system alerts and issues
+// Get system alerts
 export const getSystemAlerts = () => {
   return [
-    { id: 1, type: 'warning', message: '3 coaches have not logged in for over 7 days', timestamp: '2025-06-15T10:30:00' },
-    { id: 2, type: 'error', message: 'Payment processing system reported errors on 2025-06-14', timestamp: '2025-06-15T09:15:00' },
-    { id: 3, type: 'info', message: 'System maintenance scheduled for 2025-06-18', timestamp: '2025-06-14T14:45:00' },
-    { id: 4, type: 'warning', message: '15 user reports require moderation', timestamp: '2025-06-14T11:20:00' },
-    { id: 5, type: 'success', message: 'Database backup completed successfully', timestamp: '2025-06-14T01:00:00' }
+    { id: 1, message: 'Server load is high (85%)', level: 'medium', date: '2025-06-16' },
+    { id: 2, message: 'Database backup completed successfully', level: 'low', date: '2025-06-16' },
+    { id: 3, message: '5 failed login attempts detected from IP 192.168.1.105', level: 'high', date: '2025-06-15' }
   ];
+};
+
+// Get detailed user stats
+export const getDetailedUserStats = () => {
+  return {
+    totalUsers: 1350,
+    activeUsers: 1120,
+    inactiveUsers: 230,
+    usersByRole: [
+      { role: 'Member', count: 1250, color: '#1890ff' },
+      { role: 'Coach', count: 45, color: '#52c41a' },
+      { role: 'Admin', count: 5, color: '#722ed1' },
+      { role: 'Guest', count: 50, color: '#faad14' }
+    ],
+    registrationsByMonth: [
+      { month: 'Jan', users: 75 },
+      { month: 'Feb', users: 85 },
+      { month: 'Mar', users: 92 },
+      { month: 'Apr', users: 78 },
+      { month: 'May', users: 120 },
+      { month: 'Jun', users: 87 }
+    ],
+    membershipStats: {
+      premium: 380,
+      standard: 720,
+      free: 250
+    }
+  };
+};
+
+// Get membership revenue data
+export const getMembershipRevenue = () => {
+  return {
+    revenueByMonth: [
+      { month: 'Jan', revenue: 4250 },
+      { month: 'Feb', revenue: 4820 },
+      { month: 'Mar', revenue: 5340 },
+      { month: 'Apr', revenue: 4750 },
+      { month: 'May', revenue: 6280 },
+      { month: 'Jun', revenue: 5120 }
+    ],
+    totalRevenue: 30560,
+    averageMonthlyGrowth: 8.3,
+    revenueByPlan: [
+      { plan: 'Premium Monthly', revenue: 15200, percentage: 49.7 },
+      { plan: 'Premium Annual', revenue: 9800, percentage: 32.1 },
+      { plan: 'Standard Monthly', revenue: 5560, percentage: 18.2 }
+    ]
+  };
 };

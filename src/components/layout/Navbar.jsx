@@ -55,7 +55,8 @@ const NavBar = () => {
 
     // Admin-specific links
     const adminLinks = [
-      { path: '/admin/dashboard', label: 'Admin Panel' }
+      { path: '/admin/dashboard', label: 'Admin Panel' },
+      { path: '/admin/coaches', label: 'Coach Management' } // Added Coach Management link
     ];
 
     // Determine which links to show based on user role
@@ -68,7 +69,7 @@ const NavBar = () => {
       } else if (user.role === 'coach') {
         links = [...coachLinks];
       } else if (user.role === 'admin') {
-        links = [...links, ...adminLinks];
+        links = [...adminLinks];
       }
     }
 

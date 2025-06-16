@@ -34,6 +34,7 @@ import BlogDetailPage from '../pages/blog/BlogDetailPage';
 
 // Admin components
 import AdminDashboard from './admin/AdminDashboard';
+import CoachManagement from './admin/CoachManagement';
 
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
@@ -188,6 +189,15 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['admin']}>
                     <AdminDashboard />
+                  </PrivateRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/coaches" 
+                element={
+                  <PrivateRoute allowedRoles={['admin']}>
+                    <CoachManagement />
                   </PrivateRoute>
                 } 
               />

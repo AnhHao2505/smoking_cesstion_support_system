@@ -7,6 +7,7 @@ import {
   Card, 
   Statistic, 
   Table, 
+  Avatar, 
   Tag, 
   Progress, 
   List, 
@@ -15,44 +16,58 @@ import {
   Divider,
   Badge,
   Tabs,
-  Alert,
-  Tooltip
+  Alert
 } from 'antd';
 import { 
   UserOutlined, 
-  TeamOutlined,
-  RiseOutlined,
-  DollarOutlined,
-  CheckCircleOutlined,
-  BarChartOutlined,
-  PieChartOutlined,
-  FileTextOutlined,
-  TrophyOutlined,
-  WarningOutlined,
+  TeamOutlined, 
+  CheckCircleOutlined, 
   StarOutlined,
-  ClockCircleOutlined
+  RiseOutlined,
+  FileTextOutlined,
+  DollarOutlined,
+  BellOutlined,
+  MedicineBoxOutlined,
+  TrophyOutlined
 } from '@ant-design/icons';
+import {
+  LineChart,
+  BarChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer
+} from 'recharts';
 import * as adminDashboardService from '../../services/adminDashboardService';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { getDetailedUserStats, getMembershipRevenue } from '../../services/adminDashboardService';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
 
 const AdminDashboard = () => {
-  const [systemOverview, setSystemOverview] = useState(null);
-  const [userStats, setUserStats] = useState(null);
-  const [quitPlanStats, setQuitPlanStats] = useState(null);
-  const [contentStats, setContentStats] = useState(null);
+  const [systemOverview, setSystemOverview] = useState({});
+  const [userStats, setUserStats] = useState({});
+  const [quitPlanStats, setQuitPlanStats] = useState({});
+  const [contentStats, setContentStats] = useState({});
   const [recentUsers, setRecentUsers] = useState([]);
   const [coachPerformance, setCoachPerformance] = useState([]);
   const [systemAlerts, setSystemAlerts] = useState([]);
+  const [detailedUserStats, setDetailedUserStats] = useState(null);
+  const [membershipRevenue, setMembershipRevenue] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAdminDashboardData = async () => {
       try {
-        // Get all dashboard data
+        // Fetch all admin dashboard data
         const overview = adminDashboardService.getSystemOverview();
         const users = adminDashboardService.getUserStatistics();
         const quitPlans = adminDashboardService.getQuitPlanStatistics();
@@ -69,6 +84,14 @@ const AdminDashboard = () => {
         setRecentUsers(users_recent);
         setCoachPerformance(coaches);
         setSystemAlerts(alerts);
+
+        // Fetch additional data
+        const userStatsData = getDetailedUserStats();
+        const revenueData = getMembershipRevenue();
+        
+        setDetailedUserStats(userStatsData);
+        setMembershipRevenue(revenueData);
+        
         setLoading(false);
       } catch (error) {
         console.error("Error fetching admin dashboard data:", error);
@@ -110,23 +133,18 @@ const AdminDashboard = () => {
       title: 'Role',
       dataIndex: 'role',
       key: 'role',
-      render: (role) => {
-        let color = 'blue';
-        if (role === 'Admin') color = 'purple';
-        if (role === 'Coach') color = 'green';
-        if (role === 'Guest') color = 'orange';
-        
-        return <Tag color={color}>{role}</Tag>;
-      }
+      render: (role) => (
+        <Tag color={role === 'Member' ? 'blue' : role === 'Coach' ? 'green' : 'purple'}>
+          {role}
+        </Tag>
+      )
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        status === 'Active' ? 
-          <Badge status="success" text="Active" /> : 
-          <Badge status="default" text="Inactive" />
+        <Badge status={status === 'Active' ? 'success' : 'default'} text={status} />
       )
     },
     {
@@ -138,7 +156,7 @@ const AdminDashboard = () => {
       title: 'Action',
       key: 'action',
       render: (_, record) => (
-        <Space size="small">
+        <Space>
           <Button type="link" size="small">View</Button>
           <Button type="link" size="small">Edit</Button>
         </Space>
@@ -184,39 +202,44 @@ const AdminDashboard = () => {
       title: 'Action',
       key: 'action',
       render: (_, record) => (
-        <Space size="small">
-          <Button type="link" size="small">View Details</Button>
+        <Space>
+          <Button type="link" size="small">Details</Button>
+          <Button type="link" size="small">Contact</Button>
         </Space>
       )
     }
   ];
 
+  // Colors for pie chart
+  const COLORS = ['#1890ff', '#52c41a', '#722ed1', '#faad14'];
+
   return (
     <div className="dashboard admin-dashboard">
       <div className="container py-4">
-        <Title level={2} className="dashboard-title">Admin Dashboard</Title>
+        <Title level={2} className="page-title">System Dashboard</Title>
         
         {/* System Alerts */}
         {systemAlerts.length > 0 && (
-          <div className="system-alerts mb-4">
-            {systemAlerts.slice(0, 3).map(alert => (
-              <Alert
-                key={alert.id}
-                message={alert.message}
-                type={alert.type}
-                showIcon
-                className="mb-2"
-                action={
-                  <Button size="small" type="text">
-                    Details
-                  </Button>
-                }
+          <Alert
+            message={`You have ${systemAlerts.length} system alerts`}
+            description={
+              <List
+                size="small"
+                dataSource={systemAlerts.slice(0, 3)}
+                renderItem={item => (
+                  <List.Item>
+                    <Text type={item.level === 'high' ? 'danger' : item.level === 'medium' ? 'warning' : 'secondary'}>
+                      <BellOutlined style={{ marginRight: 8 }} />
+                      {item.message}
+                    </Text>
+                  </List.Item>
+                )}
               />
-            ))}
-            {systemAlerts.length > 3 && (
-              <Button type="link">View all {systemAlerts.length} alerts</Button>
-            )}
-          </div>
+            }
+            type="info"
+            showIcon
+            className="mb-4"
+          />
         )}
         
         {/* Overview Statistics */}
@@ -254,10 +277,25 @@ const AdminDashboard = () => {
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
               <Statistic 
+                title="Total Coaches"
+                value={systemOverview.totalCoaches}
+                prefix={<MedicineBoxOutlined />}
+                valueStyle={{ color: '#722ed1' }}
+              />
+              <div className="stat-footer">
+                <Text type="secondary">
+                  Average rating: {systemOverview.averageRating}
+                </Text>
+              </div>
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card className="stat-card">
+              <Statistic 
                 title="Total Revenue"
                 value={systemOverview.totalRevenue}
                 prefix={<DollarOutlined />}
-                valueStyle={{ color: '#722ed1' }}
+                valueStyle={{ color: '#eb2f96' }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
@@ -266,48 +304,157 @@ const AdminDashboard = () => {
               </div>
             </Card>
           </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card className="stat-card">
-              <Statistic 
-                title="Coaches"
-                value={systemOverview.totalCoaches}
-                prefix={<UserOutlined />}
-                valueStyle={{ color: '#faad14' }}
-              />
-              <div className="stat-footer">
-                <Text type="secondary">
-                  {systemOverview.averageRating}/5.0 avg rating
-                </Text>
-              </div>
-            </Card>
-          </Col>
         </Row>
         
-        {/* Main Dashboard Content */}
-        <Tabs defaultActiveKey="1" className="dashboard-tabs">
-          <TabPane tab={<span><TeamOutlined /> User Analytics</span>} key="1">
+        <Tabs defaultActiveKey="1" className="dashboard-tabs mt-4">
+          <TabPane tab="User Statistics" key="1">
             <Row gutter={[16, 16]}>
-              <Col xs={24} lg={12}>
-                <Card title="User Growth" className="chart-card">
+              <Col xs={24} md={12}>
+                <Card title="User Roles Distribution">
                   <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={userStats.userGrowth}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <RechartsTooltip />
+                    <PieChart>
+                      <Pie
+                        data={userStats.usersByRole || []}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={true}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="count"
+                      >
+                        {userStats.usersByRole && userStats.usersByRole.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [`${value} users`, 'Count']} />
                       <Legend />
-                      <Line type="monotone" dataKey="count" stroke="#1890ff" activeDot={{ r: 8 }} name="Users" />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Card>
+              </Col>
+              <Col xs={24} md={12}>
+                <Card title="User Activity (Last 7 Days)">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart
+                      data={userStats.userGrowth || []}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="day" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="activeUsers" stroke="#1890ff" activeDot={{ r: 8 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </Card>
               </Col>
-              
-              <Col xs={24} lg={12}>
-                <Card title="Users by Role" className="chart-card">
+              <Col xs={24}>
+                <Card title="Recent Users">
+                  <Table 
+                    dataSource={recentUsers} 
+                    columns={userColumns} 
+                    rowKey="id"
+                    pagination={{ pageSize: 5 }}
+                  />
+                </Card>
+              </Col>
+            </Row>
+          </TabPane>
+          
+          <TabPane tab="Quit Plan Statistics" key="2">
+            <Row gutter={[16, 16]}>
+              <Col xs={24} md={12}>
+                <Card title="Quit Plan Status">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={quitPlanStats.plansByStatus || []}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="status" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="count" fill="#1890ff" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Card>
+              </Col>
+              <Col xs={24} md={12}>
+                <Card title="Success Rate Trend">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart
+                      data={quitPlanStats.successRate || []}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="rate" stroke="#52c41a" activeDot={{ r: 8 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Card>
+              </Col>
+              <Col xs={24} md={12}>
+                <Card>
+                  <Statistic
+                    title="Average Plan Completion Time"
+                    value={quitPlanStats.avgCompletionTime}
+                    suffix="days"
+                    valueStyle={{ color: '#1890ff' }}
+                  />
+                  <Divider />
+                  <Title level={5}>Phase Distribution</Title>
+                  <div className="phase-distribution">
+                    {quitPlanStats.phaseDistribution && quitPlanStats.phaseDistribution.map((phase, index) => (
+                      <div key={index} className="phase-item">
+                        <Text>{phase.phase}</Text>
+                        <Progress 
+                          percent={Math.round((phase.count / quitPlanStats.phaseDistribution.reduce((acc, curr) => acc + curr.count, 0)) * 100)} 
+                          size="small" 
+                          status={index === quitPlanStats.phaseDistribution.length - 1 ? "success" : "active"}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </Col>
+              <Col xs={24} md={12}>
+                <Card title="Top Badges Earned">
+                  <List
+                    dataSource={contentStats.topBadges || []}
+                    renderItem={item => (
+                      <List.Item>
+                        <List.Item.Meta
+                          avatar={<TrophyOutlined style={{ fontSize: 24, color: '#faad14' }} />}
+                          title={item.name}
+                          description={`Earned by ${item.count} users`}
+                        />
+                        <Progress 
+                          percent={contentStats.topBadges ? 
+                            Math.round((item.count / contentStats.topBadges.reduce((acc, curr) => acc + curr.count, 0)) * 100) : 0} 
+                          size="small" 
+                        />
+                      </List.Item>
+                    )}
+                  />
+                </Card>
+              </Col>
+            </Row>
+          </TabPane>
+          
+          <TabPane tab="User Analytics" key="3">
+            <Row gutter={[16, 16]}>
+              <Col xs={24} md={12}>
+                <Card title="User Distribution by Role">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={userStats.usersByRole}
+                        data={detailedUserStats?.usersByRole || []}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
@@ -315,229 +462,113 @@ const AdminDashboard = () => {
                         fill="#8884d8"
                         dataKey="count"
                         nameKey="role"
-                        label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ role, count, percent }) => `${role}: ${(percent * 100).toFixed(0)}%`}
                       >
-                        {userStats.usersByRole.map((entry, index) => (
+                        {detailedUserStats?.usersByRole.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <RechartsTooltip />
+                      <Tooltip formatter={(value, name) => [`${value} users`, name]} />
                       <Legend />
                     </PieChart>
                   </ResponsiveContainer>
                 </Card>
               </Col>
               
-              <Col xs={24} lg={12}>
-                <Card title="User Activity (Daily)" className="chart-card">
+              <Col xs={24} md={12}>
+                <Card title="New User Registrations">
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={userStats.userActivity}>
+                    <BarChart
+                      data={detailedUserStats?.registrationsByMonth || []}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="day" />
+                      <XAxis dataKey="month" />
                       <YAxis />
-                      <RechartsTooltip />
+                      <Tooltip />
                       <Legend />
-                      <Bar dataKey="activeUsers" fill="#1890ff" name="Active Users" />
+                      <Bar dataKey="users" name="New Users" fill="#52c41a" />
                     </BarChart>
                   </ResponsiveContainer>
                 </Card>
               </Col>
               
-              <Col xs={24} lg={12}>
-                <Card title="Membership Distribution" className="chart-card">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={userStats.membershipDistribution}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="count"
-                        nameKey="type"
-                        label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      >
-                        <Cell key="cell-1" fill="#1890ff" />
-                        <Cell key="cell-2" fill="#52c41a" />
-                        <Cell key="cell-3" fill="#722ed1" />
-                      </Pie>
-                      <RechartsTooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
+              <Col xs={24} md={12}>
+                <Card title="Membership Distribution">
+                  <Row gutter={[16, 16]}>
+                    <Col span={8}>
+                      <Statistic 
+                        title="Premium"
+                        value={detailedUserStats?.membershipStats.premium || 0}
+                        valueStyle={{ color: '#722ed1' }}
+                      />
+                      <Progress 
+                        percent={detailedUserStats ? 
+                          (detailedUserStats.membershipStats.premium / detailedUserStats.totalUsers * 100).toFixed(1) : 0
+                        } 
+                        strokeColor="#722ed1" 
+                      />
+                    </Col>
+                    <Col span={8}>
+                      <Statistic 
+                        title="Standard"
+                        value={detailedUserStats?.membershipStats.standard || 0}
+                        valueStyle={{ color: '#1890ff' }}
+                      />
+                      <Progress 
+                        percent={detailedUserStats ? 
+                          (detailedUserStats.membershipStats.standard / detailedUserStats.totalUsers * 100).toFixed(1) : 0
+                        } 
+                        strokeColor="#1890ff" 
+                      />
+                    </Col>
+                    <Col span={8}>
+                      <Statistic 
+                        title="Free"
+                        value={detailedUserStats?.membershipStats.free || 0}
+                        valueStyle={{ color: '#52c41a' }}
+                      />
+                      <Progress 
+                        percent={detailedUserStats ? 
+                          (detailedUserStats.membershipStats.free / detailedUserStats.totalUsers * 100).toFixed(1) : 0
+                        } 
+                        strokeColor="#52c41a" 
+                      />
+                    </Col>
+                  </Row>
                 </Card>
               </Col>
-            </Row>
-            
-            <Card title="Recent Users" className="mb-4 mt-4">
-              <Table 
-                dataSource={recentUsers} 
-                columns={userColumns} 
-                rowKey="id"
-                pagination={{ pageSize: 5 }}
-              />
-            </Card>
-          </TabPane>
-          
-          <TabPane tab={<span><BarChartOutlined /> Quit Plan Analytics</span>} key="2">
-            <Row gutter={[16, 16]}>
-              <Col xs={24} lg={12}>
-                <Card title="Success Rate Trend" className="chart-card">
+              
+              <Col xs={24} md={12}>
+                <Card title="Revenue by Month">
                   <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={quitPlanStats.successRate}>
+                    <LineChart
+                      data={membershipRevenue?.revenueByMonth || []}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
-                      <RechartsTooltip />
+                      <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
                       <Legend />
-                      <Line type="monotone" dataKey="rate" stroke="#52c41a" activeDot={{ r: 8 }} name="Success Rate (%)" />
+                      <Line type="monotone" dataKey="revenue" name="Monthly Revenue" stroke="#eb2f96" activeDot={{ r: 8 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </Card>
               </Col>
-              
-              <Col xs={24} lg={12}>
-                <Card title="Plans by Status" className="chart-card">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={quitPlanStats.plansByStatus}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="count"
-                        nameKey="status"
-                        label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      >
-                        <Cell key="cell-1" fill="#52c41a" />
-                        <Cell key="cell-2" fill="#1890ff" />
-                        <Cell key="cell-3" fill="#faad14" />
-                      </Pie>
-                      <RechartsTooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </Card>
-              </Col>
-              
-              <Col xs={24} lg={12}>
-                <Card title="Phase Distribution" className="chart-card">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={quitPlanStats.phaseDistribution}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="phase" />
-                      <YAxis />
-                      <RechartsTooltip />
-                      <Legend />
-                      <Bar dataKey="count" fill="#722ed1" name="Users in Phase" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Card>
-              </Col>
-              
-              <Col xs={24} lg={12}>
-                <Card className="stat-card" style={{ height: '100%' }}>
-                  <div className="text-center" style={{ padding: '40px 0' }}>
-                    <Statistic 
-                      title="Average Plan Completion Time"
-                      value={quitPlanStats.avgCompletionTime}
-                      suffix="days"
-                      valueStyle={{ color: '#1890ff', fontSize: '32px' }}
-                      prefix={<ClockCircleOutlined />}
-                    />
-                    <div className="mt-4">
-                      <Progress percent={85} status="active" />
-                      <Text type="secondary">Program Effectiveness Score</Text>
-                    </div>
-                  </div>
-                </Card>
-              </Col>
             </Row>
-            
-            <Card title="Coach Performance" className="mb-4 mt-4">
-              <Table 
-                dataSource={coachPerformance} 
-                columns={coachColumns} 
-                rowKey="id"
-                pagination={{ pageSize: 5 }}
-              />
-            </Card>
           </TabPane>
           
-          <TabPane tab={<span><FileTextOutlined /> Content Management</span>} key="3">
+          <TabPane tab="Coach Performance" key="4">
             <Row gutter={[16, 16]}>
-              <Col xs={24} lg={12}>
-                <Card title="Most Popular Blog Posts" className="chart-card">
-                  <List
-                    itemLayout="horizontal"
-                    dataSource={contentStats.mostPopularBlogs}
-                    renderItem={item => (
-                      <List.Item>
-                        <List.Item.Meta
-                          title={item.title}
-                          description={
-                            <Space>
-                              <Text type="secondary">By {item.author}</Text>
-                              <Tag color="blue">{item.views} views</Tag>
-                            </Space>
-                          }
-                        />
-                        <Space>
-                          <Button type="text" size="small">View</Button>
-                          <Button type="text" size="small">Edit</Button>
-                        </Space>
-                      </List.Item>
-                    )}
-                  />
-                </Card>
-              </Col>
-              
-              <Col xs={24} lg={12}>
-                <Card title="Most Earned Badges" className="chart-card">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={contentStats.mostEarnedBadges} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={150} />
-                      <RechartsTooltip />
-                      <Legend />
-                      <Bar dataKey="count" fill="#faad14" name="Users Earned" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Card>
-              </Col>
-              
               <Col xs={24}>
-                <Card title="Content Overview" className="mb-4">
-                  <Row gutter={[16, 16]}>
-                    <Col xs={24} md={8}>
-                      <Statistic 
-                        title="Total Blog Posts"
-                        value={contentStats.totalBlogs}
-                        prefix={<FileTextOutlined />}
-                      />
-                      <Button type="link">Manage Blogs</Button>
-                    </Col>
-                    <Col xs={24} md={8}>
-                      <Statistic 
-                        title="Total Badges"
-                        value={contentStats.totalBadges}
-                        prefix={<TrophyOutlined />}
-                      />
-                      <Button type="link">Manage Badges</Button>
-                    </Col>
-                    <Col xs={24} md={8}>
-                      <Statistic 
-                        title="User Generated Content"
-                        value={contentStats.totalBlogs + 320}
-                        prefix={<TeamOutlined />}
-                      />
-                      <Button type="link">Moderation Queue</Button>
-                    </Col>
-                  </Row>
+                <Card title="Coach Performance Overview">
+                  <Table 
+                    dataSource={coachPerformance} 
+                    columns={coachColumns} 
+                    rowKey="id"
+                    pagination={{ pageSize: 5 }}
+                  />
                 </Card>
               </Col>
             </Row>
