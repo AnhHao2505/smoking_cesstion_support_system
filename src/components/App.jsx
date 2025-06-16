@@ -16,6 +16,17 @@ import RegisterPage from './auth/RegisterPage';
 
 // Dashboard pages
 import Dashboard from './dashboard/Dashboard';
+import CoachDashboard from './coach/CoachDashboard';
+import MemberDashboard from './member/MemberDashboard';
+
+// Member components
+import QuitProgressOverview from './member/QuitProgressOverview';
+import QuitPlanCreation from './member/QuitPlanCreation';
+import CoachScheduleManagement from './coach/CoachScheduleManagement';
+import MemberProfile from './member/MemberProfile';
+import QuitPlanDetail from './member/QuitPlanDetail';
+import DailyRecordForm from './member/DailyRecordForm';
+import AppointmentManagement from './member/AppointmentManagement';
 
 // Import blog pages
 import BlogListPage from '../pages/blog/BlogListPage';
@@ -84,23 +95,37 @@ const App = () => {
                 path="/member/dashboard" 
                 element={
                   <PrivateRoute allowedRoles={['member']}>
-                    {/* <MemberDashboard /> */}
+                    <MemberDashboard />
                   </PrivateRoute>
                 } 
               />
+              
+              <Route path="/member/quit-progress" element={<QuitProgressOverview />} />
+              
+              <Route path="/member/create-quit-plan" element={<QuitPlanCreation />} />
               
               {/* Coach Routes */}
               <Route 
                 path="/coach/dashboard" 
                 element={
-                  <PrivateRoute allowedRoles={['coach']}>
-                    <div className="container py-5">
-                      <h1>Coach Dashboard</h1>
-                      <p>Welcome to the coach dashboard!</p>
-                    </div>
-                  </PrivateRoute>
+                    <CoachDashboard />
+                  // <PrivateRoute allowedRoles={['coach']}>
+                  // </PrivateRoute>
                 } 
               />
+              <Route 
+                path="/coach/schedule" 
+                element={
+                    <CoachScheduleManagement />
+                  // <PrivateRoute allowedRoles={['coach']}>
+                  // </PrivateRoute>
+                } 
+              />
+
+              <Route path="/profile" element={<MemberProfile />} />
+              <Route path="/quit-plan" element={<QuitPlanDetail />} />
+              <Route path="/daily-record" element={<DailyRecordForm userId={101} />} />
+              <Route path="/coach/appointments" element={<AppointmentManagement />} />
               
               {/* Admin Routes */}
               <Route 

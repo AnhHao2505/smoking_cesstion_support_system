@@ -85,3 +85,166 @@
   font-size: 12px;
   text-align: center;
 }
+
+/* Coach Dashboard specific styles */
+.coach-dashboard .coach-profile-card {
+  background-color: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.coach-dashboard .dashboard-tabs {
+  margin-top: 16px;
+}
+
+.coach-dashboard .ant-tabs-nav {
+  margin-bottom: 16px;
+}
+
+.coach-dashboard .ant-list-item {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.coach-dashboard .ant-list-item:hover {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
+}
+
+.coach-dashboard .loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+}
+
+.coach-dashboard .bar-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 200px;
+  margin-top: 24px;
+}
+
+.coach-dashboard .bar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 50px;
+}
+
+.coach-dashboard .bar {
+  width: 30px;
+  background-color: #1890ff;
+  border-radius: 3px 3px 0 0;
+  margin-bottom: 8px;
+  transition: height 0.5s ease;
+}
+
+.coach-dashboard .bar-label {
+  font-weight: 500;
+}
+
+/* Member Dashboard specific styles */
+.member-dashboard .profile-card {
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+}
+
+.member-dashboard .profile-card:hover {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
+}
+
+.member-dashboard .ant-tabs-nav {
+  margin-bottom: 16px;
+}
+
+.member-dashboard .ant-list-item {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.member-dashboard .ant-list-item:hover {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
+}
+
+.member-dashboard .loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+}
+
+.member-dashboard .bar-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 200px;
+  margin-top: 24px;
+}
+
+.member-dashboard .bar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 50px;
+}
+
+.member-dashboard .bar {
+  width: 30px;
+  background-color: #1890ff;
+  border-radius: 3px 3px 0 0;
+  margin-bottom: 8px;
+  transition: height 0.5s ease;
+}
+
+.member-dashboard .bar-label {
+  font-weight: 500;
+}
+
+/* Schedule styles */
+.schedule-grid {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.schedule-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 10px;
+}
+
+.schedule-row {
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.coach-dashboard .ant-tabs-tab {
+  padding: 12px 16px;
+}
+
+.coach-dashboard .ant-checkbox-wrapper {
+  margin-left: 0;
+}
+
+.coach-dashboard .ant-list-item-meta-avatar {
+  margin-right: 16px;
+}

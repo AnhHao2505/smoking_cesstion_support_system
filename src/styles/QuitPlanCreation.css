@@ -1,0 +1,74 @@
+.quit-plan-creation .form-card {
+  max-width: 900px;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.quit-plan-creation .steps-content {
+  min-height: 400px;
+  padding: 20px 0;
+}
+
+.quit-plan-creation .step-content {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.quit-plan-creation .selected-coach-card {
+  margin-top: 20px;
+  background-color: #f9f9f9;
+}
+
+.quit-plan-creation .coach-info {
+  display: flex;
+  align-items: flex-start;
+}
+
+.quit-plan-creation .coach-details {
+  margin-left: 20px;
+  flex: 1;
+}
+
+.quit-plan-creation .coach-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quit-plan-creation .coach-name {
+  flex: 1;
+  margin: 0 10px;
+}
+
+.quit-plan-creation .phases-preview {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.quit-plan-creation .steps-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .quit-plan-creation .coach-info {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .quit-plan-creation .coach-details {
+    margin-left: 0;
+    margin-top: 15px;
+    text-align: center;
+  }
+}
