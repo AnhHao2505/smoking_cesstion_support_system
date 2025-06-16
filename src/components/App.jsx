@@ -32,6 +32,9 @@ import AppointmentManagement from './member/AppointmentManagement';
 import BlogListPage from '../pages/blog/BlogListPage';
 import BlogDetailPage from '../pages/blog/BlogDetailPage';
 
+// Admin components
+import AdminDashboard from './admin/AdminDashboard';
+
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = authService.isAuthenticated();
@@ -184,10 +187,7 @@ const App = () => {
                 path="/admin/dashboard" 
                 element={
                   <PrivateRoute allowedRoles={['admin']}>
-                    <div className="container py-5">
-                      <h1>Admin Dashboard</h1>
-                      <p>Administration panel</p>
-                    </div>
+                    <AdminDashboard />
                   </PrivateRoute>
                 } 
               />

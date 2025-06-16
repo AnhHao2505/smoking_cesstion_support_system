@@ -248,3 +248,34 @@
 .coach-dashboard .ant-list-item-meta-avatar {
   margin-right: 16px;
 }
+
+/* Add these styles for the admin dashboard */
+
+.admin-dashboard .dashboard-title {
+  margin-bottom: 24px;
+}
+
+.admin-dashboard .stat-card {
+  height: 100%;
+}
+
+.admin-dashboard .stat-footer {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.admin-dashboard .chart-card {
+  height: 100%;
+}
+
+.admin-dashboard .system-alerts {
+  margin-bottom: 24px;
+}
+
+.admin-dashboard .ant-statistic-title {
+  font-size: 14px;
+}
+
+.admin-dashboard .ant-statistic-content {
+  font-size: 24px;
+}
