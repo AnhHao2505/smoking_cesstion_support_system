@@ -66,7 +66,7 @@ const FeaturedBlogs = () => {
                         <div className="featured-content">
                           <div className="featured-categories">
                             {featuredPosts[0].categories.slice(0, 2).map((category, index) => (
-                              <Tag color="blue" key={index}>{category}</Tag>
+                              <Tag color="blue" key={index}>{category.name}</Tag>
                             ))}
                           </div>
                           <Title level={3} className="featured-title">{featuredPosts[0].title}</Title>
@@ -110,7 +110,7 @@ const FeaturedBlogs = () => {
                       <div className="side-card-text">
                         <div className="side-card-categories">
                           {post.categories.slice(0, 1).map((category, index) => (
-                            <Tag color="blue" key={index}>{category}</Tag>
+                            <Tag color="blue" key={index}>{category.name}</Tag>
                           ))}
                         </div>
                         <Title level={4} className="side-card-title">{post.title}</Title>

@@ -115,7 +115,7 @@ const BlogDetail = () => {
             {/* Blog Categories */}
             <div className="blog-detail-categories">
               {post.categories.map((category, index) => (
-                <Tag color="blue" key={index}>{category}</Tag>
+                <Tag color="blue" key={index}>{category.name}</Tag>
               ))}
             </div>
             
@@ -244,8 +244,8 @@ const BlogDetail = () => {
               <Title level={3}>Danh mục</Title>
               <div className="categories-tags">
                 {post.categories.map((category, index) => (
-                  <Link to={`/blog?category=${category}`} key={index}>
-                    <Tag color="blue" className="category-tag">{category}</Tag>
+                  <Link to={`/blog?category=${category.id}`} key={index}>
+                    <Tag color="blue" className="category-tag">{category.name}</Tag>
                   </Link>
                 ))}
               </div>

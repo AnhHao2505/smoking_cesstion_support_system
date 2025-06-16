@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Card, Row, Col, Divider, Tag, Space, Input, Select, Button, Empty } from 'antd';
 import { Link } from 'react-router-dom';
 import { SearchOutlined, ClockCircleOutlined, LikeOutlined, MessageOutlined, UserOutlined } from '@ant-design/icons';
-import { getBlogPosts } from '../../services/blogService';
+import { getAllBlogPosts } from '../../services/blogService';  // Change this line
 import '../../styles/BlogList.css';
 
 const { Title, Paragraph, Text } = Typography;
@@ -18,13 +18,17 @@ const BlogList = () => {
   
   useEffect(() => {
     // Get blog posts
-    const allPosts = getBlogPosts();
-    setPosts(allPosts);
-    setFilteredPosts(allPosts);
+    const fetchPosts = async () => {
+      const response = await getAllBlogPosts();
+      setPosts(response.posts);
+      setFilteredPosts(response.posts);
+      
+      // Extract unique categories from all posts
+      const uniqueCategories = [...new Set(response.posts.flatMap(post => post.categories.map(c => c.name)))];
+      setCategories(uniqueCategories);
+    };
     
-    // Extract unique categories from all posts
-    const uniqueCategories = [...new Set(allPosts.flatMap(post => post.categories))];
-    setCategories(uniqueCategories);
+    fetchPosts();
   }, []);
   
   // Handle search functionality
@@ -111,7 +115,7 @@ const BlogList = () => {
             >
               <Option value="all">Tất cả danh mục</Option>
               {categories.map(category => (
-                <Option key={category} value={category}>{category}</Option>
+                <Option value={category.id} key={category.id}>{category.name}</Option>
               ))}
             </Select>
           </Col>
@@ -156,7 +160,7 @@ const BlogList = () => {
                   >
                     <div className="blog-card-categories">
                       {post.categories.slice(0, 2).map((category, index) => (
-                        <Tag color="blue" key={index}>{category}</Tag>
+                        <Tag color="blue" key={index}>{category.name}</Tag>
                       ))}
                     </div>
                     <Title level={4} className="blog-card-title">{post.title}</Title>

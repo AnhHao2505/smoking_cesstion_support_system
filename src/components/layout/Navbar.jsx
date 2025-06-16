@@ -88,8 +88,8 @@ const NavBar = () => {
             </li>
             <li className="nav-item">
               <Link 
-                to="/articles" 
-                className={`nav-link ${location.pathname.startsWith('/articles') ? 'active fw-bold' : ''}`}
+                to="/blog" 
+                className={`nav-link ${location.pathname.startsWith('/blog') ? 'active fw-bold' : ''}`}
               >
                 Articles
               </Link>
