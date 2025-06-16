@@ -297,3 +297,126 @@ export const getHealthImprovementsTimeline = (userId) => {
     improvements: improvements
   };
 };
+
+// Quit Progress Service - provides progress tracking data
+
+export const getQuitProgress = (userId) => {
+  return {
+    user_id: 101,
+    quit_plan_id: 201,
+    smoke_free_stats: {
+      days_smoke_free: 45,
+      cigarettes_avoided: 450,
+      money_saved: 225,
+      current_streak: 12,
+      longest_streak: 15,
+      next_health_milestone: {
+        name: "Improved Circulation",
+        days_remaining: 15
+      }
+    },
+    daily_records_summary: {
+      records: [
+        {
+          record_id: 501,
+          date: "2025-05-15",
+          daily_cigarette_consumed: 0,
+          stress_level: 4,
+          cravings_intensity: 3,
+          overall_health: "good",
+          physical_symptoms: "None reported",
+          mental_wellbeing_score: 8
+        },
+        {
+          record_id: 502,
+          date: "2025-05-14",
+          daily_cigarette_consumed: 0,
+          stress_level: 5,
+          cravings_intensity: 4,
+          overall_health: "normal",
+          physical_symptoms: "Slight headache in the morning",
+          mental_wellbeing_score: 7
+        },
+        {
+          record_id: 503,
+          date: "2025-05-13",
+          daily_cigarette_consumed: 1,
+          stress_level: 7,
+          cravings_intensity: 6,
+          overall_health: "poor",
+          physical_symptoms: "Irritability, trouble sleeping",
+          mental_wellbeing_score: 5
+        }
+      ],
+      weeklyAverages: {
+        avg_stress: 5.3,
+        avg_cravings: 4.1,
+        cigarette_free_days: 6,
+        health_distribution: {
+          good: 2,
+          normal: 3,
+          poor: 2,
+          very_poor: 0
+        }
+      }
+    },
+    health_improvements: {
+      quit_date: "2025-04-01",
+      days_since_quit: 45,
+      improvements: [
+        {
+          title: "Improved Blood Oxygen Levels",
+          description: "Your blood oxygen levels have returned to normal",
+          days_from_quit: 1,
+          achieved: true,
+          achieved_date: "2025-04-02"
+        },
+        {
+          title: "Improved Sense of Taste and Smell",
+          description: "Your senses of taste and smell have begun to improve",
+          days_from_quit: 3,
+          achieved: true,
+          achieved_date: "2025-04-04"
+        },
+        {
+          title: "Nicotine Eliminated from Body",
+          description: "Nicotine has been eliminated from your body",
+          days_from_quit: 5,
+          achieved: true,
+          achieved_date: "2025-04-06"
+        },
+        {
+          title: "Improved Circulation",
+          description: "Your circulation has started to improve",
+          days_from_quit: 14,
+          achieved: true,
+          achieved_date: "2025-04-15"
+        },
+        {
+          title: "Improved Lung Function",
+          description: "Your lung function has begun to improve",
+          days_from_quit: 30,
+          achieved: true,
+          achieved_date: "2025-05-01"
+        },
+        {
+          title: "Reduced Risk of Heart Attack",
+          description: "Your risk of heart attack has begun to drop",
+          days_from_quit: 60,
+          achieved: false
+        }
+      ]
+    }
+  };
+};
+
+export const addDailyRecord = (userId, recordData) => {
+  console.log("Adding daily record for user", userId, "with data:", recordData);
+  
+  // In a real app, this would call an API
+  return {
+    success: true,
+    message: "Daily record added successfully",
+    record_id: Math.floor(Math.random() * 1000) + 500
+  };
+};

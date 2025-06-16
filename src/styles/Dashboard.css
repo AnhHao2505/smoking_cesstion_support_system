@@ -212,3 +212,39 @@
 .member-dashboard .bar-label {
   font-weight: 500;
 }
+
+/* Schedule styles */
+.schedule-grid {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.schedule-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 10px;
+}
+
+.schedule-row {
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.coach-dashboard .ant-tabs-tab {
+  padding: 12px 16px;
+}
+
+.coach-dashboard .ant-checkbox-wrapper {
+  margin-left: 0;
+}
+
+.coach-dashboard .ant-list-item-meta-avatar {
+  margin-right: 16px;
+}

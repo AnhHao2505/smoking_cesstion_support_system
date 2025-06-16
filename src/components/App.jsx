@@ -22,6 +22,11 @@ import MemberDashboard from './member/MemberDashboard';
 // Member components
 import QuitProgressOverview from './member/QuitProgressOverview';
 import QuitPlanCreation from './member/QuitPlanCreation';
+import CoachScheduleManagement from './coach/CoachScheduleManagement';
+import MemberProfile from './member/MemberProfile';
+import QuitPlanDetail from './member/QuitPlanDetail';
+import DailyRecordForm from './member/DailyRecordForm';
+import AppointmentManagement from './member/AppointmentManagement';
 
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
@@ -97,6 +102,19 @@ const App = () => {
                   // </PrivateRoute>
                 } 
               />
+              <Route 
+                path="/coach/schedule" 
+                element={
+                    <CoachScheduleManagement />
+                  // <PrivateRoute allowedRoles={['coach']}>
+                  // </PrivateRoute>
+                } 
+              />
+
+              <Route path="/profile" element={<MemberProfile />} />
+              <Route path="/quit-plan" element={<QuitPlanDetail />} />
+              <Route path="/daily-record" element={<DailyRecordForm userId={101} />} />
+              <Route path="/coach/appointments" element={<AppointmentManagement />} />
               
               {/* Admin Routes */}
               <Route 
