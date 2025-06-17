@@ -99,8 +99,10 @@ export const logout = () => {
 
 // Check if user is authenticated
 export const isAuthenticated = () => {
-  const token = localStorage.getItem('authToken');
-  return !!token;
+  // const token = localStorage.getItem('authToken');
+  // return !!token;
+  const user = getCurrentUser();
+  return user !== null && user !== undefined;
 };
 
 // Get current user

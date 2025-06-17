@@ -32,6 +32,10 @@ import AppointmentManagement from './member/AppointmentManagement';
 import BlogListPage from '../pages/blog/BlogListPage';
 import BlogDetailPage from '../pages/blog/BlogDetailPage';
 
+// Admin components
+import AdminDashboard from './admin/AdminDashboard';
+import CoachManagement from './admin/CoachManagement';
+
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = authService.isAuthenticated();
@@ -44,7 +48,7 @@ const PrivateRoute = ({ children, allowedRoles = [] }) => {
   
   // If roles are specified, check if the user has the required role
   if (allowedRoles.length > 0 && (!currentUser || !allowedRoles.includes(currentUser.role))) {
-    return <Navigate to="/" />;
+    return <Navigate to="/unauthorized" />;
   }
   
   return children;
@@ -63,15 +67,21 @@ const App = () => {
               <Route path="/about" element={<AboutPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/unauthorized" element={
+                <div className="container py-5 text-center">
+                  <h1>Unauthorized Access</h1>
+                  <p>You don't have permission to access this page.</p>
+                </div>
+              } />
               
-              {/* Blog Routes */}
+              {/* Blog Routes - Public but with different interactions based on auth */}
               <Route path="/blog" element={<BlogListPage />} />
               <Route path="/blog/featured" element={<BlogListPage featuredOnly={true} />} />
               <Route path="/blog/:id" element={<BlogDetailPage />} />
               <Route path="/blog/category/:categoryId" element={<BlogListPage />} />
               <Route path="/blog/author/:authorId" element={<BlogListPage />} />
               
-              {/* Protected Routes */}
+              {/* Authenticated Routes - Any authenticated user */}
               <Route 
                 path="/dashboard" 
                 element={
@@ -85,7 +95,7 @@ const App = () => {
                 path="/profile" 
                 element={
                   <PrivateRoute>
-                    {/* <ProfilePage /> */}
+                    <MemberProfile />
                   </PrivateRoute>
                 } 
               />
@@ -100,42 +110,94 @@ const App = () => {
                 } 
               />
               
-              <Route path="/member/quit-progress" element={<QuitProgressOverview />} />
+              <Route 
+                path="/member/quit-progress" 
+                element={
+                  <PrivateRoute allowedRoles={['member']}>
+                    <QuitProgressOverview />
+                  </PrivateRoute>
+                }
+              />
               
-              <Route path="/member/create-quit-plan" element={<QuitPlanCreation />} />
+              <Route 
+                path="/member/create-quit-plan" 
+                element={
+                  <PrivateRoute allowedRoles={['member']}>
+                    <QuitPlanCreation />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/quit-plan" 
+                element={
+                  <PrivateRoute allowedRoles={['member']}>
+                    <QuitPlanDetail />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/daily-record" 
+                element={
+                  <PrivateRoute allowedRoles={['member']}>
+                    <DailyRecordForm userId={101} />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/appointments" 
+                element={
+                  <PrivateRoute allowedRoles={['member']}>
+                    <AppointmentManagement />
+                  </PrivateRoute>
+                }
+              />
               
               {/* Coach Routes */}
               <Route 
                 path="/coach/dashboard" 
                 element={
+                  <PrivateRoute allowedRoles={['coach']}>
                     <CoachDashboard />
-                  // <PrivateRoute allowedRoles={['coach']}>
-                  // </PrivateRoute>
+                  </PrivateRoute>
                 } 
               />
+              
               <Route 
                 path="/coach/schedule" 
                 element={
+                  <PrivateRoute allowedRoles={['coach']}>
                     <CoachScheduleManagement />
-                  // <PrivateRoute allowedRoles={['coach']}>
-                  // </PrivateRoute>
+                  </PrivateRoute>
                 } 
               />
-
-              <Route path="/profile" element={<MemberProfile />} />
-              <Route path="/quit-plan" element={<QuitPlanDetail />} />
-              <Route path="/daily-record" element={<DailyRecordForm userId={101} />} />
-              <Route path="/coach/appointments" element={<AppointmentManagement />} />
+              
+              <Route 
+                path="/coach/appointments" 
+                element={
+                  <PrivateRoute allowedRoles={['coach']}>
+                    <AppointmentManagement />
+                  </PrivateRoute>
+                }
+              />
               
               {/* Admin Routes */}
               <Route 
                 path="/admin/dashboard" 
                 element={
                   <PrivateRoute allowedRoles={['admin']}>
-                    <div className="container py-5">
-                      <h1>Admin Dashboard</h1>
-                      <p>Administration panel</p>
-                    </div>
+                    <AdminDashboard />
+                  </PrivateRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/coaches" 
+                element={
+                  <PrivateRoute allowedRoles={['admin']}>
+                    <CoachManagement />
                   </PrivateRoute>
                 } 
               />

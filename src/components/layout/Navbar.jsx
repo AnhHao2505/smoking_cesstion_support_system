@@ -1,42 +1,98 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-// Remove custom CSS import
-// import '../../styles/Navbar.css';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import * as authService from '../../services/authService';
+import '../../styles/Navbar.css';
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // Close mobile menu when route changes
   useEffect(() => {
-    setIsOpen(false);
-  }, [location]);
+    // Check if user is authenticated
+    if (authService.isAuthenticated()) {
+      setUser(authService.getCurrentUser());
+    } else {
+      setUser(null);
+    }
+  }, [location]); // Re-check when location changes
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
-  // Function to check if user is logged in and get user data
-  const getUserData = () => {
-    const userData = localStorage.getItem('user');
-    return userData ? JSON.parse(userData) : null;
-  };
-
-  // Logout handler function
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    // Additional logout logic - redirect or refresh
-    window.location.reload();
+    authService.logout();
+    setUser(null);
+    navigate('/');
   };
 
-  // Component rendering logic
-  const renderAuthSection = () => {
-    const user = getUserData();
+  // Render navigation links based on user role
+  const renderNavLinks = () => {
+    // Public links available to all users
+    const publicLinks = [
+      { path: '/', label: 'Home' },
+      { path: '/blog', label: 'Articles' },
+      { path: '/about', label: 'About' },
+      { path: '/contact', label: 'Contact' }
+    ];
 
-    if (user && user.fullName) {
+    // Member-specific links
+    const memberLinks = [
+      { path: '/member/dashboard', label: 'Dashboard' },
+      { path: '/member/quit-progress', label: 'My Progress' },
+      { path: '/member/quit-plan', label: 'My Quit Plan' },
+      { path: '/member/appointments', label: 'Appointments' }
+    ];
+
+    // Coach-specific links
+    const coachLinks = [
+      { path: '/coach/dashboard', label: 'Dashboard' },
+      { path: '/coach/schedule', label: 'Schedule' },
+      { path: '/coach/appointments', label: 'Appointments' }
+    ];
+
+    // Admin-specific links
+    const adminLinks = [
+      { path: '/admin/dashboard', label: 'Admin Panel' },
+      { path: '/admin/coaches', label: 'Coach Management' } // Added Coach Management link
+    ];
+
+    // Determine which links to show based on user role
+    let links = [...publicLinks];
+
+    if (user) {
+      // Add role-specific links
+      if (user.role === 'member') {
+        links = [...links, ...memberLinks];
+      } else if (user.role === 'coach') {
+        links = [...coachLinks];
+      } else if (user.role === 'admin') {
+        links = [...adminLinks];
+      }
+    }
+
+    return links.map((link, index) => (
+      <li className="nav-item" key={index}>
+        <Link 
+          to={link.path} 
+          className={`nav-link ${location.pathname === link.path || location.pathname.startsWith(link.path + '/') ? 'active fw-bold' : ''}`}
+          onClick={() => setIsOpen(false)}
+        >
+          {link.label}
+        </Link>
+      </li>
+    ));
+  };
+
+  // Render authentication section (login/register buttons or user info)
+  const renderAuthSection = () => {
+    if (user) {
       return (
         <div className="d-flex align-items-center">
           <span className="me-3 text-white">{user.fullName}</span>
+          <Link to="/profile" className="btn btn-outline-light me-2">Profile</Link>
           <button onClick={handleLogout} className="btn btn-outline-danger">Logout</button>
         </div>
       );
@@ -55,6 +111,7 @@ const NavBar = () => {
       <div className="container">
         <Link to="/" className="navbar-brand d-flex align-items-center">
           <img src="/logo.svg" alt="Logo" height="32" className="me-2" />
+          <span>Smoking Cessation</span>
         </Link>
 
         <button 
@@ -70,46 +127,7 @@ const NavBar = () => {
 
         <div className={`collapse navbar-collapse ${isOpen ? 'show' : ''}`} id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-            <li className="nav-item">
-              <Link 
-                to="/" 
-                className={`nav-link ${location.pathname === '/' ? 'active fw-bold' : ''}`}
-              >
-                Home
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link 
-                to="/dashboard" 
-                className={`nav-link ${location.pathname === '/dashboard' ? 'active fw-bold' : ''}`}
-              >
-                Dashboard
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link 
-                to="/blog" 
-                className={`nav-link ${location.pathname.startsWith('/blog') ? 'active fw-bold' : ''}`}
-              >
-                Articles
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link 
-                to="/community" 
-                className={`nav-link ${location.pathname.startsWith('/community') ? 'active fw-bold' : ''}`}
-              >
-                Community
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link 
-                to="/contact" 
-                className={`nav-link ${location.pathname === '/contact' ? 'active fw-bold' : ''}`}
-              >
-                Contact
-              </Link>
-            </li>
+            {renderNavLinks()}
           </ul>
           {renderAuthSection()}
         </div>
