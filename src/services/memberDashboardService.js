@@ -1,233 +1,188 @@
-// Mock data for member dashboard
+import axiosInstance from '../utils/axiosConfig';
+import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Get member profile data
-export const getMemberProfile = (userId) => {
-  return {
-    user_id: 101,
-    full_name: "Nguyễn Văn A",
-    email_address: "nguyenvana@example.com",
-    phone_number: "0901234567",
-    photo_url: "https://randomuser.me/api/portraits/men/22.jpg",
-    joined_date: "2025-03-15",
-    membership_status: "Premium"
-  };
+// Get member profile data - Updated to use new API endpoint
+export const getMemberProfile = async (memberId) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_PROFILE(memberId));
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error fetching member profile:', error);
+    // Return mock data for development - Updated structure to match new API
+    return {
+      id: 101,
+      name: "Nguyễn Văn A",
+      email: "nguyenvana@example.com", 
+      contactNumber: "0901234567",
+      planName: "Premium Quit Plan",
+      membershipExpiryDate: "2026-03-15",
+      premiumMembership: true
+    };
+  }
 };
 
 // Get quit plan data
-export const getQuitPlanData = (userId) => {
-  return {
-    quit_plan_id: 201,
-    coach_id: 1,
-    coach_name: "Dr. Sarah Johnson",
-    coach_photo: "https://randomuser.me/api/portraits/women/45.jpg",
-    start_date: "2025-04-01",
-    end_date: "2025-07-01",
-    days_smoke_free: 45,
-    cigarettes_avoided: 450,
-    money_saved: 225,
-    status: true, // active
-    current_phase: {
-      quit_phase_id: 3,
-      phase_name: "Action",
-      phase_order: 2,
-      start_date: "2025-04-15",
-      is_completed: false,
-      objective: "Implement strategies to manage cravings and maintain abstinence"
-    },
-    phases: [
-      {
-        quit_phase_id: 2,
-        phase_name: "Preparation",
-        phase_order: 1,
-        start_date: "2025-04-01",
-        end_date: "2025-04-14",
-        is_completed: true,
-        objective: "Prepare for quit day and gather necessary resources"
+export const getQuitPlanData = async (userId) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_QUIT_PLAN(userId));
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error fetching quit plan data:', error);
+    // Mock data
+    return {
+      quit_plan_id: 1,
+      start_date: "2024-01-15",
+      target_quit_date: "2024-02-01",
+      days_smoke_free: 147,
+      progress: 85,
+      current_phase: {
+        phase_id: 3,
+        phase_name: "Maintenance Phase",
+        description: "Focus on maintaining smoke-free lifestyle"
       },
-      {
-        quit_phase_id: 3,
-        phase_name: "Action",
-        phase_order: 2,
-        start_date: "2025-04-15",
-        end_date: "2025-05-30",
-        is_completed: false,
-        objective: "Implement strategies to manage cravings and maintain abstinence"
-      },
-      {
-        quit_phase_id: 4,
-        phase_name: "Maintenance",
-        phase_order: 3,
-        start_date: "2025-06-01",
-        end_date: "2025-07-01",
-        is_completed: false,
-        objective: "Strengthen commitment and develop long-term strategies"
+      next_milestone: {
+        milestone_name: "6 Months Smoke Free",
+        days_remaining: 33
       }
-    ],
-    strategies_to_use: "Nicotine replacement therapy, daily exercise, mindfulness meditation",
-    medications_to_use: "Nicotine patches, gum as needed",
-    medication_instructions: "Apply patch every morning. Use gum when experiencing strong cravings (max 8 pieces per day)."
-  };
+    };
+  }
 };
-
 // Get daily state records
-export const getDailyStateRecords = (userId, limit = 7) => {
-  return [
-    {
-      record_id: 501,
-      date: "2025-05-15",
-      daily_cigarette_consumed: 0,
-      stress_level: 4,
-      cravings_intensity: 3,
-      overall_health: "good",
-      physical_symptoms: "None reported",
-      mental_wellbeing_score: 8
-    },
-    {
-      record_id: 502,
-      date: "2025-05-14",
-      daily_cigarette_consumed: 0,
-      stress_level: 5,
-      cravings_intensity: 4,
-      overall_health: "good",
-      physical_symptoms: "Slight headache in the morning",
-      mental_wellbeing_score: 7
-    },
-    {
-      record_id: 503,
-      date: "2025-05-13",
-      daily_cigarette_consumed: 1,
-      stress_level: 7,
-      cravings_intensity: 8,
-      overall_health: "normal",
-      physical_symptoms: "Irritability, restlessness",
-      mental_wellbeing_score: 5
-    },
-    {
-      record_id: 504,
-      date: "2025-05-12",
-      daily_cigarette_consumed: 0,
-      stress_level: 4,
-      cravings_intensity: 5,
-      overall_health: "good",
-      physical_symptoms: "None reported",
-      mental_wellbeing_score: 7
-    },
-    {
-      record_id: 505,
-      date: "2025-05-11",
-      daily_cigarette_consumed: 0,
-      stress_level: 3,
-      cravings_intensity: 4,
-      overall_health: "good",
-      physical_symptoms: "None reported",
-      mental_wellbeing_score: 8
-    }
-  ];
+export const getDailyStateRecords = async (userId, limit = 7) => {
+  try {
+    const response = await axiosInstance.get(
+      API_ENDPOINTS.DAILY_RECORDS.GET_BY_MEMBER(userId),
+      { params: { limit } }
+    );
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error fetching daily state records:', error);
+    // Mock data
+    return [
+      {
+        record_id: 1,
+        date: "2024-06-26",
+        smoking_urge_level: 2,
+        mood_level: 4,
+        stress_level: 3,
+        notes: "Feeling good today, minor cravings after lunch"
+      },
+      {
+        record_id: 2, 
+        date: "2024-06-25",
+        smoking_urge_level: 3,
+        mood_level: 3,
+        stress_level: 4,
+        notes: "Stressful day at work, but managed without smoking"
+      }
+    ];
+  }
 };
 
 // Get earned badges
-export const getEarnedBadges = (userId) => {
-  return [
-    {
-      badge_id: 1,
-      badge_name: "First Week Milestone",
-      badge_description: "Successfully completed your first week smoke-free!",
-      earned_date: "2025-04-08"
-    },
-    {
-      badge_id: 3,
-      badge_name: "One Month Milestone",
-      badge_description: "Congratulations on one month of being smoke-free!",
-      earned_date: "2025-05-01"
-    },
-    {
-      badge_id: 5,
-      badge_name: "Money Saver",
-      badge_description: "Saved over $100 by not buying cigarettes",
-      earned_date: "2025-04-22"
-    }
-  ];
+export const getEarnedBadges = async (userId) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_BADGES(userId));
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error fetching earned badges:', error);
+    // Mock data
+    return [
+      {
+        badge_id: 1,
+        name: "Week Warrior",
+        description: "1 week smoke-free",
+        icon_url: "/images/badges/week-warrior.png",
+        earned_date: "2024-01-22"
+      },
+      {
+        badge_id: 2,
+        name: "Month Master", 
+        description: "1 month smoke-free",
+        icon_url: "/images/badges/month-master.png",
+        earned_date: "2024-02-15"
+      }
+    ];
+  }
 };
 
 // Get health improvements
-export const getHealthImprovements = (userId) => {
-  return [
-    {
-      improvement: "Blood pressure returning to normal",
-      achieved_on: "2025-04-03",
-      description: "Your circulation is improving as your blood pressure begins to drop."
-    },
-    {
-      improvement: "Carbon monoxide levels normalized",
-      achieved_on: "2025-04-02",
-      description: "The carbon monoxide in your blood has returned to normal levels."
-    },
-    {
-      improvement: "Improved sense of taste and smell",
-      achieved_on: "2025-04-10",
-      description: "Your nerve endings are regenerating, enhancing your senses of taste and smell."
-    },
-    {
-      improvement: "Easier breathing",
-      achieved_on: "2025-04-17",
-      description: "Your lung function is beginning to improve, making breathing easier."
-    },
-    {
-      improvement: "Improved circulation",
-      achieved_on: "2025-04-30",
-      description: "Your circulation has improved, making physical activities easier."
-    }
-  ];
+export const getHealthImprovements = async (userId) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_HEALTH_IMPROVEMENTS(userId));
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error fetching health improvements:', error);
+    // Mock data
+    return [
+      {
+        improvement_id: 1,
+        title: "Lung Function Improvement",
+        description: "Your lung capacity has improved by 15%",
+        improvement_date: "2024-06-20",
+        category: "respiratory"
+      },
+      {
+        improvement_id: 2,
+        title: "Better Sleep Quality",
+        description: "Sleep quality improved significantly", 
+        improvement_date: "2024-06-15",
+        category: "sleep"
+      }
+    ];
+  }
 };
 
 // Get upcoming reminders
-export const getUpcomingReminders = (userId) => {
-  return [
-    {
-      message: "Schedule weekly check-in with Dr. Johnson",
-      nextDate: "2025-05-18",
-      reminder_type: "appointment",
-      is_sent: false
-    },
-    {
-      message: "Refill nicotine patches",
-      nextDate: "2025-05-20",
-      reminder_type: "medication",
-      is_sent: false
-    },
-    {
-      message: "Log your daily progress",
-      nextDate: "2025-05-16",
-      reminder_type: "activity",
-      is_sent: false
-    }
-  ];
+export const getUpcomingReminders = async (userId) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_REMINDERS(userId));
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error fetching upcoming reminders:', error);
+    // Mock data
+    return [
+      {
+        reminder_id: 1,
+        title: "Daily Check-in",
+        description: "Record your daily smoking urges and mood",
+        scheduled_time: "2024-06-27T09:00:00Z",
+        reminder_type: "daily_record"
+      },
+      {
+        reminder_id: 2,
+        title: "Coach Appointment",
+        description: "Weekly coaching session with Dr. Smith",
+        scheduled_time: "2024-06-28T14:00:00Z", 
+        reminder_type: "appointment"
+      }
+    ];
+  }
 };
 
 // Get recent questions and answers
-export const getRecentQuestionsAnswers = (userId) => {
-  return [
-    {
-      question_id: 301,
-      question: "I've been experiencing increased cravings in the evening. Do you have any specific strategies?",
-      date_asked: "2025-05-14",
-      is_answered: true,
-      answer: {
-        answer_id: 401,
-        answer: "Evening cravings are common as this may be when you used to smoke most. Try taking a walk after dinner, practicing deep breathing exercises, or having healthy snacks like carrot sticks or sugar-free gum handy. Also, consider changing your evening routine temporarily to break associations with smoking.",
-        answered_date: "2025-05-15"
+export const getRecentQuestionsAnswers = async (userId) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_QUESTIONS_ANSWERS(userId));
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error fetching recent questions and answers:', error);
+    // Mock data
+    return [
+      {
+        qa_id: 1,
+        question: "How to deal with smoking cravings during social events?",
+        answer: "Try to focus on conversations, keep your hands busy with a drink or snack, and consider stepping away briefly if cravings become strong.",
+        asked_date: "2024-06-25",
+        answered_by: "Dr. Sarah Johnson"
+      },
+      {
+        qa_id: 2,
+        question: "Is it normal to feel anxious after quitting smoking?",
+        answer: "Yes, anxiety is a common withdrawal symptom. It typically improves within 2-4 weeks. Practice deep breathing and consider talking to your coach.",
+        asked_date: "2024-06-23", 
+        answered_by: "Dr. Michael Chen"
       }
-    },
-    {
-      question_id: 302,
-      question: "Is it normal to have vivid dreams about smoking?",
-      date_asked: "2025-05-08",
-      is_answered: true,
-      answer: {
-        answer_id: 402,
-        answer: "Yes, this is completely normal during the quitting process. Many people report dreams about smoking or relapsing. These dreams often reflect your brain processing the significant change. They typically decrease over time and aren't an indication that you actually want to smoke.",
-        answered_date: "2025-05-09"
-      }
-    }
-  ];
+    ];
+  }
 };

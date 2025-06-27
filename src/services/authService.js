@@ -1,111 +1,105 @@
-// Mock authentication service
+import axiosInstance from '../utils/axiosConfig';
+import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Mock user data
-const users = [
-  { 
-    id: 1, 
-    email: 'member@example.com', 
-    password: 'password123', 
-    fullName: 'John Doe',
-    role: 'member' 
-  },
-  { 
-    id: 2, 
-    email: 'coach@example.com', 
-    password: 'password123', 
-    fullName: 'Jane Smith',
-    role: 'coach' 
-  },
-  { 
-    id: 3, 
-    email: 'admin@example.com', 
-    password: 'password123', 
-    fullName: 'Admin User',
-    role: 'admin' 
-  },
-];
+// Login function - Updated to match exact API specification
+export const login = async (email, password) => {
+  try {
+    // Exact request body structure as specified in API
+    const requestBody = {
+      email: email,
+      password: password
+    };
 
-// Mock login function
-export const login = (email, password) => {
-  return new Promise((resolve, reject) => {
-    // Simulate API call delay
-    setTimeout(() => {
-      const user = users.find(u => u.email === email && u.password === password);
+    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.LOGIN, requestBody);
+    
+    const data = handleApiResponse(response);
+    
+    // Handle successful login response
+    if (data.success && data.token) {
+      // Store auth token and user data
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       
-      if (user) {
-        // Create a token (in a real app this would come from the server)
-        const token = `mock-jwt-token-${Date.now()}`;
-        
-        // In a real app we would store this token in localStorage or sessionStorage
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('user', JSON.stringify({
-          id: user.id,
-          email: user.email,
-          fullName: user.fullName,
-          role: user.role
-        }));
-        
-        resolve({
-          success: true,
-          user: {
-            id: user.id,
-            email: user.email,
-            fullName: user.fullName,
-            role: user.role
-          },
-          token
-        });
-      } else {
-        reject({ success: false, message: 'Invalid email or password' });
-      }
-    }, 800); // Simulate network delay
-  });
-};
-
-// Mock registration function
-export const register = (userData) => {
-  return new Promise((resolve, reject) => {
-    // Simulate API call delay
-    setTimeout(() => {
-      // Check if email already exists
-      if (users.some(u => u.email === userData.email)) {
-        reject({ success: false, message: 'Email already in use' });
-        return;
-      }
-      
-      // In a real app we would send this data to the server
-      // For now we'll just simulate a successful registration
-      resolve({
+      return {
         success: true,
-        message: 'Registration successful! You can now log in.'
-      });
-    }, 1000);
-  });
+        user: data.user,
+        token: data.token,
+        message: data.message || 'Login successful'
+      };
+    } else {
+      throw new Error(data.message || 'Login failed');
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    
+    // Handle different error response formats
+    let errorMessage = 'Login failed. Please check your credentials.';
+    
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    throw {
+      success: false,
+      message: errorMessage
+    };
+  }
 };
 
-// Mock logout function
-export const logout = () => {
-  return new Promise((resolve) => {
-    // Simulate API call delay
-    setTimeout(() => {
-      // Clear local storage
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      
-      resolve({ success: true, message: 'Logged out successfully' });
-    }, 300);
-  });
+// Registration function
+export const register = async (userData) => {
+  try {
+    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, userData);
+    const data = handleApiResponse(response);
+    
+    if (data.success) {
+      return {
+        success: true,
+        message: data.message || 'Registration successful! You can now log in.',
+        user: data.user
+      };
+    } else {
+      throw new Error(data.message || 'Registration failed');
+    }
+  } catch (error) {
+    console.error('Registration error:', error);
+    throw {
+      success: false,
+      message: error.message || 'Registration failed. Please try again.'
+    };
+  }
+};
+
+// Logout function
+export const logout = async () => {
+  try {
+    // Call logout endpoint to invalidate token on server
+    await axiosInstance.post(API_ENDPOINTS.AUTH.LOGOUT);
+  } catch (error) {
+    console.error('Logout API error:', error);
+    // Continue with local logout even if API call fails
+  } finally {
+    // Clear local storage regardless of API call result
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+  }
+  
+  return { 
+    success: true, 
+    message: 'Logged out successfully' 
+  };
 };
 
 // Check if user is authenticated
 export const isAuthenticated = () => {
-  // const token = localStorage.getItem('authToken');
-  // return !!token;
+  const token = localStorage.getItem('authToken');
   const user = getCurrentUser();
-  return user !== null && user !== undefined;
+  return !!token && !!user;
 };
 
-// Get current user
+// Get current user from localStorage
 export const getCurrentUser = () => {
   const userStr = localStorage.getItem('user');
   if (!userStr) return null;
@@ -113,6 +107,81 @@ export const getCurrentUser = () => {
   try {
     return JSON.parse(userStr);
   } catch (e) {
+    console.error('Error parsing user data:', e);
     return null;
+  }
+};
+
+// Verify token with server
+export const verifyToken = async () => {
+  try {
+    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.VERIFY_TOKEN);
+    const data = handleApiResponse(response);
+    return data.valid === true;
+  } catch (error) {
+    console.error('Token verification failed:', error);
+    return false;
+  }
+};
+
+// Refresh authentication token
+export const refreshToken = async () => {
+  try {
+    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.REFRESH_TOKEN);
+    const data = handleApiResponse(response);
+    
+    if (data.success && data.token) {
+      localStorage.setItem('authToken', data.token);
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+      return data.token;
+    }
+    throw new Error('Token refresh failed');
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    // Clear invalid tokens
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    throw error;
+  }
+};
+
+// Forgot password
+export const forgotPassword = async (email) => {
+  try {
+    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
+    const data = handleApiResponse(response);
+    return {
+      success: true,
+      message: data.message || 'Password reset email sent successfully'
+    };
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    throw {
+      success: false,
+      message: error.message || 'Failed to send password reset email'
+    };
+  }
+};
+
+// Reset password
+export const resetPassword = async (token, newPassword) => {
+  try {
+    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
+      token,
+      password: newPassword
+    });
+    const data = handleApiResponse(response);
+    return {
+      success: true,
+      message: data.message || 'Password reset successfully'
+    };
+  } catch (error) {
+    console.error('Reset password error:', error);
+    throw {
+      success: false,
+      message: error.message || 'Failed to reset password'
+    };
   }
 };

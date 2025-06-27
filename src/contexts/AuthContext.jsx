@@ -28,8 +28,11 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await authService.login(email, password);
-      setCurrentUser(response.user);
-      return response.user;
+      if (response.success) {
+        setCurrentUser(response.user);
+        return response.user;
+      }
+      throw new Error(response.message || 'Login failed');
     } catch (error) {
       throw error;
     }

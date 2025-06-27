@@ -1,45 +1,38 @@
-// Member Profile Service - provides member details
+import axiosInstance from '../utils/axiosConfig';
+import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-export const getMemberDetails = (userId) => {
-  // In a real app, this would fetch from API based on userId
-  return {
-    user_id: 101,
-    full_name: "Nguyễn Văn A",
-    email_address: "nguyenvana@example.com",
-    phone_number: "0901234567",
-    photo_url: "https://randomuser.me/api/portraits/men/22.jpg",
-    joined_date: "2025-03-15",
-    membership_status: "Premium",
-    membership: {
-      membership_id: 201,
-      start_date: "2025-03-15", 
-      end_date: "2026-03-15",
-      payment_method: "Credit Card",
-      auto_renew: true
-    },
-    earned_badges: [
-      {
-        badge_id: 1,
-        badge_name: "1-Week Milestone",
-        badge_description: "Completed one week without smoking",
-        earned_date: "2025-03-22"
-      },
-      {
-        badge_id: 3,
-        badge_name: "Health Improver",
-        badge_description: "Significant health improvements detected",
-        earned_date: "2025-04-10"
-      }
-    ]
-  };
+// Get member profile details - Updated to match new API response
+export const getMemberProfile = async (memberId) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_PROFILE(memberId));
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error fetching member profile:', error);
+    // Return mock data for development - Updated structure to match API
+    return {
+      id: memberId,
+      name: "Nguyễn Văn A",
+      email: "nguyenvana@example.com", 
+      contactNumber: "0901234567",
+      planName: "Premium Quit Plan",
+      membershipExpiryDate: "2026-03-15",
+      premiumMembership: true
+    };
+  }
 };
 
-export const updateMemberProfile = (userId, profileData) => {
-  console.log("Updating profile for user", userId, "with data:", profileData);
-  
-  // In a real app, this would call an API
-  return {
-    success: true,
-    message: "Profile updated successfully"
-  };
+export const updateMemberProfile = async (userId, profileData) => {
+  try {
+    const response = await axiosInstance.put(API_ENDPOINTS.MEMBERS.UPDATE_PROFILE(userId), profileData);
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error updating member profile:', error);
+    return handleApiError(error);
+  }
+};
+
+// Legacy function for backward compatibility - remove after full migration
+export const getMemberDetails = (memberId) => {
+  console.warn('getMemberDetails is deprecated, use getMemberProfile instead');
+  return getMemberProfile(memberId);
 };

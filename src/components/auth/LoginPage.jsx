@@ -18,20 +18,26 @@ const LoginPage = () => {
     setLoginError('');
     
     try {
-      const response = await authService.login(values.email, values.password);
+      // Extract email and password exactly as required by API
+      const { email, password } = values;
       
-      setIsLoading(false);
+      // Call login service with exact parameters
+      const response = await authService.login(email, password);
       
-      // Redirect based on user role
-      const { role } = response.user;
-      if (role === 'member') {
-        navigate('/member/dashboard');
-      } else if (role === 'coach') {
-        navigate('/coach/dashboard');
-      } else if (role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/');
+      if (response.success) {
+        const { user } = response;
+        const role = user.role?.toLowerCase();
+        
+        // Redirect based on user role
+        if (role === 'member') {
+          navigate('/member/dashboard');
+        } else if (role === 'coach') {
+          navigate('/coach/dashboard');
+        } else if (role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       setIsLoading(false);
@@ -81,8 +87,7 @@ const LoginPage = () => {
                 name="password"
                 label="Password"
                 rules={[
-                  { required: true, message: 'Please input your password!' },
-                  { min: 8, message: 'Password must be at least 8 characters' }
+                  { required: true, message: 'Please input your password!' }
                 ]}
               >
                 <Input.Password 

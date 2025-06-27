@@ -51,17 +51,19 @@ const MemberDashboard = () => {
   useEffect(() => {
     const fetchMemberDashboardData = async () => {
       try {
-        // Fetch all data in parallel
-        const profile = memberDashboardService.getMemberProfile(userId);
-        const planData = memberDashboardService.getQuitPlanData(userId);
-        const records = memberDashboardService.getDailyStateRecords(userId);
-        const earnedBadges = memberDashboardService.getEarnedBadges(userId);
-        const improvements = memberDashboardService.getHealthImprovements(userId);
-        const upcomingReminders = memberDashboardService.getUpcomingReminders(userId);
-        const recentQA = memberDashboardService.getRecentQuestionsAnswers(userId);
+        setLoading(true);
         
+        // Updated to use the new member profile structure
+        const profile = await memberDashboardService.getMemberProfile(userId);
+        const quitPlan = await memberDashboardService.getQuitPlanData(userId);
+        const records = await memberDashboardService.getDailyStateRecords(userId);
+        const earnedBadges = await memberDashboardService.getEarnedBadges(userId);
+        const improvements = await memberDashboardService.getHealthImprovements(userId);
+        const upcomingReminders = await memberDashboardService.getUpcomingReminders(userId);
+        const recentQA = await memberDashboardService.getRecentQuestionsAnswers(userId); // Fixed function name
+
         setMemberProfile(profile);
-        setQuitPlan(planData);
+        setQuitPlan(quitPlan);
         setDailyRecords(records);
         setBadges(earnedBadges);
         setHealthImprovements(improvements);
@@ -103,48 +105,45 @@ const MemberDashboard = () => {
   return (
     <div className="dashboard member-dashboard">
       <div className="container py-4">
-        {/* Member Profile Overview */}
+        {/* Member Profile Overview - Updated to use new field names */}
         <Card className="mb-4 profile-card">
           <Row gutter={[24, 24]} align="middle">
             <Col xs={24} md={6}>
               <div className="text-center">
                 <Avatar 
                   size={120} 
-                  src={memberProfile.photo_url} 
                   icon={<UserOutlined />} 
                 />
                 <div className="mt-3">
-                  <Tag color="blue">{memberProfile.membership_status} Member</Tag>
+                  <Tag color={memberProfile.premiumMembership ? "gold" : "blue"}>
+                    {memberProfile.premiumMembership ? 'Premium' : 'Basic'} Member
+                  </Tag>
                 </div>
               </div>
             </Col>
             <Col xs={24} md={18}>
-              <Title level={2}>{memberProfile.full_name}</Title>
-              <Text type="secondary">Member since {formatDate(memberProfile.joined_date)}</Text>
+              <Title level={2}>{memberProfile.name}</Title>
+              <Text type="secondary">Plan: {memberProfile.planName}</Text>
               
               <Row gutter={[16, 16]} className="mt-4">
                 <Col xs={24} sm={8}>
                   <Statistic 
-                    title="Days Smoke-Free"
+                    title="Days Smoke Free" 
                     value={quitPlan.days_smoke_free}
-                    prefix={<ClockCircleOutlined />}
-                    valueStyle={{ color: '#3f8600' }}
+                    suffix="days"
                   />
                 </Col>
                 <Col xs={24} sm={8}>
                   <Statistic 
-                    title="Cigarettes Avoided"
-                    value={quitPlan.cigarettes_avoided}
-                    prefix={<FireOutlined />}
-                    valueStyle={{ color: '#cf1322' }}
+                    title="Progress" 
+                    value={quitPlan.progress}
+                    suffix="%"
                   />
                 </Col>
                 <Col xs={24} sm={8}>
                   <Statistic 
-                    title="Money Saved ($)"
-                    value={quitPlan.money_saved}
-                    prefix={<DollarOutlined />}
-                    valueStyle={{ color: '#1890ff' }}
+                    title="Current Phase" 
+                    value={quitPlan.current_phase?.phase_name || 'Not Started'}
                   />
                 </Col>
               </Row>

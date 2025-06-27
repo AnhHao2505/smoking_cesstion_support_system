@@ -8,6 +8,7 @@
     "@craco/craco": "^7.1.0",
     "@popperjs/core": "^2.11.8",
     "antd": "^5.26.0",
+    "axios": "^1.10.0",
     "bootstrap": "^5.3.6",
     "craco-less": "^3.0.1",
     "formik": "^2.4.6",

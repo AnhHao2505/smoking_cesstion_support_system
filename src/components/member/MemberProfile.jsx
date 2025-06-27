@@ -5,9 +5,9 @@ import {
 } from 'antd';
 import { 
   UserOutlined, MailOutlined, PhoneOutlined, 
-  TrophyOutlined, EditOutlined, SaveOutlined
+  TrophyOutlined, EditOutlined, SaveOutlined, CrownOutlined
 } from '@ant-design/icons';
-import { getMemberDetails, updateMemberProfile } from '../../services/memberProfileService';
+import { getMemberProfile, updateMemberProfile } from '../../services/memberProfileService';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -18,28 +18,36 @@ const MemberProfile = () => {
   const [form] = Form.useForm();
   
   // In a real app, this would come from authentication context
-  const userId = 101;
+  const memberId = 101;
 
   useEffect(() => {
     const fetchMemberProfile = async () => {
       try {
-        const profile = getMemberDetails(userId);
-        setMemberProfile(profile);
-        setLoading(false);
-        // Initialize form with profile data
-        form.setFieldsValue({
-          full_name: profile.full_name,
-          email_address: profile.email_address,
-          phone_number: profile.phone_number
-        });
+        setLoading(true);
+        const profile = await getMemberProfile(memberId);
+        
+        if (profile) {
+          setMemberProfile(profile);
+          
+          // Initialize form with profile data - Updated field names
+          form.setFieldsValue({
+            name: profile.name,
+            email: profile.email,
+            contactNumber: profile.contactNumber
+          });
+        }
       } catch (error) {
         console.error("Error fetching member profile:", error);
+        message.error("Failed to load profile data");
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchMemberProfile();
-  }, [userId, form]);
+    if (memberId) {
+      fetchMemberProfile();
+    }
+  }, [memberId, form]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -48,7 +56,7 @@ const MemberProfile = () => {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      const response = await updateMemberProfile(userId, values);
+      const response = await updateMemberProfile(memberId, values);
       
       if (response.success) {
         message.success(response.message);
@@ -91,21 +99,26 @@ const MemberProfile = () => {
                 <div className="profile-avatar">
                   <Avatar 
                     size={120} 
-                    src={memberProfile.photo_url} 
                     icon={<UserOutlined />} 
                   />
+                  {memberProfile.premiumMembership && (
+                    <Badge 
+                      count={<CrownOutlined style={{ color: '#faad14' }} />} 
+                      offset={[-10, 10]}
+                    />
+                  )}
                 </div>
                 <div className="profile-info">
                   {isEditing ? (
                     <Form form={form} layout="vertical">
                       <Form.Item 
-                        name="full_name" 
+                        name="name" 
                         rules={[{ required: true, message: 'Please enter your name' }]}
                       >
                         <Input prefix={<UserOutlined />} placeholder="Full Name" />
                       </Form.Item>
                       <Form.Item 
-                        name="email_address" 
+                        name="email" 
                         rules={[
                           { required: true, message: 'Please enter your email' },
                           { type: 'email', message: 'Please enter a valid email' }
@@ -114,10 +127,10 @@ const MemberProfile = () => {
                         <Input prefix={<MailOutlined />} placeholder="Email Address" />
                       </Form.Item>
                       <Form.Item 
-                        name="phone_number" 
-                        rules={[{ required: true, message: 'Please enter your phone number' }]}
+                        name="contactNumber" 
+                        rules={[{ required: true, message: 'Please enter your contact number' }]}
                       >
-                        <Input prefix={<PhoneOutlined />} placeholder="Phone Number" />
+                        <Input prefix={<PhoneOutlined />} placeholder="Contact Number" />
                       </Form.Item>
                       <Button 
                         type="primary" 
@@ -130,7 +143,7 @@ const MemberProfile = () => {
                   ) : (
                     <>
                       <div className="profile-name-row">
-                        <Title level={2}>{memberProfile.full_name}</Title>
+                        <Title level={2}>{memberProfile.name}</Title>
                         <Button 
                           type="primary" 
                           icon={<EditOutlined />} 
@@ -140,17 +153,16 @@ const MemberProfile = () => {
                         </Button>
                       </div>
                       <Text type="secondary">
-                        <MailOutlined /> {memberProfile.email_address}
+                        <MailOutlined /> {memberProfile.email}
                       </Text>
                       <br />
                       <Text type="secondary">
-                        <PhoneOutlined /> {memberProfile.phone_number}
+                        <PhoneOutlined /> {memberProfile.contactNumber}
                       </Text>
                       <div className="profile-badges">
-                        <Tag color="blue">{memberProfile.membership_status} Member</Tag>
-                        <Text type="secondary">
-                          Member since {formatDate(memberProfile.joined_date)}
-                        </Text>
+                        <Tag color={memberProfile.premiumMembership ? "gold" : "blue"}>
+                          {memberProfile.premiumMembership ? 'Premium' : 'Basic'} Member
+                        </Tag>
                       </div>
                     </>
                   )}
@@ -164,21 +176,20 @@ const MemberProfile = () => {
                 <Col xs={24} sm={12}>
                   <Card className="detail-card">
                     <Statistic 
-                      title="Membership Valid Until" 
-                      value={formatDate(memberProfile.membership.end_date)}
+                      title="Current Plan" 
+                      value={memberProfile.planName}
                     />
-                    <Text type="secondary">
-                      Auto-renew: {memberProfile.membership.auto_renew ? 'Enabled' : 'Disabled'}
-                    </Text>
                   </Card>
                 </Col>
                 <Col xs={24} sm={12}>
                   <Card className="detail-card">
                     <Statistic 
-                      title="Payment Method" 
-                      value={memberProfile.membership.payment_method}
+                      title="Membership Expires" 
+                      value={formatDate(memberProfile.membershipExpiryDate)}
                     />
-                    <Button size="small" type="link">Update payment method</Button>
+                    <Tag color={memberProfile.premiumMembership ? "gold" : "blue"}>
+                      {memberProfile.premiumMembership ? 'Premium' : 'Basic'}
+                    </Tag>
                   </Card>
                 </Col>
               </Row>
@@ -186,26 +197,31 @@ const MemberProfile = () => {
           </Col>
 
           <Col xs={24} lg={8}>
-            <Card title="Earned Badges">
-              <List
-                itemLayout="horizontal"
-                dataSource={memberProfile.earned_badges}
-                renderItem={badge => (
-                  <List.Item>
-                    <List.Item.Meta
-                      avatar={<Avatar icon={<TrophyOutlined />} style={{ backgroundColor: '#faad14' }} />}
-                      title={badge.badge_name}
-                      description={
-                        <>
-                          <Text>{badge.badge_description}</Text>
-                          <br />
-                          <Text type="secondary">Earned on {formatDate(badge.earned_date)}</Text>
-                        </>
-                      }
-                    />
-                  </List.Item>
+            <Card title="Membership Status">
+              <div className="text-center">
+                {memberProfile.premiumMembership ? (
+                  <>
+                    <CrownOutlined style={{ fontSize: '48px', color: '#faad14' }} />
+                    <Title level={3}>Premium Member</Title>
+                    <Paragraph>
+                      You have access to all premium features including personalized coaching,
+                      advanced analytics, and priority support.
+                    </Paragraph>
+                  </>
+                ) : (
+                  <>
+                    <UserOutlined style={{ fontSize: '48px', color: '#1890ff' }} />
+                    <Title level={3}>Basic Member</Title>
+                    <Paragraph>
+                      Upgrade to Premium to unlock advanced features and get the most
+                      out of your quit smoking journey.
+                    </Paragraph>
+                    <Button type="primary" size="large">
+                      Upgrade to Premium
+                    </Button>
+                  </>
                 )}
-              />
+              </div>
             </Card>
           </Col>
         </Row>

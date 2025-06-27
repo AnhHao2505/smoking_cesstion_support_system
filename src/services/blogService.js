@@ -1,4 +1,7 @@
-// Mock data for blog posts
+import axiosInstance from '../utils/axiosConfig';
+import { API_ENDPOINTS, handleApiResponse, handleApiError, buildUrlWithParams } from '../utils/apiEndpoints';
+
+// Mock data for blog posts (keeping for fallback during API transition)
 const mockBlogPosts = [
   {
     post_id: 1,

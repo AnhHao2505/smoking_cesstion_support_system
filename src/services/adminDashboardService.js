@@ -1,4 +1,7 @@
-// Mock data for admin dashboard
+import axiosInstance from '../utils/axiosConfig';
+import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
+
+// Mock data for admin dashboard (keeping for fallback during API transition)
 
 // Get system overview stats
 export const getSystemOverview = () => {
