@@ -14,20 +14,25 @@ export const login = async (email, password) => {
     
     const data = handleApiResponse(response);
     
-    // Handle successful login response
-    if (data.success && data.token) {
+    // Handle successful login response based on the new format
+    if (data && data.token) {
+      // Create a basic user object from the email in the response
+      const user = {
+        email: data.email
+      };
+      
       // Store auth token and user data
       localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('user', JSON.stringify(user));
       
       return {
         success: true,
-        user: data.user,
+        user: user,
         token: data.token,
-        message: data.message || 'Login successful'
+        message: 'Login successful'
       };
     } else {
-      throw new Error(data.message || 'Login failed');
+      throw new Error('Login failed: Invalid response format');
     }
   } catch (error) {
     console.error('Login error:', error);
@@ -48,26 +53,45 @@ export const login = async (email, password) => {
   }
 };
 
-// Registration function
-export const register = async (userData) => {
+// Registration function - Updated to match new API specification
+export const register = async (name, email, password, contact_number) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, userData);
+    // Exact request body structure as specified in API
+    const requestBody = {
+      name: name,
+      email: email,
+      password: password,
+      contact_number: contact_number
+    };
+
+    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, requestBody);
     const data = handleApiResponse(response);
     
-    if (data.success) {
-      return {
-        success: true,
-        message: data.message || 'Registration successful! You can now log in.',
-        user: data.user
-      };
-    } else {
-      throw new Error(data.message || 'Registration failed');
-    }
+    // Successful registration
+    const result = {
+      success: true,
+      message: data.message || 'Registration successful. Please verify your email to activate your account.'
+    };
+    
+    // Redirect to login page
+    window.location.href = '/login';
+    
+    return result;
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // Handle different error response formats
+    let errorMessage = 'Registration failed. Please try again.';
+    
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     throw {
       success: false,
-      message: error.message || 'Registration failed. Please try again.'
+      message: errorMessage
     };
   }
 };

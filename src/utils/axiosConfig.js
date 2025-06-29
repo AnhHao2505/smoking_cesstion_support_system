@@ -30,11 +30,9 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
-    // Log successful response (remove in production)
-    console.log('Response received:', response.data);
     return response;
   },
   (error) => {
@@ -47,12 +45,12 @@ axiosInstance.interceptors.response.use(
       
       switch (status) {
         case 401:
-          // Unauthorized - clear token and redirect to login
-          if (window.location.pathname !== '/login') {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-            window.location.href = '/login';
-          }
+          // Unauthorized - only clear token, don't redirect automatically
+          console.error('Authentication failed:', data.message || 'Unauthorized access');
+          // Only clear auth data, let components handle the response
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          // Remove automatic redirect - let components handle this
           break;
         case 403:
           // Forbidden
