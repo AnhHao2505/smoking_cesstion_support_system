@@ -104,7 +104,7 @@ const App = () => {
               <Route 
                 path="/member/dashboard" 
                 element={
-                  <PrivateRoute allowedRoles={['member']}>
+                  <PrivateRoute allowedRoles={['MEMBER']}>
                     <MemberDashboard />
                   </PrivateRoute>
                 } 
@@ -113,7 +113,7 @@ const App = () => {
               <Route 
                 path="/member/quit-progress" 
                 element={
-                  <PrivateRoute allowedRoles={['member']}>
+                  <PrivateRoute allowedRoles={['MEMBER']}>
                     <QuitProgressOverview />
                   </PrivateRoute>
                 }
@@ -122,7 +122,7 @@ const App = () => {
               <Route 
                 path="/member/create-quit-plan" 
                 element={
-                  <PrivateRoute allowedRoles={['member']}>
+                  <PrivateRoute allowedRoles={['MEMBER']}>
                     <QuitPlanCreation />
                   </PrivateRoute>
                 }
@@ -131,7 +131,7 @@ const App = () => {
               <Route 
                 path="/member/quit-plan" 
                 element={
-                  <PrivateRoute allowedRoles={['member']}>
+                  <PrivateRoute allowedRoles={['MEMBER']}>
                     <QuitPlanDetail />
                   </PrivateRoute>
                 }
@@ -140,7 +140,7 @@ const App = () => {
               <Route 
                 path="/member/daily-record" 
                 element={
-                  <PrivateRoute allowedRoles={['member']}>
+                  <PrivateRoute allowedRoles={['MEMBER']}>
                     <DailyRecordForm userId={101} />
                   </PrivateRoute>
                 }
@@ -149,7 +149,7 @@ const App = () => {
               <Route 
                 path="/member/appointments" 
                 element={
-                  <PrivateRoute allowedRoles={['member']}>
+                  <PrivateRoute allowedRoles={['MEMBER']}>
                     <AppointmentManagement />
                   </PrivateRoute>
                 }
@@ -159,7 +159,7 @@ const App = () => {
               <Route 
                 path="/coach/dashboard" 
                 element={
-                  <PrivateRoute allowedRoles={['coach']}>
+                  <PrivateRoute allowedRoles={['COACH']}>
                     <CoachDashboard />
                   </PrivateRoute>
                 } 
@@ -168,7 +168,7 @@ const App = () => {
               <Route 
                 path="/coach/schedule" 
                 element={
-                  <PrivateRoute allowedRoles={['coach']}>
+                  <PrivateRoute allowedRoles={['COACH']}>
                     <CoachScheduleManagement />
                   </PrivateRoute>
                 } 
@@ -177,7 +177,7 @@ const App = () => {
               <Route 
                 path="/coach/appointments" 
                 element={
-                  <PrivateRoute allowedRoles={['coach']}>
+                  <PrivateRoute allowedRoles={['COACH']}>
                     <AppointmentManagement />
                   </PrivateRoute>
                 }
@@ -187,7 +187,7 @@ const App = () => {
               <Route 
                 path="/admin/dashboard" 
                 element={
-                  <PrivateRoute allowedRoles={['admin']}>
+                  <PrivateRoute allowedRoles={['ADMIN']}>
                     <AdminDashboard />
                   </PrivateRoute>
                 } 
@@ -196,7 +196,7 @@ const App = () => {
               <Route 
                 path="/admin/coaches" 
                 element={
-                  <PrivateRoute allowedRoles={['admin']}>
+                  <PrivateRoute allowedRoles={['ADMIN']}>
                     <CoachManagement />
                   </PrivateRoute>
                 } 

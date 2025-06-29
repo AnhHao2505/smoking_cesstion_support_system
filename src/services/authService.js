@@ -19,7 +19,10 @@ export const login = async (email, password) => {
       // Create a basic user object from the email in the response
       const user = {
         email: data.email,
-        userId: data.userId || null,      };
+        userId: data.userId || null,      
+        role: data.role || 'MEMBER', // Default to 'member' if no role provided
+        isPremiumMembership: data.isPremiumMembership || false,
+      };
       
       // Store auth token and user data
       localStorage.setItem('authToken', data.token);
