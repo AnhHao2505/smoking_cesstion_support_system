@@ -8,6 +8,7 @@ import {
   TrophyOutlined, EditOutlined, SaveOutlined, CrownOutlined
 } from '@ant-design/icons';
 import { getMemberProfile, updateMemberProfile } from '../../services/memberProfileService';
+import { getCurrentUser } from '../../services/authService';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -18,7 +19,12 @@ const MemberProfile = () => {
   const [form] = Form.useForm();
   
   // In a real app, this would come from authentication context
-  const memberId = 101;
+  const getMemberId = () => {
+    const user = getCurrentUser();
+    return user?.userId || null;
+  };
+
+  const memberId = getMemberId();
 
   useEffect(() => {
     const fetchMemberProfile = async () => {
@@ -57,19 +63,18 @@ const MemberProfile = () => {
     try {
       const values = await form.validateFields();
       const response = await updateMemberProfile(memberId, values);
-      
-      if (response.success) {
-        message.success(response.message);
-        setMemberProfile({
-          ...memberProfile,
-          ...values
-        });
+      console.log(response)
+      // Updated to handle response with data object
+      if (response) {
+        message.success("Profile updated successfully");
+        setMemberProfile(response);
         setIsEditing(false);
       } else {
-        message.error(response.message || "Failed to update profile");
+        message.error("Failed to update profile");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
+      message.error("An error occurred while saving your profile");
     }
   };
 

@@ -18,8 +18,8 @@ export const login = async (email, password) => {
     if (data && data.token) {
       // Create a basic user object from the email in the response
       const user = {
-        email: data.email
-      };
+        email: data.email,
+        userId: data.userId || null,      };
       
       // Store auth token and user data
       localStorage.setItem('authToken', data.token);
@@ -134,6 +134,12 @@ export const getCurrentUser = () => {
     console.error('Error parsing user data:', e);
     return null;
   }
+};
+
+// Get member ID from current user
+export const getMemberId = () => {
+  const user = getCurrentUser();
+  return user?.userId || null;
 };
 
 // Verify token with server
