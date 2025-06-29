@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Form, Input, Button, Checkbox, Typography, Row, Col, Card, Alert, Divider } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
@@ -12,6 +12,16 @@ const LoginPage = () => {
   const [loginError, setLoginError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [form] = Form.useForm();
+  const [testUsers, setTestUsers] = useState({});
+  useEffect(() => {
+    const fetchTestUsers = async () => {
+      const response = await authService.getTestUsers();
+      console.log(response)
+      setTestUsers(response || {});
+    };
+    
+    fetchTestUsers();
+  }, [])
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
@@ -132,16 +142,29 @@ const LoginPage = () => {
 
             <Divider>Demo Accounts</Divider>
             
-            <Alert
-              message={
-                <div>
-                  <p><strong>Member:</strong> member@example.com / password123</p>
-                  <p><strong>Coach:</strong> coach@example.com / password123</p>
-                  <p style={{ marginBottom: 0 }}><strong>Admin:</strong> admin@example.com / password123</p>
-                </div>
-              }
-              type="info"
-            />
+            {Object.keys(testUsers).length > 0 ? (
+              <Alert
+                message={
+                  <div>
+                    {testUsers.admin && (
+                      <p><strong>Admin:</strong> {testUsers.admin.email} / {testUsers.admin.password}</p>
+                    )}
+                    {testUsers.coach && (
+                      <p><strong>Coach:</strong> {testUsers.coach.email} / {testUsers.coach.password}</p>
+                    )}
+                    {testUsers.member_free && (
+                      <p><strong>Member (Free):</strong> {testUsers.member_free.email} / {testUsers.member_free.password}</p>
+                    )}
+                    {testUsers.member_premium && (
+                      <p style={{ marginBottom: 0 }}><strong>Member (Premium):</strong> {testUsers.member_premium.email} / {testUsers.member_premium.password}</p>
+                    )}
+                  </div>
+                }
+                type="info"
+              />
+            ) : (
+              <Alert message="Loading demo accounts..." type="info" />
+            )}
           </Card>
         </Col>
       </Row>

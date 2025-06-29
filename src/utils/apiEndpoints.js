@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
     VERIFY_TOKEN: '/auth/verify',
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
+    TEST_USERS: '/auth/get-testers', // For testing purposes
   },
 
   // User Management

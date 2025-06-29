@@ -215,3 +215,14 @@ export const resetPassword = async (token, newPassword) => {
     };
   }
 };
+
+// Test users endpoint for development
+export const getTestUsers = async () => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.AUTH.TEST_USERS);
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error fetching test users:', error);
+    throw handleApiError(error);
+  }
+};
