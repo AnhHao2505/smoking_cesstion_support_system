@@ -27,6 +27,7 @@ import MemberProfile from './member/MemberProfile';
 import QuitPlanDetail from './member/QuitPlanDetail';
 import DailyRecordForm from './member/DailyRecordForm';
 import AppointmentManagement from './member/AppointmentManagement';
+import CoachSelection from './member/CoachSelection';
 
 // Import blog pages
 import BlogListPage from '../pages/blog/BlogListPage';
@@ -35,6 +36,9 @@ import BlogDetailPage from '../pages/blog/BlogDetailPage';
 // Admin components
 import AdminDashboard from './admin/AdminDashboard';
 import CoachManagement from './admin/CoachManagement';
+import CoachList from './admin/CoachList';
+import CoachAssignment from './admin/CoachAssignment';
+import CoachPerformance from './admin/CoachPerformance';
 
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
@@ -155,6 +159,15 @@ const App = () => {
                 }
               />
               
+              <Route 
+                path="/member/choose-coach" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <CoachSelection />
+                  </PrivateRoute>
+                }
+              />
+              
               {/* Coach Routes */}
               <Route 
                 path="/coach/dashboard" 
@@ -197,9 +210,27 @@ const App = () => {
                 path="/admin/coaches" 
                 element={
                   <PrivateRoute allowedRoles={['ADMIN']}>
-                    <CoachManagement />
+                    <CoachList />
                   </PrivateRoute>
                 } 
+              />
+              
+              <Route 
+                path="/admin/coach-assignments" 
+                element={
+                  <PrivateRoute allowedRoles={['ADMIN']}>
+                    <CoachAssignment />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/admin/coach-performance" 
+                element={
+                  <PrivateRoute allowedRoles={['ADMIN']}>
+                    <CoachPerformance />
+                  </PrivateRoute>
+                }
               />
               
               {/* Fallback Route */}
