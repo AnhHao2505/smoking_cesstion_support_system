@@ -1,3 +1,6 @@
+import axiosInstance from '../utils/axiosConfig';
+import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
+
 // Mock data for quit plan creation
 
 // Get available coaches
@@ -103,15 +106,98 @@ export const getSuggestedMedications = () => {
   ];
 };
 
-// Create a new quit plan (mock implementation)
-export const createQuitPlan = (quitPlanData) => {
-  console.log("Creating new quit plan with data:", quitPlanData);
-  
-  // In a real app, this would make an API call
-  // For now, just return a success response with mock data
-  return {
-    success: true,
-    message: "Kế hoạch cai thuốc đã được tạo thành công!",
-    quit_plan_id: Math.floor(Math.random() * 1000) + 200
-  };
+// Create a new quit plan
+export const createQuitPlan = async (memberId, planData) => {
+  try {
+    const response = await axiosInstance.post(API_ENDPOINTS.QUIT_PLANS.CREATE, planData, {
+      params: { memberId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Update quit plan by coach
+export const updateQuitPlanByCoach = async (planId, planData) => {
+  try {
+    const response = await axiosInstance.put(API_ENDPOINTS.QUIT_PLANS.UPDATE, planData, {
+      params: { planId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Get newest quit plan of member
+export const getNewestQuitPlan = async (memberId) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.NEWEST, {
+      params: { memberId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Get old plans of member with pagination
+export const getOldPlansOfMember = async (memberId, page = 0, size = 10) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.MEMBER_OLD, {
+      params: { memberId, page, size }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Get all plans created by coach with pagination
+export const getAllPlanCreatedByCoach = async (coachId, page = 0, size = 10) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.COACH_CREATED, {
+      params: { coachId, page, size }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Disable quit plan (coach)
+export const disableQuitPlan = async (planId) => {
+  try {
+    const response = await axiosInstance.patch(API_ENDPOINTS.QUIT_PLANS.DISABLE, null, {
+      params: { planId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Member denies quit plan
+export const denyQuitPlan = async (planId) => {
+  try {
+    const response = await axiosInstance.patch(API_ENDPOINTS.QUIT_PLANS.DENY, null, {
+      params: { planId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Member accepts quit plan
+export const acceptQuitPlan = async (planId) => {
+  try {
+    const response = await axiosInstance.patch(API_ENDPOINTS.QUIT_PLANS.ACCEPT, null, {
+      params: { planId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
 };

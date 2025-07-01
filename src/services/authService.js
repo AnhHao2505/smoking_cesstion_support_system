@@ -198,18 +198,61 @@ export const forgotPassword = async (email) => {
   }
 };
 
-// Reset password
-export const resetPassword = async (token, newPassword) => {
+// Verify account with OTP
+export const verifyAccount = async (email, otpInput) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
-      token,
-      password: newPassword
+    const response = await axiosInstance.patch(API_ENDPOINTS.AUTH.VERIFY_ACCOUNT, null, {
+      params: { email, otpInput }
     });
-    const data = handleApiResponse(response);
-    return {
-      success: true,
-      message: data.message || 'Password reset successfully'
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Account verification error:', error);
+    throw {
+      success: false,
+      message: error.message || 'Account verification failed'
     };
+  }
+};
+
+// Send verification OTP
+export const sendVerifyOtp = async (email) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.AUTH.SEND_VERIFY_OTP, {
+      params: { email }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Send verify OTP error:', error);
+    throw {
+      success: false,
+      message: error.message || 'Failed to send verification OTP'
+    };
+  }
+};
+
+// Send reset password OTP
+export const sendResetOtp = async (email) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.AUTH.SEND_RESET_OTP, {
+      params: { email }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Send reset OTP error:', error);
+    throw {
+      success: false,
+      message: error.message || 'Failed to send reset OTP'
+    };
+  }
+};
+
+// Reset password with OTP - Updated to match new API
+export const resetPassword = async (email, otpInput, newPassword) => {
+  try {
+    const response = await axiosInstance.patch(API_ENDPOINTS.AUTH.RESET_PASSWORD, null, {
+      params: { email, otpInput, newPassword }
+    });
+    return handleApiResponse(response);
   } catch (error) {
     console.error('Reset password error:', error);
     throw {
@@ -219,13 +262,13 @@ export const resetPassword = async (token, newPassword) => {
   }
 };
 
-// Test users endpoint for development
-export const getTestUsers = async () => {
+// Get tester accounts
+export const getTesters = async () => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.AUTH.TEST_USERS);
+    const response = await axiosInstance.get(API_ENDPOINTS.AUTH.GET_TESTERS);
     return handleApiResponse(response);
   } catch (error) {
-    console.error('Error fetching test users:', error);
+    console.error('Error fetching testers:', error);
     throw handleApiError(error);
   }
 };

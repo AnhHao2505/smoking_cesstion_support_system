@@ -1,15 +1,19 @@
-// API Endpoints Configuration
+export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
     LOGIN: '/auth/login', // Updated to match new API endpoint
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
-    REFRESH_TOKEN: '/auth/refresh',
-    VERIFY_TOKEN: '/auth/verify',
+    VERIFY_TOKEN: '/auth/verify-token',
+    REFRESH_TOKEN: '/auth/refresh-token',
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
-    TEST_USERS: '/auth/get-testers', // For testing purposes
+    VERIFY_ACCOUNT: '/auth/verify-account',
+    SEND_VERIFY_OTP: '/auth/send-verify-otp',
+    SEND_RESET_OTP: '/auth/send-reset-otp',
+    TEST_USERS: '/auth/get-testers'
   },
 
   // User Management
@@ -177,8 +181,8 @@ export const handleApiResponse = (response) => {
 
 // Helper function to handle API errors
 export const handleApiError = (error) => {
-  if (error.response && error.response.data) {
-    throw error.response.data;
+  if (error.response?.data?.message) {
+    throw new Error(error.response.data.message);
   }
-  throw error;
+  throw new Error(error.message || 'An error occurred');
 };
