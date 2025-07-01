@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Card, Avatar, Typography, Row, Col, Statistic, Badge, 
-  List, Tag, Divider, Form, Input, Button, message, Modal
+  List, Tag, Divider, Form, Input, Button, message, Modal, Spin
 } from 'antd';
 import { 
   UserOutlined, MailOutlined, PhoneOutlined, 
@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import { getMemberProfile, updateMemberProfile } from '../../services/memberProfileService';
 import { getCurrentUser } from '../../services/authService';
+import { upgradeToPremium } from '../../services/userService';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -16,9 +17,10 @@ const MemberProfile = () => {
   const [memberProfile, setMemberProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [form] = Form.useForm();
   
-  // In a real app, this would come from authentication context
+  // Get member ID from current user
   const getMemberId = () => {
     const user = getCurrentUser();
     return user?.userId || null;
@@ -35,7 +37,7 @@ const MemberProfile = () => {
         if (profile) {
           setMemberProfile(profile);
           
-          // Initialize form with profile data - Updated field names
+          // Initialize form with profile data
           form.setFieldsValue({
             name: profile.name,
             email: profile.email,
@@ -62,12 +64,18 @@ const MemberProfile = () => {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      const response = await updateMemberProfile(memberId, values);
-      console.log(response)
-      // Updated to handle response with data object
+      
+      // Only update name as per API specification
+      const response = await updateMemberProfile(values.name);
+      
       if (response) {
+        // Update local state with new name
+        setMemberProfile(prev => ({
+          ...prev,
+          name: values.name
+        }));
+        
         message.success("Profile updated successfully");
-        setMemberProfile(response);
         setIsEditing(false);
       } else {
         message.error("Failed to update profile");
@@ -78,18 +86,49 @@ const MemberProfile = () => {
     }
   };
 
+  const handleUpgradeToPremium = async () => {
+    try {
+      setUpgradeLoading(true);
+      const response = await upgradeToPremium();
+      
+      if (response) {
+        message.success("Successfully upgraded to Premium!");
+        // Update local state
+        setMemberProfile(prev => ({
+          ...prev,
+          premiumMembership: true
+        }));
+      }
+    } catch (error) {
+      console.error("Error upgrading to premium:", error);
+      message.error("Failed to upgrade to premium. Please try again.");
+    } finally {
+      setUpgradeLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    // Reset form to original values
+    form.setFieldsValue({
+      name: memberProfile.name,
+      email: memberProfile.email,
+      contactNumber: memberProfile.contactNumber
+    });
+    setIsEditing(false);
+  };
+
   if (loading || !memberProfile) {
     return (
-      <div className="loading-container">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+      <div className="loading-container" style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+        <div style={{ marginTop: '16px' }}>Loading profile...</div>
       </div>
     );
   }
 
   // Format date for display
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('vi-VN', options);
   };
@@ -129,21 +168,35 @@ const MemberProfile = () => {
                           { type: 'email', message: 'Please enter a valid email' }
                         ]}
                       >
-                        <Input prefix={<MailOutlined />} placeholder="Email Address" />
+                        <Input 
+                          prefix={<MailOutlined />} 
+                          placeholder="Email Address" 
+                          disabled
+                        />
                       </Form.Item>
                       <Form.Item 
                         name="contactNumber" 
                         rules={[{ required: true, message: 'Please enter your contact number' }]}
                       >
-                        <Input prefix={<PhoneOutlined />} placeholder="Contact Number" />
+                        <Input 
+                          prefix={<PhoneOutlined />} 
+                          placeholder="Contact Number" 
+                          disabled
+                        />
                       </Form.Item>
-                      <Button 
-                        type="primary" 
-                        icon={<SaveOutlined />} 
-                        onClick={handleSave}
-                      >
-                        Save Changes
-                      </Button>
+                      <div>
+                        <Button 
+                          type="primary" 
+                          icon={<SaveOutlined />} 
+                          onClick={handleSave}
+                          style={{ marginRight: 8 }}
+                        >
+                          Save Changes
+                        </Button>
+                        <Button onClick={handleCancel}>
+                          Cancel
+                        </Button>
+                      </div>
                     </Form>
                   ) : (
                     <>
@@ -162,7 +215,7 @@ const MemberProfile = () => {
                       </Text>
                       <br />
                       <Text type="secondary">
-                        <PhoneOutlined /> {memberProfile.contactNumber}
+                        <PhoneOutlined /> {memberProfile.contactNumber || 'Not provided'}
                       </Text>
                       <div className="profile-badges">
                         <Tag color={memberProfile.premiumMembership ? "gold" : "blue"}>
@@ -182,7 +235,7 @@ const MemberProfile = () => {
                   <Card className="detail-card">
                     <Statistic 
                       title="Current Plan" 
-                      value={memberProfile.planName}
+                      value={memberProfile.planName || 'Basic Plan'}
                     />
                   </Card>
                 </Col>
@@ -221,7 +274,12 @@ const MemberProfile = () => {
                       Upgrade to Premium to unlock advanced features and get the most
                       out of your quit smoking journey.
                     </Paragraph>
-                    <Button type="primary" size="large">
+                    <Button 
+                      type="primary" 
+                      size="large"
+                      loading={upgradeLoading}
+                      onClick={handleUpgradeToPremium}
+                    >
                       Upgrade to Premium
                     </Button>
                   </>

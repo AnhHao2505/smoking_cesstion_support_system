@@ -15,7 +15,9 @@ import {
   Space, 
   Badge, 
   Timeline,
-  Button
+  Button,
+  Spin,
+  message
 } from 'antd';
 import { 
   UserOutlined, 
@@ -31,6 +33,8 @@ import {
   CheckCircleOutlined
 } from '@ant-design/icons';
 import * as memberDashboardService from '../../services/memberDashboardService';
+import { getMyProfile } from '../../services/memberProfileService';
+import { getCurrentUser } from '../../services/authService';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -46,21 +50,22 @@ const MemberDashboard = () => {
   const [questionsAnswers, setQuestionsAnswers] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  const userId = 101; // In a real app, this would come from authentication context
+  const user = getCurrentUser();
+  const userId = user?.userId || 101; // Fallback for development
 
   useEffect(() => {
     const fetchMemberDashboardData = async () => {
       try {
         setLoading(true);
         
-        // Updated to use the new member profile structure
-        const profile = await memberDashboardService.getMemberProfile(userId);
+        // Use the new profile service
+        const profile = await getMyProfile();
         const quitPlan = await memberDashboardService.getQuitPlanData(userId);
         const records = await memberDashboardService.getDailyStateRecords(userId);
         const earnedBadges = await memberDashboardService.getEarnedBadges(userId);
         const improvements = await memberDashboardService.getHealthImprovements(userId);
         const upcomingReminders = await memberDashboardService.getUpcomingReminders(userId);
-        const recentQA = await memberDashboardService.getRecentQuestionsAnswers(userId); // Fixed function name
+        const recentQA = await memberDashboardService.getRecentQuestionsAnswers(userId);
 
         setMemberProfile(profile);
         setQuitPlan(quitPlan);
@@ -72,6 +77,7 @@ const MemberDashboard = () => {
         setLoading(false);
       } catch (error) {
         console.error("Error fetching member dashboard data:", error);
+        message.error("Failed to load dashboard data");
         setLoading(false);
       }
     };
@@ -81,16 +87,16 @@ const MemberDashboard = () => {
 
   if (loading || !quitPlan) {
     return (
-      <div className="dashboard loading-container">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+      <div className="dashboard loading-container" style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+        <div style={{ marginTop: '16px' }}>Loading dashboard...</div>
       </div>
     );
   }
 
   // Format date for display
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('vi-VN', options);
   };
@@ -105,7 +111,7 @@ const MemberDashboard = () => {
   return (
     <div className="dashboard member-dashboard">
       <div className="container py-4">
-        {/* Member Profile Overview - Updated to use new field names */}
+        {/* Member Profile Overview */}
         <Card className="mb-4 profile-card">
           <Row gutter={[24, 24]} align="middle">
             <Col xs={24} md={6}>
@@ -115,247 +121,239 @@ const MemberDashboard = () => {
                   icon={<UserOutlined />} 
                 />
                 <div className="mt-3">
-                  <Tag color={memberProfile.premiumMembership ? "gold" : "blue"}>
-                    {memberProfile.premiumMembership ? 'Premium' : 'Basic'} Member
+                  <Tag color={memberProfile?.premiumMembership ? "gold" : "blue"}>
+                    {memberProfile?.premiumMembership ? 'Premium' : 'Basic'} Member
                   </Tag>
                 </div>
               </div>
             </Col>
             <Col xs={24} md={18}>
-              <Title level={2}>{memberProfile.name}</Title>
-              <Text type="secondary">Plan: {memberProfile.planName}</Text>
-              
-              <Row gutter={[16, 16]} className="mt-4">
-                <Col xs={24} sm={8}>
-                  <Statistic 
-                    title="Days Smoke Free" 
-                    value={quitPlan.days_smoke_free}
-                    suffix="days"
-                  />
-                </Col>
-                <Col xs={24} sm={8}>
-                  <Statistic 
-                    title="Progress" 
-                    value={quitPlan.progress}
-                    suffix="%"
-                  />
-                </Col>
-                <Col xs={24} sm={8}>
-                  <Statistic 
-                    title="Current Phase" 
-                    value={quitPlan.current_phase?.phase_name || 'Not Started'}
-                  />
-                </Col>
-              </Row>
+              <Title level={2}>{memberProfile?.name || 'Member'}</Title>
+              <Paragraph>
+                <Text type="secondary">
+                  <strong>Email:</strong> {memberProfile?.email || 'N/A'}
+                </Text>
+                <br />
+                <Text type="secondary">
+                  <strong>Plan:</strong> {quitPlan.plan_name}
+                </Text>
+                <br />
+                <Text type="secondary">
+                  <strong>Start Date:</strong> {formatDate(quitPlan.start_date)}
+                </Text>
+                <br />
+                <Text type="secondary">
+                  <strong>Target Date:</strong> {formatDate(quitPlan.end_date)}
+                </Text>
+              </Paragraph>
             </Col>
           </Row>
         </Card>
-        
-        {/* Main Dashboard Content */}
+
+        {/* Progress Statistics */}
+        <Row gutter={[16, 16]} className="mb-4">
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Days Smoke-Free"
+                value={quitPlan.days_smoke_free}
+                prefix={<ClockCircleOutlined />}
+                valueStyle={{ color: '#3f8600' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Progress"
+                value={quitPlan.overall_progress}
+                suffix="%"
+                prefix={<RiseOutlined />}
+                valueStyle={{ color: '#1890ff' }}
+              />
+              <Progress percent={quitPlan.overall_progress} showInfo={false} />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Money Saved"
+                value={quitPlan.money_saved}
+                prefix={<DollarOutlined />}
+                suffix="$"
+                valueStyle={{ color: '#faad14' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Cigarettes Avoided"
+                value={quitPlan.cigarettes_avoided}
+                prefix={<FireOutlined />}
+                valueStyle={{ color: '#cf1322' }}
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Main Content */}
         <Row gutter={[16, 16]}>
-          {/* Quit Plan Progress */}
+          {/* Left Column */}
           <Col xs={24} lg={16}>
-            <Card title="Your Quit Plan Progress" className="mb-4">
+            {/* Quit Phase Progress */}
+            <Card title="Quit Plan Phases" className="mb-4">
               <Steps current={getCurrentPhaseIndex()} direction="vertical">
-                {quitPlan.phases.map((phase) => (
-                  <Step 
-                    key={phase.quit_phase_id}
+                {quitPlan.phases.map((phase, index) => (
+                  <Step
+                    key={index}
                     title={phase.phase_name}
                     description={
                       <div>
-                        <Paragraph>{phase.objective}</Paragraph>
+                        <Text>{phase.objective}</Text>
+                        <br />
                         <Text type="secondary">
-                          {phase.is_completed 
-                            ? `Completed on ${formatDate(phase.end_date)}` 
-                            : `Started on ${formatDate(phase.start_date)}`}
+                          {formatDate(phase.start_date)} - {formatDate(phase.end_date)}
                         </Text>
+                        {phase.phase_name === quitPlan.current_phase.phase_name && (
+                          <Progress 
+                            percent={phase.completion_percentage} 
+                            size="small" 
+                            style={{ marginTop: 8 }}
+                          />
+                        )}
                       </div>
                     }
-                    status={phase.is_completed ? 'finish' : phase.phase_name === quitPlan.current_phase.phase_name ? 'process' : 'wait'}
+                    status={
+                      phase.is_completed 
+                        ? 'finish' 
+                        : phase.phase_name === quitPlan.current_phase.phase_name 
+                          ? 'process' 
+                          : 'wait'
+                    }
                   />
                 ))}
               </Steps>
             </Card>
-            
-            {/* Strategies and Medications */}
-            <Card title="Your Quit Plan Details" className="mb-4">
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
-                  <Title level={5}>Strategies</Title>
-                  <Paragraph>
-                    {quitPlan.strategies_to_use}
-                  </Paragraph>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Title level={5}>Medications</Title>
-                  <Paragraph>
-                    {quitPlan.medications_to_use}
-                  </Paragraph>
-                  <Text type="secondary">{quitPlan.medication_instructions}</Text>
-                </Col>
-              </Row>
+
+            {/* Health Improvements */}
+            <Card title="Health Improvements" className="mb-4">
+              <Timeline>
+                {healthImprovements.slice(0, 3).map((improvement, index) => (
+                  <Timeline.Item 
+                    key={index}
+                    color={improvement.achieved ? 'green' : 'blue'}
+                  >
+                    <Text strong>{improvement.title}</Text>
+                    <br />
+                    <Text type="secondary">{improvement.description}</Text>
+                    {improvement.achieved && (
+                      <div>
+                        <Tag color="success" style={{ marginTop: 4 }}>
+                          Achieved on {formatDate(improvement.achieved_date)}
+                        </Tag>
+                      </div>
+                    )}
+                  </Timeline.Item>
+                ))}
+              </Timeline>
             </Card>
-            
-            {/* Daily Records */}
-            <Card title="Your Recent Daily Records" className="mb-4">
+
+            {/* Recent Daily Records */}
+            <Card title="Recent Daily Records" className="mb-4">
               <List
                 itemLayout="horizontal"
-                dataSource={dailyRecords}
+                dataSource={dailyRecords.slice(0, 3)}
                 renderItem={record => (
                   <List.Item>
                     <List.Item.Meta
-                      title={<Text strong>{formatDate(record.date)}</Text>}
+                      avatar={
+                        <Avatar 
+                          icon={record.smoked_today ? <FireOutlined /> : <CheckCircleOutlined />}
+                          style={{ 
+                            backgroundColor: record.smoked_today ? '#ff4d4f' : '#52c41a' 
+                          }}
+                        />
+                      }
+                      title={formatDate(record.record_date)}
                       description={
-                        <Space direction="vertical" style={{ width: '100%' }}>
-                          <Row gutter={[16, 8]}>
-                            <Col xs={12} md={6}>
-                              <Text type="secondary">Cigarettes: </Text>
-                              <Text>{record.daily_cigarette_consumed}</Text>
-                            </Col>
-                            <Col xs={12} md={6}>
-                              <Text type="secondary">Stress Level: </Text>
-                              <Progress percent={record.stress_level * 10} size="small" showInfo={false} />
-                              <Text>{record.stress_level}/10</Text>
-                            </Col>
-                            <Col xs={12} md={6}>
-                              <Text type="secondary">Cravings: </Text>
-                              <Progress percent={record.cravings_intensity * 10} size="small" showInfo={false} />
-                              <Text>{record.cravings_intensity}/10</Text>
-                            </Col>
-                            <Col xs={12} md={6}>
-                              <Text type="secondary">Health: </Text>
-                              <Tag color={
-                                record.overall_health === 'good' ? 'green' : 
-                                record.overall_health === 'normal' ? 'blue' : 
-                                record.overall_health === 'poor' ? 'orange' : 'red'
-                              }>{record.overall_health}</Tag>
-                            </Col>
-                          </Row>
-                          {record.physical_symptoms && (
-                            <Text type="secondary">Symptoms: {record.physical_symptoms}</Text>
-                          )}
-                        </Space>
+                        <div>
+                          <Text>Mood: {record.mood_level}/10</Text>
+                          <Divider type="vertical" />
+                          <Text>Stress: {record.stress_level}/10</Text>
+                          <Divider type="vertical" />
+                          <Text>
+                            {record.smoked_today 
+                              ? `Smoked ${record.cigarettes_smoked} cigarettes` 
+                              : 'Smoke-free day!'}
+                          </Text>
+                        </div>
                       }
                     />
                   </List.Item>
                 )}
               />
-              <div className="text-center mt-3">
-                <Button type="primary">Log Today's Progress</Button>
-              </div>
-            </Card>
-            
-            {/* Coach Q&A */}
-            <Card title="Your Questions & Answers" className="mb-4">
-              <List
-                itemLayout="vertical"
-                dataSource={questionsAnswers}
-                renderItem={qa => (
-                  <List.Item>
-                    <div className="qa-container">
-                      <div className="question">
-                        <Space align="start">
-                          <Avatar icon={<QuestionOutlined />} style={{ backgroundColor: '#1890ff' }} />
-                          <div>
-                            <Text strong>You asked on {formatDate(qa.date_asked)}:</Text>
-                            <Paragraph>{qa.question}</Paragraph>
-                          </div>
-                        </Space>
-                      </div>
-                      
-                      {qa.is_answered && (
-                        <div className="answer">
-                          <Space align="start">
-                            <Avatar 
-                              src={quitPlan.coach_photo} 
-                              icon={<UserOutlined />} 
-                            />
-                            <div>
-                              <Text strong>{quitPlan.coach_name} answered on {formatDate(qa.answer.answered_date)}:</Text>
-                              <Paragraph>{qa.answer.answer}</Paragraph>
-                            </div>
-                          </Space>
-                        </div>
-                      )}
-                    </div>
-                  </List.Item>
-                )}
-              />
-              <div className="text-center mt-3">
-                <Button type="primary">Ask a New Question</Button>
-              </div>
             </Card>
           </Col>
-          
-          {/* Sidebar */}
+
+          {/* Right Column */}
           <Col xs={24} lg={8}>
-            {/* Coach Information */}
-            <Card title="Your Coach" className="mb-4">
-              <div className="coach-card">
-                <Avatar 
-                  size={64} 
-                  src={quitPlan.coach_photo} 
-                  icon={<UserOutlined />} 
-                />
-                <Title level={4}>{quitPlan.coach_name}</Title>
-                <Button type="primary">Message Coach</Button>
-              </div>
-            </Card>
-            
-            {/* Badges */}
-            <Card title="Your Badges" className="mb-4">
+            {/* Achievements */}
+            <Card title="Recent Achievements" className="mb-4">
               <List
-                grid={{ gutter: 16, column: 2 }}
-                dataSource={badges}
+                itemLayout="horizontal"
+                dataSource={badges.slice(0, 3)}
                 renderItem={badge => (
                   <List.Item>
-                    <Card className="badge-card">
-                      <div className="text-center">
-                        <TrophyOutlined style={{ fontSize: '32px', color: '#faad14' }} />
-                        <Title level={5}>{badge.badge_name}</Title>
-                        <Text type="secondary">{formatDate(badge.earned_date)}</Text>
-                      </div>
-                    </Card>
+                    <List.Item.Meta
+                      avatar={<Avatar icon={<TrophyOutlined />} style={{ backgroundColor: '#faad14' }} />}
+                      title={badge.badge_name}
+                      description={formatDate(badge.earned_date)}
+                    />
                   </List.Item>
                 )}
               />
             </Card>
-            
-            {/* Health Improvements */}
-            <Card title="Your Health Improvements" className="mb-4">
-              <Timeline mode="left">
-                {healthImprovements.map((improvement, index) => (
-                  <Timeline.Item 
-                    key={index} 
-                    dot={<HeartOutlined style={{ fontSize: '16px' }} />} 
-                    color="red"
-                  >
-                    <Text strong>{improvement.improvement}</Text>
-                    <br />
-                    <Text type="secondary">{formatDate(improvement.achieved_on)}</Text>
-                    <Paragraph>{improvement.description}</Paragraph>
-                  </Timeline.Item>
-                ))}
-              </Timeline>
-            </Card>
-            
+
             {/* Upcoming Reminders */}
             <Card title="Upcoming Reminders" className="mb-4">
               <List
                 itemLayout="horizontal"
-                dataSource={reminders}
+                dataSource={reminders.slice(0, 3)}
                 renderItem={reminder => (
                   <List.Item>
                     <List.Item.Meta
-                      avatar={<BellOutlined style={{ fontSize: '24px', color: '#1890ff' }} />}
+                      avatar={<Avatar icon={<BellOutlined />} style={{ backgroundColor: '#1890ff' }} />}
                       title={reminder.message}
                       description={formatDate(reminder.nextDate)}
                     />
-                    <Tag color={
-                      reminder.reminder_type === 'appointment' ? 'blue' : 
-                      reminder.reminder_type === 'medication' ? 'purple' : 
-                      'green'
-                    }>{reminder.reminder_type}</Tag>
+                  </List.Item>
+                )}
+              />
+            </Card>
+
+            {/* Recent Q&A */}
+            <Card title="Recent Questions & Answers" className="mb-4">
+              <List
+                itemLayout="horizontal"
+                dataSource={questionsAnswers.slice(0, 2)}
+                renderItem={qa => (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={<Avatar icon={<QuestionOutlined />} style={{ backgroundColor: '#722ed1' }} />}
+                      title={qa.question}
+                      description={
+                        <div>
+                          <Text type="secondary">{formatDate(qa.created_date)}</Text>
+                          {qa.answer && (
+                            <>
+                              <br />
+                              <Text>{qa.answer.substring(0, 100)}...</Text>
+                            </>
+                          )}
+                        </div>
+                      }
+                    />
                   </List.Item>
                 )}
               />

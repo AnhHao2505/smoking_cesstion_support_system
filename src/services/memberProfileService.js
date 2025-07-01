@@ -23,8 +23,8 @@ export const getMemberProfile = async (memberId) => {
   }
 };
 
-// Update member profile (member only)
-export const updateMyProfile = async (name) => {
+// Update member profile (member only) - Updated to use correct function name
+export const updateMemberProfile = async (name) => {
   try {
     const response = await axiosInstance.patch(API_ENDPOINTS.PROFILE.MEMBER, null, {
       params: { name }
@@ -58,3 +58,6 @@ export const updateCoachProfile = async (coachId, profileData) => {
     throw handleApiError(error);
   }
 };
+
+// Legacy functions for backward compatibility
+export const updateMyProfile = updateMemberProfile;
