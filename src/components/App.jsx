@@ -58,6 +58,9 @@ const PrivateRoute = ({ children, allowedRoles = [] }) => {
   return children;
 };
 
+// Add import for QuitPlanApproval
+import QuitPlanApproval from './coach/QuitPlanApproval';
+
 const App = () => {
   return (
     <Router>
@@ -192,6 +195,16 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['COACH']}>
                     <AppointmentManagement />
+                  </PrivateRoute>
+                }
+              />
+              
+              {/* Add QuitPlanApproval route */}
+              <Route 
+                path="/coach/plan-approvals" 
+                element={
+                  <PrivateRoute allowedRoles={['COACH']}>
+                    <QuitPlanApproval />
                   </PrivateRoute>
                 }
               />

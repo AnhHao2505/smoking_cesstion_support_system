@@ -2,40 +2,65 @@ import React, { useState, useEffect } from 'react';
 import { 
   Card, Row, Col, Typography, Steps, Avatar, Tag, 
   Button, Descriptions, Space, Divider, Modal,
-  message, Form, Input, DatePicker, Select
+  message, Form, Input, DatePicker, Select, Progress,
+  Timeline, List, Statistic, Alert, Tooltip
 } from 'antd';
 import { 
   UserOutlined, EditOutlined, MedicineBoxOutlined,
-  CheckCircleOutlined, CalendarOutlined, MessageOutlined
+  CheckCircleOutlined, CalendarOutlined, MessageOutlined,
+  ClockCircleOutlined, TrophyOutlined, HeartOutlined,
+  FireOutlined, BarChartOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import { getQuitPlanDetail, updateQuitPlanDetail } from '../../services/quitPlanDetailService';
+import { getCurrentUser } from '../../services/authService';
+import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
 const { TextArea } = Input;
 const { Option } = Select;
 
-const QuitPlanDetail = ({ quitPlanId = 201 }) => {
+const QuitPlanDetail = ({ quitPlanId, allowEdit = true }) => {
   const [quitPlan, setQuitPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [progressStats, setProgressStats] = useState(null);
   const [form] = Form.useForm();
   
+  const user = getCurrentUser();
+  const canEdit = allowEdit && (user?.role === 'MEMBER' || user?.role === 'COACH');
+  
   useEffect(() => {
-    const fetchQuitPlanDetail = async () => {
-      try {
-        const quitPlanData = getQuitPlanDetail(quitPlanId);
-        setQuitPlan(quitPlanData);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching quit plan details:", error);
-        setLoading(false);
-      }
-    };
-
     fetchQuitPlanDetail();
+    fetchProgressStats();
   }, [quitPlanId]);
+
+  const fetchQuitPlanDetail = async () => {
+    try {
+      const quitPlanData = getQuitPlanDetail(quitPlanId);
+      setQuitPlan(quitPlanData);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching quit plan details:", error);
+      message.error("Failed to load quit plan details");
+      setLoading(false);
+    }
+  };
+
+  const fetchProgressStats = async () => {
+    // Mock progress statistics
+    const mockStats = {
+      days_completed: 45,
+      total_days: 90,
+      completion_percentage: 50,
+      current_streak: 12,
+      milestones_achieved: 3,
+      next_milestone: "2 Weeks Smoke Free",
+      days_to_next_milestone: 2
+    };
+    setProgressStats(mockStats);
+  };
 
   const handleEditPlan = () => {
     form.setFieldsValue({
@@ -59,19 +84,15 @@ const QuitPlanDetail = ({ quitPlanId = 201 }) => {
       const response = await updateQuitPlanDetail(quitPlanId, updateData);
       
       if (response.success) {
-        message.success(response.message);
+        message.success("Quit plan updated successfully");
         setEditModalVisible(false);
-        
-        // Update the state
-        setQuitPlan({
-          ...quitPlan,
-          ...updateData
-        });
+        setQuitPlan({ ...quitPlan, ...updateData });
       } else {
         message.error(response.message || "Failed to update quit plan");
       }
     } catch (error) {
       console.error("Error updating quit plan:", error);
+      message.error("Failed to update quit plan");
     }
   };
 
@@ -85,13 +106,11 @@ const QuitPlanDetail = ({ quitPlanId = 201 }) => {
     );
   }
 
-  // Format date for display
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('vi-VN', options);
   };
 
-  // Get current phase index for the Steps component
   const getCurrentPhaseIndex = () => {
     return quitPlan.quit_phases.findIndex(phase => 
       phase.phase_name === quitPlan.current_phase.phase_name
@@ -101,7 +120,59 @@ const QuitPlanDetail = ({ quitPlanId = 201 }) => {
   return (
     <div className="quit-plan-detail">
       <div className="container py-4">
-        <Title level={2}>Your Quit Plan</Title>
+        <Title level={2}>
+          <BarChartOutlined /> Quit Plan Details
+        </Title>
+        
+        {/* Progress Overview */}
+        {progressStats && (
+          <Card className="mb-4">
+            <Row gutter={[16, 16]}>
+              <Col xs={24} md={6}>
+                <Statistic
+                  title="Days Completed"
+                  value={progressStats.days_completed}
+                  suffix={`/ ${progressStats.total_days}`}
+                  prefix={<ClockCircleOutlined />}
+                  valueStyle={{ color: '#1890ff' }}
+                />
+                <Progress 
+                  percent={progressStats.completion_percentage} 
+                  strokeColor="#1890ff"
+                  size="small"
+                />
+              </Col>
+              <Col xs={24} md={6}>
+                <Statistic
+                  title="Current Streak"
+                  value={progressStats.current_streak}
+                  suffix="days"
+                  prefix={<FireOutlined />}
+                  valueStyle={{ color: '#52c41a' }}
+                />
+              </Col>
+              <Col xs={24} md={6}>
+                <Statistic
+                  title="Milestones Achieved"
+                  value={progressStats.milestones_achieved}
+                  prefix={<TrophyOutlined />}
+                  valueStyle={{ color: '#faad14' }}
+                />
+              </Col>
+              <Col xs={24} md={6}>
+                <div>
+                  <Text strong>Next Milestone:</Text>
+                  <br />
+                  <Text>{progressStats.next_milestone}</Text>
+                  <br />
+                  <Text type="secondary">
+                    In {progressStats.days_to_next_milestone} days
+                  </Text>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+        )}
         
         <Row gutter={[24, 24]}>
           <Col xs={24} lg={16}>
@@ -109,13 +180,15 @@ const QuitPlanDetail = ({ quitPlanId = 201 }) => {
             <Card 
               title="Quit Plan Overview" 
               extra={
-                <Button 
-                  type="primary" 
-                  icon={<EditOutlined />} 
-                  onClick={handleEditPlan}
-                >
-                  Edit Plan
-                </Button>
+                canEdit && (
+                  <Button 
+                    type="primary" 
+                    icon={<EditOutlined />} 
+                    onClick={handleEditPlan}
+                  >
+                    Edit Plan
+                  </Button>
+                )
               }
             >
               <Descriptions bordered column={{ xs: 1, sm: 2 }}>
@@ -205,24 +278,24 @@ const QuitPlanDetail = ({ quitPlanId = 201 }) => {
           <Col xs={24} lg={8}>
             {/* Coach Information */}
             <Card title="Your Coach">
-              <div className="coach-card">
+              <div className="coach-card text-center">
                 <Avatar 
                   size={80} 
                   src={quitPlan.coach_photo} 
                   icon={<UserOutlined />} 
                 />
-                <Title level={4}>{quitPlan.coach_name}</Title>
-                <Space direction="vertical" align="center">
-                  <Button type="primary" icon={<MessageOutlined />}>
+                <Title level={4} className="mt-2">{quitPlan.coach_name}</Title>
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <Button type="primary" icon={<MessageOutlined />} block>
                     Message Coach
                   </Button>
-                  <Button type="default" icon={<CalendarOutlined />}>
+                  <Button type="default" icon={<CalendarOutlined />} block>
                     Schedule Appointment
                   </Button>
                 </Space>
               </div>
             </Card>
-            
+
             {/* Quick Actions */}
             <Card title="Quick Actions" className="mt-4">
               <Space direction="vertical" style={{ width: '100%' }}>
@@ -243,7 +316,7 @@ const QuitPlanDetail = ({ quitPlanId = 201 }) => {
         {/* Edit Plan Modal */}
         <Modal
           title="Edit Quit Plan"
-          visible={editModalVisible}
+          open={editModalVisible}
           onCancel={() => setEditModalVisible(false)}
           footer={[
             <Button key="back" onClick={() => setEditModalVisible(false)}>
@@ -258,10 +331,7 @@ const QuitPlanDetail = ({ quitPlanId = 201 }) => {
             </Button>,
           ]}
         >
-          <Form
-            form={form}
-            layout="vertical"
-          >
+          <Form form={form} layout="vertical">
             <Form.Item
               name="strategies_to_use"
               label="Strategies"
