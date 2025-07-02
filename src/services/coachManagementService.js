@@ -68,3 +68,33 @@ export const disableCoachByAdmin = async (coachId) => {
     throw handleApiError(error);
   }
 };
+
+// Get coach specialties
+export const getCoachSpecialties = async () => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.COACHES.SPECIALTIES);
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Update coach information (admin only)
+export const updateCoach = async (coachId, coachData) => {
+  try {
+    const response = await axiosInstance.put(`${API_ENDPOINTS.COACHES.UPDATE}/${coachId}`, coachData);
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Delete coach (admin only)
+export const deleteCoach = async (coachId) => {
+  try {
+    const response = await axiosInstance.delete(`${API_ENDPOINTS.COACHES.DELETE}/${coachId}`);
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};

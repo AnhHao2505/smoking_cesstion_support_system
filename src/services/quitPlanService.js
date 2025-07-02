@@ -204,5 +204,15 @@ export const denyQuitPlan = async (planId) => {
   }
 };
 
+// Get quit plan by plan ID
+export const getQuitPlanByPlanId = async (planId) => {
+  try {
+    const response = await axiosInstance.get(`${API_ENDPOINTS.QUIT_PLANS.GET_BY_ID}/${planId}`);
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
 // Note: GET quit plan by ID is not available in the API specification
 // The available endpoints are only for getting newest, old plans, and coach created plans
