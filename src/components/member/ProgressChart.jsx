@@ -14,7 +14,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend,
   ResponsiveContainer, ComposedChart
 } from 'recharts';
-import { getCurrentUser } from '../../utils/auth';
+import { useAuth } from '../../contexts/AuthContext';
 import { getDailyStateRecords } from '../../services/memberDashboardService';
 
 const { Title, Text } = Typography;
@@ -22,6 +22,7 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 const ProgressChart = () => {
+  const { currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [records, setRecords] = useState([]);
   const [chartType, setChartType] = useState('line');
@@ -32,24 +33,39 @@ const ProgressChart = () => {
   ]);
   const [showTrend, setShowTrend] = useState(true);
 
-  const user = getCurrentUser();
-  const userId = user?.userId || 101;
+  const userId = currentUser?.userId;
 
   useEffect(() => {
-    fetchProgressData();
+    if (userId) {
+      fetchProgressData();
+    }
   }, [userId, dateRange]);
 
   const fetchProgressData = async () => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       
-      // Mock data for demonstration
-      const mockData = generateMockData();
-      setRecords(mockData);
+      // Try to get real data from the API first
+      const apiData = await getDailyStateRecords(userId);
+      if (apiData && apiData.length > 0) {
+        setRecords(apiData);
+      } else {
+        // Fallback to mock data for demonstration
+        const mockData = generateMockData();
+        setRecords(mockData);
+      }
       
       setLoading(false);
     } catch (error) {
       console.error('Error fetching progress data:', error);
+      // Fallback to mock data
+      const mockData = generateMockData();
+      setRecords(mockData);
       setLoading(false);
     }
   };

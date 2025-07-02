@@ -31,10 +31,15 @@ const SmokingStatusTracker = () => {
   const navigate = useNavigate();
 
   const user = getCurrentUser();
-  const userId = user?.userId || 101;
+  const userId = user?.userId;
 
   useEffect(() => {
-    fetchSmokingData();
+    if (userId) {
+      fetchSmokingData();
+    } else {
+      setLoading(false);
+      message.error('Please log in to access smoking status tracker');
+    }
   }, [userId]);
 
   useEffect(() => {

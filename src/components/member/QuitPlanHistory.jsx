@@ -57,11 +57,16 @@ const QuitPlanHistory = () => {
   });
 
   const user = getCurrentUser();
-  const userId = user?.userId || 101;
+  const userId = user?.userId;
 
   useEffect(() => {
-    fetchQuitPlanHistory();
-  }, [pagination.current, pagination.pageSize]);
+    if (userId) {
+      fetchQuitPlanHistory();
+    } else {
+      setLoading(false);
+      message.error('Please log in to access quit plan history');
+    }
+  }, [pagination.current, pagination.pageSize, userId]);
 
   useEffect(() => {
     filterPlans();

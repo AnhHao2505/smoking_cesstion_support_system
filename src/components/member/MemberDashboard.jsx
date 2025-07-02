@@ -34,13 +34,14 @@ import {
 } from '@ant-design/icons';
 import * as memberDashboardService from '../../services/memberDashboardService';
 import { getMyProfile } from '../../services/memberProfileService';
-import { getCurrentUser } from '../../services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
 
 const MemberDashboard = () => {
+  const { currentUser } = useAuth();
   const [memberProfile, setMemberProfile] = useState(null);
   const [quitPlan, setQuitPlan] = useState(null);
   const [dailyRecords, setDailyRecords] = useState([]);
@@ -50,11 +51,15 @@ const MemberDashboard = () => {
   const [questionsAnswers, setQuestionsAnswers] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  const user = getCurrentUser();
-  const userId = user?.userId || 101; // Fallback for development
+  const userId = currentUser?.userId;
 
   useEffect(() => {
     const fetchMemberDashboardData = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         
@@ -85,11 +90,21 @@ const MemberDashboard = () => {
     fetchMemberDashboardData();
   }, [userId]);
 
-  if (loading || !quitPlan) {
+  if (loading || !userId) {
     return (
       <div className="dashboard loading-container" style={{ textAlign: 'center', padding: '50px' }}>
         <Spin size="large" />
-        <div style={{ marginTop: '16px' }}>Loading dashboard...</div>
+        <div style={{ marginTop: '16px' }}>
+          {!userId ? 'Please log in to view dashboard' : 'Loading dashboard...'}
+        </div>
+      </div>
+    );
+  }
+
+  if (!quitPlan) {
+    return (
+      <div className="dashboard loading-container" style={{ textAlign: 'center', padding: '50px' }}>
+        <div>No quit plan found. Please create a quit plan first.</div>
       </div>
     );
   }

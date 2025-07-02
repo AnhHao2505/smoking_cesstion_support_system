@@ -11,7 +11,7 @@ import {
 } from '@ant-design/icons';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser } from '../../utils/auth';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   createMemberSmokingStatus, 
   updateLatestMemberSmokingStatus,
@@ -25,6 +25,7 @@ const { Step } = Steps;
 const { Option } = Select;
 
 const DailyCheckIn = () => {
+  const { currentUser } = useAuth();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -34,11 +35,15 @@ const DailyCheckIn = () => {
   const [showCongrats, setShowCongrats] = useState(false);
   const navigate = useNavigate();
   
-  const user = getCurrentUser();
-  const userId = user?.userId || 101;
+  const userId = currentUser?.userId;
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         const [planData, statusData] = await Promise.all([

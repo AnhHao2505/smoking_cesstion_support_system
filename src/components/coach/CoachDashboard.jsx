@@ -16,7 +16,9 @@ import {
   Divider,
   Badge,
   Tabs,
-  Rate
+  Rate,
+  message,
+  Spin
 } from 'antd';
 import { 
   UserOutlined, 
@@ -31,12 +33,15 @@ import {
   FireOutlined
 } from '@ant-design/icons';
 import * as coachDashboardService from '../../services/coachDashboardService';
+import { useAuth } from '../../contexts/AuthContext';
+import { getCurrentUser } from '../../services/authService';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
 
 const CoachDashboard = () => {
+  const { currentUser } = useAuth();
   const [coachProfile, setCoachProfile] = useState(null);
   const [assignedMembers, setAssignedMembers] = useState([]);
   const [unansweredQuestions, setUnansweredQuestions] = useState([]);
@@ -44,10 +49,16 @@ const CoachDashboard = () => {
   const [performanceMetrics, setPerformanceMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  const coachId = 1; // In a real app, this would come from authentication context
+  const coachId = currentUser?.userId;
 
   useEffect(() => {
     const fetchCoachDashboardData = async () => {
+      if (!coachId) {
+        setLoading(false);
+        message.error('Please log in as a coach to access this dashboard');
+        return;
+      }
+
       try {
         // Fetch all data in parallel
         const profile = coachDashboardService.getCoachProfile(coachId);
@@ -74,9 +85,7 @@ const CoachDashboard = () => {
   if (loading) {
     return (
       <div className="dashboard loading-container">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+        <Spin size="large" />
       </div>
     );
   }

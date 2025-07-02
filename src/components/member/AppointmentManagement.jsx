@@ -15,6 +15,7 @@ import {
   bookAppointment, 
   cancelAppointment 
 } from '../../services/appointmentService';
+import { useAuth } from '../../contexts/AuthContext';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
@@ -22,6 +23,7 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const AppointmentManagement = () => {
+  const { currentUser } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [availabilityData, setAvailabilityData] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -32,21 +34,27 @@ const AppointmentManagement = () => {
   const [form] = Form.useForm();
   const [cancelForm] = Form.useForm();
   
-  // In a real app, this would come from authentication context
-  const userId = 101;
-  const coachId = 1;
+  const userId = currentUser?.userId;
+  const coachId = currentUser?.coachId;
 
   useEffect(() => {
     const fetchAppointmentData = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const appointmentsData = getMemberAppointments(userId);
         setAppointments(appointmentsData);
         
-        // Get coach availability for next 7 days
-        const startDate = moment().format('YYYY-MM-DD');
-        const endDate = moment().add(7, 'days').format('YYYY-MM-DD');
-        const availabilitySlots = getCoachAvailability(coachId, startDate, endDate);
-        setAvailabilityData(availabilitySlots);
+        // Get coach availability for next 7 days if coach is assigned
+        if (coachId) {
+          const startDate = moment().format('YYYY-MM-DD');
+          const endDate = moment().add(7, 'days').format('YYYY-MM-DD');
+          const availabilitySlots = getCoachAvailability(coachId, startDate, endDate);
+          setAvailabilityData(availabilitySlots);
+        }
         
         setLoading(false);
       } catch (error) {

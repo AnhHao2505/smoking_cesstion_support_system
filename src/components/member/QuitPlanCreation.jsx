@@ -29,6 +29,8 @@ import {
   CheckCircleOutlined
 } from '@ant-design/icons';
 import * as quitPlanService from '../../services/quitPlanService';
+import { useAuth } from '../../contexts/AuthContext';
+import { getCurrentUser } from '../../services/authService';
 import locale from 'antd/es/date-picker/locale/vi_VN';
 import moment from 'moment';
 import 'moment/locale/vi';
@@ -43,6 +45,7 @@ moment.locale('vi');
 const QuitPlanCreation = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [coaches, setCoaches] = useState([]);
   const [defaultPhases, setDefaultPhases] = useState([]);
@@ -368,8 +371,16 @@ const QuitPlanCreation = () => {
       
       const medications = values.use_medication === 'yes' ? values.medications || [] : [];
       
+      // Get current user ID from auth context
+      const userId = currentUser?.userId || getCurrentUser()?.userId;
+      if (!userId) {
+        message.error('Please log in to create a quit plan');
+        setSubmitting(false);
+        return;
+      }
+      
       const quitPlanData = {
-        user_id: 101, // This would come from authentication context in a real app
+        user_id: userId,
         coach_id: values.coach_id,
         circumstance_id: values.circumstance_id,
         start_date: values.start_date.format('YYYY-MM-DD'),

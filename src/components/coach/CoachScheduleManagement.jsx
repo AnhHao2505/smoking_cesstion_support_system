@@ -40,6 +40,8 @@ import {
   CheckCircleOutlined
 } from '@ant-design/icons';
 import * as coachScheduleService from '../../services/coachScheduleService';
+import { useAuth } from '../../contexts/AuthContext';
+import { getCurrentUser } from '../../services/authService';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -48,6 +50,7 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const CoachScheduleManagement = () => {
+  const { currentUser } = useAuth();
   const [supportedMembers, setSupportedMembers] = useState([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [importantNotifications, setImportantNotifications] = useState([]);
@@ -56,11 +59,16 @@ const CoachScheduleManagement = () => {
   const [isAppointmentModalVisible, setIsAppointmentModalVisible] = useState(false);
   const [appointmentForm] = Form.useForm();
   
-  // In a real app, this would come from authentication context
-  const coachId = 1;
+  const coachId = currentUser?.userId;
 
   useEffect(() => {
     const fetchScheduleData = async () => {
+      if (!coachId) {
+        setLoading(false);
+        message.error('Please log in as a coach to access schedule management');
+        return;
+      }
+
       try {
         // Fetch all data in parallel
         const members = coachScheduleService.getSupportedMembers(coachId);

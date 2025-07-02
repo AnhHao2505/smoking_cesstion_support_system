@@ -61,11 +61,16 @@ const QuitPlanApproval = () => {
   const [form] = Form.useForm();
 
   const user = getCurrentUser();
-  const coachId = user?.userId || 1;
+  const coachId = user?.userId;
 
   useEffect(() => {
-    fetchPendingPlans();
-  }, []);
+    if (coachId) {
+      fetchPendingPlans();
+    } else {
+      setLoading(false);
+      message.error('Please log in as a coach to access this feature');
+    }
+  }, [coachId]);
 
   const fetchPendingPlans = async () => {
     try {
