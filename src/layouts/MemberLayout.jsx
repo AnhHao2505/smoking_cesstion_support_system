@@ -39,6 +39,62 @@ const MemberLayout = () => {
     },
   ];
 
+  // Add new menu items
+  const items = [
+    {
+      key: '/',
+      icon: <DashboardOutlined />,
+      label: <Link to="/">Dashboard</Link>,
+    },
+    {
+      key: 'quit-plan',
+      icon: <FileTextOutlined />,
+      label: <Link to="/quit-plan">Quit Plan</Link>,
+    },
+    {
+      key: 'daily-record',
+      icon: <FormOutlined />,
+      label: <Link to="/daily-record">Daily Record</Link>,
+    },
+    {
+      key: 'appointments',
+      icon: <CalendarOutlined />,
+      label: <Link to="/appointments">Appointments</Link>,
+    },
+    {
+      key: 'profile',
+      icon: <UserOutlined />,
+      label: <Link to="/profile">My Profile</Link>,
+    },
+    {
+      key: 'account',
+      icon: <UserOutlined />,
+      label: 'Tài khoản',
+      children: [
+        {
+          key: '/member/account-management',
+          label: 'Quản lý tài khoản',
+          onClick: () => navigate('/member/account-management')
+        },
+        {
+          key: '/member/user-settings',
+          label: 'Cài đặt',
+          onClick: () => navigate('/member/user-settings')
+        },
+        {
+          key: '/member/membership-status',
+          label: 'Trạng thái thành viên',
+          onClick: () => navigate('/member/membership-status')
+        },
+        {
+          key: '/member/premium-upgrade',
+          label: 'Nâng cấp Premium',
+          onClick: () => navigate('/member/premium-upgrade')
+        }
+      ]
+    }
+  ];
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider 
@@ -79,23 +135,8 @@ const MemberLayout = () => {
           theme="light"
           mode="inline"
           selectedKeys={[location.pathname === '/' ? '/' : location.pathname.replace('/', '')]}
-        >
-          <Menu.Item key="/" icon={<DashboardOutlined />}>
-            <Link to="/">Dashboard</Link>
-          </Menu.Item>
-          <Menu.Item key="quit-plan" icon={<FileTextOutlined />}>
-            <Link to="/quit-plan">Quit Plan</Link>
-          </Menu.Item>
-          <Menu.Item key="daily-record" icon={<FormOutlined />}>
-            <Link to="/daily-record">Daily Record</Link>
-          </Menu.Item>
-          <Menu.Item key="appointments" icon={<CalendarOutlined />}>
-            <Link to="/appointments">Appointments</Link>
-          </Menu.Item>
-          <Menu.Item key="profile" icon={<UserOutlined />}>
-            <Link to="/profile">My Profile</Link>
-          </Menu.Item>
-        </Menu>
+          items={items}
+        />
       </Sider>
 
       <Layout>

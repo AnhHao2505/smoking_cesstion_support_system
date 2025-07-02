@@ -52,6 +52,12 @@ import CoachList from './admin/CoachList';
 import CoachAssignment from './admin/CoachAssignment';
 import CoachPerformance from './admin/CoachPerformance';
 
+// Import new components
+import PremiumUpgrade from './member/PremiumUpgrade';
+import UserSettings from './member/UserSettings';
+import AccountManagement from './member/AccountManagement';
+import MembershipStatus from './member/MembershipStatus';
+
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = authService.isAuthenticated();
