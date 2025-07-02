@@ -4,7 +4,7 @@ import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEn
 // Get all coaches with pagination
 export const getAllCoaches = async (pageNo = 0, pageSize = 10) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.COACH.ALL, {
+    const response = await axiosInstance.get(API_ENDPOINTS.COACHES.GET_ALL, {
       params: { pageNo, pageSize }
     });
     return handleApiResponse(response);
@@ -16,7 +16,7 @@ export const getAllCoaches = async (pageNo = 0, pageSize = 10) => {
 // Create a new coach (admin only)
 export const createCoach = async (coachData) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.COACH.CREATE, coachData);
+    const response = await axiosInstance.post(API_ENDPOINTS.COACHES.CREATE, coachData);
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
@@ -26,7 +26,7 @@ export const createCoach = async (coachData) => {
 // Member chooses a coach
 export const chooseCoach = async (coachId) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.COACH.CHOOSE, null, {
+    const response = await axiosInstance.post(`/coach/choose`, null, {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -38,7 +38,7 @@ export const chooseCoach = async (coachId) => {
 // Get assigned members for a coach
 export const getAssignedMembers = async (coachId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.COACH.ASSIGNED_MEMBERS, {
+    const response = await axiosInstance.get(`/coach/assigned-members`, {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -50,7 +50,7 @@ export const getAssignedMembers = async (coachId) => {
 // Member disables their coach
 export const disableCoachForMember = async (coachId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.COACH.DISABLE_BY_MEMBER, null, {
+    const response = await axiosInstance.patch(`/coach/disable-by-member`, null, {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -62,7 +62,37 @@ export const disableCoachForMember = async (coachId) => {
 // Admin disables a coach
 export const disableCoachByAdmin = async (coachId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.COACH.DISABLE_BY_ADMIN, coachId);
+    const response = await axiosInstance.patch(`/coach/disable-by-admin`, coachId);
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Get coach specialties
+export const getCoachSpecialties = async () => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.COACHES.GET_SPECIALTIES);
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Update coach information
+export const updateCoach = async (coachId, coachData) => {
+  try {
+    const response = await axiosInstance.put(API_ENDPOINTS.COACHES.UPDATE(coachId), coachData);
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Delete coach
+export const deleteCoach = async (coachId) => {
+  try {
+    const response = await axiosInstance.delete(API_ENDPOINTS.COACHES.DELETE(coachId));
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);

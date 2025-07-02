@@ -167,6 +167,44 @@ export const API_ENDPOINTS = {
     ALL_MEMBER: '/qna/member',
     ALL_COACH: '/qna/coach',
   },
+
+  // User Management (additional endpoints)
+  USER: {
+    ALL: '/users/all',
+    MEMBERS: '/users/members',
+    CURRENT_ASSIGNMENT: '/users/current-assignment',
+    UPGRADE_PREMIUM: '/users/upgrade-premium',
+  },
+
+  // Profile Management
+  PROFILE: {
+    ME: '/profile/me',
+    MEMBER: '/profile/member',
+    COACH: '/profile/coach',
+  },
+
+  // Chat Management
+  CHAT: {
+    WS_CHANNELS: '/chat/ws-channels',
+    ROOM_MESSAGES: '/chat/room',
+    PRIVATE_ROOMS: '/chat/private-rooms',
+    CREATE_ROOM: '/chat/create-room',
+    JOIN_ROOM: '/chat/join-room',
+    LEAVE_ROOM: '/chat/leave-room',
+  },
+
+  // Reminder Management
+  REMINDERS: {
+    GET_ALL: '/reminders',
+    GET_BY_USER: (userId) => `/reminders/user/${userId}`,
+    CREATE: '/reminders',
+    UPDATE: (id) => `/reminders/${id}`,
+    DELETE: (id) => `/reminders/${id}`,
+    DISABLE: (id) => `/reminders/${id}/disable`,
+    TOGGLE: (id) => `/reminders/${id}/toggle`,
+    GET_SETTINGS: '/reminders/settings',
+    UPDATE_SETTINGS: '/reminders/settings',
+  },
 };
 
 // Helper function to build URL with query parameters

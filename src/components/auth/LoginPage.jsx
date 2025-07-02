@@ -15,7 +15,7 @@ const LoginPage = () => {
   const [testUsers, setTestUsers] = useState({});
   useEffect(() => {
     const fetchTestUsers = async () => {
-      const response = await authService.getTestUsers();
+      const response = await authService.getTesters();
       console.log(response)
       setTestUsers(response || {});
     };

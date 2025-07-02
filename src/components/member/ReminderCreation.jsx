@@ -53,6 +53,179 @@ const { TextArea } = Input;
 const { Step } = Steps;
 const { RangePicker } = DatePicker;
 
+// Component for frequency step content that uses Form.useWatch
+const FrequencyStepContent = ({ form }) => {
+  const frequency = Form.useWatch('frequency', form);
+  
+  return (
+    <div>
+      <Form.Item
+        name="frequency"
+        label="Tần suất nhắc nhở"
+        rules={[{ required: true, message: 'Vui lòng chọn tần suất' }]}
+      >
+        <Select 
+          placeholder="Chọn tần suất" 
+          onChange={(value) => {
+            form.setFieldsValue({ frequency: value });
+            // Reset time fields when frequency changes
+            form.setFieldsValue({ time: undefined, times: undefined });
+          }}
+        >
+          <Option value="once">Một lần</Option>
+          <Option value="daily">Hàng ngày</Option>
+          <Option value="weekly">Hàng tuần</Option>
+          <Option value="monthly">Hàng tháng</Option>
+          <Option value="multiple_daily">Nhiều lần trong ngày</Option>
+          <Option value="hourly">Theo giờ</Option>
+          <Option value="custom">Tùy chỉnh</Option>
+        </Select>
+      </Form.Item>
+
+      {/* Time selection based on frequency */}
+      {['daily', 'weekly', 'monthly'].includes(frequency) && (
+        <Form.Item
+          name="time"
+          label="Thời gian nhắc nhở"
+          rules={[{ required: true, message: 'Vui lòng chọn thời gian' }]}
+        >
+          <TimePicker 
+            format="HH:mm" 
+            placeholder="Chọn giờ"
+            style={{ width: '100%' }}
+          />
+        </Form.Item>
+      )}
+
+      {/* Multiple times for multiple_daily */}
+      {frequency === 'multiple_daily' && (
+        <Form.Item
+          name="times"
+          label="Các thời điểm trong ngày"
+          rules={[{ required: true, message: 'Vui lòng chọn ít nhất một thời điểm' }]}
+        >
+          <div>
+            <Button 
+              type="dashed" 
+              onClick={() => {
+                const currentTimes = form.getFieldValue('times') || [];
+                form.setFieldsValue({ 
+                  times: [...currentTimes, moment().hour(9).minute(0)] 
+                });
+              }}
+              className="mb-2"
+            >
+              + Thêm thời điểm
+            </Button>
+            <Form.List name="times">
+              {(fields, { add, remove }) => (
+                <div>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                      <Form.Item
+                        {...restField}
+                        name={name}
+                        rules={[{ required: true, message: 'Vui lòng chọn thời gian' }]}
+                      >
+                        <TimePicker format="HH:mm" />
+                      </Form.Item>
+                      <Button 
+                        type="text" 
+                        danger 
+                        onClick={() => remove(name)}
+                      >
+                        Xóa
+                      </Button>
+                    </Space>
+                  ))}
+                </div>
+              )}
+            </Form.List>
+          </div>
+        </Form.Item>
+      )}
+
+      {/* Hour range for hourly */}
+      {frequency === 'hourly' && (
+        <>
+          <Form.Item
+            name="hourRange"
+            label="Khoảng thời gian"
+            rules={[{ required: true, message: 'Vui lòng chọn khoảng thời gian' }]}
+          >
+            <TimePicker.RangePicker 
+              format="HH:mm" 
+              placeholder={['Từ', 'Đến']}
+            />
+          </Form.Item>
+          <Form.Item
+            name="hourInterval"
+            label="Nhắc nhở mỗi (giờ)"
+            initialValue={1}
+          >
+            <InputNumber min={1} max={6} />
+          </Form.Item>
+        </>
+      )}
+
+      {/* Weekly specific options */}
+      {frequency === 'weekly' && (
+        <Form.Item
+          name="weekdays"
+          label="Chọn ngày trong tuần"
+          rules={[{ required: true, message: 'Vui lòng chọn ít nhất một ngày' }]}
+        >
+          <Checkbox.Group
+            options={[
+              { label: 'Thứ hai', value: 1 },
+              { label: 'Thứ ba', value: 2 },
+              { label: 'Thứ tư', value: 3 },
+              { label: 'Thứ năm', value: 4 },
+              { label: 'Thứ sáu', value: 5 },
+              { label: 'Thứ bảy', value: 6 },
+              { label: 'Chủ nhật', value: 0 },
+            ]}
+          />
+        </Form.Item>
+      )}
+
+      {/* Monthly specific options */}
+      {frequency === 'monthly' && (
+        <Form.Item
+          name="monthDay"
+          label="Ngày trong tháng"
+          initialValue={1}
+        >
+          <InputNumber min={1} max={31} />
+        </Form.Item>
+      )}
+
+      {/* Date range for once or limited time */}
+      {['once', 'custom'].includes(frequency) && (
+        <Form.Item
+          name="dateRange"
+          label="Khoảng thời gian áp dụng"
+          rules={[{ required: true, message: 'Vui lòng chọn khoảng thời gian' }]}
+        >
+          <RangePicker 
+            style={{ width: '100%' }}
+            placeholder={['Ngày bắt đầu', 'Ngày kết thúc']}
+          />
+        </Form.Item>
+      )}
+
+      <Form.Item
+        name="enabled"
+        label="Kích hoạt ngay"
+        valuePropName="checked"
+        initialValue={true}
+      >
+        <Switch />
+      </Form.Item>
+    </div>
+  );
+};
+
 const ReminderCreation = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
@@ -462,172 +635,9 @@ const ReminderCreation = () => {
         );
         
       case 2:
-        const frequency = Form.useWatch('frequency', form);
         return (
           <div>
-            <Form.Item
-              name="frequency"
-              label="Tần suất nhắc nhở"
-              rules={[{ required: true, message: 'Vui lòng chọn tần suất' }]}
-            >
-              <Select 
-                placeholder="Chọn tần suất" 
-                onChange={(value) => {
-                  form.setFieldsValue({ frequency: value });
-                  // Reset time fields when frequency changes
-                  form.setFieldsValue({ time: undefined, times: undefined });
-                }}
-              >
-                <Option value="once">Một lần</Option>
-                <Option value="daily">Hàng ngày</Option>
-                <Option value="weekly">Hàng tuần</Option>
-                <Option value="monthly">Hàng tháng</Option>
-                <Option value="multiple_daily">Nhiều lần trong ngày</Option>
-                <Option value="hourly">Mỗi giờ (trong khoảng thời gian)</Option>
-                <Option value="custom">Tùy chỉnh</Option>
-              </Select>
-            </Form.Item>
-
-            {/* Single time picker for daily, weekly, monthly */}
-            {['daily', 'weekly', 'monthly'].includes(frequency) && (
-              <Form.Item
-                name="time"
-                label="Thời gian nhắc nhở"
-                rules={[{ required: true, message: 'Vui lòng chọn thời gian' }]}
-              >
-                <TimePicker 
-                  format="HH:mm" 
-                  placeholder="Chọn giờ"
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
-            )}
-
-            {/* Multiple times for multiple_daily */}
-            {frequency === 'multiple_daily' && (
-              <Form.Item
-                name="times"
-                label="Các thời điểm trong ngày"
-                rules={[{ required: true, message: 'Vui lòng chọn ít nhất một thời điểm' }]}
-              >
-                <div>
-                  <Button 
-                    type="dashed" 
-                    onClick={() => {
-                      const currentTimes = form.getFieldValue('times') || [];
-                      form.setFieldsValue({ 
-                        times: [...currentTimes, moment().hour(9).minute(0)] 
-                      });
-                    }}
-                    className="mb-2"
-                  >
-                    + Thêm thời điểm
-                  </Button>
-                  <Form.List name="times">
-                    {(fields, { add, remove }) => (
-                      <div>
-                        {fields.map(({ key, name, ...restField }) => (
-                          <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                            <Form.Item
-                              {...restField}
-                              name={name}
-                              rules={[{ required: true, message: 'Vui lòng chọn thời gian' }]}
-                            >
-                              <TimePicker format="HH:mm" />
-                            </Form.Item>
-                            <Button 
-                              type="text" 
-                              danger 
-                              onClick={() => remove(name)}
-                            >
-                              Xóa
-                            </Button>
-                          </Space>
-                        ))}
-                      </div>
-                    )}
-                  </Form.List>
-                </div>
-              </Form.Item>
-            )}
-
-            {/* Hour range for hourly */}
-            {frequency === 'hourly' && (
-              <>
-                <Form.Item
-                  name="hourRange"
-                  label="Khoảng thời gian"
-                  rules={[{ required: true, message: 'Vui lòng chọn khoảng thời gian' }]}
-                >
-                  <TimePicker.RangePicker 
-                    format="HH:mm" 
-                    placeholder={['Từ', 'Đến']}
-                  />
-                </Form.Item>
-                <Form.Item
-                  name="hourInterval"
-                  label="Nhắc nhở mỗi (giờ)"
-                  initialValue={1}
-                >
-                  <InputNumber min={1} max={6} />
-                </Form.Item>
-              </>
-            )}
-
-            {/* Date range for once or limited time */}
-            {['once', 'custom'].includes(frequency) && (
-              <Form.Item
-                name="dateRange"
-                label="Khoảng thời gian áp dụng"
-                rules={[{ required: frequency === 'once', message: 'Vui lòng chọn ngày' }]}
-              >
-                <RangePicker 
-                  placeholder={['Từ ngày', 'Đến ngày']}
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
-            )}
-
-            {/* Weekly specific options */}
-            {frequency === 'weekly' && (
-              <Form.Item
-                name="weekdays"
-                label="Các ngày trong tuần"
-                initialValue={[1, 2, 3, 4, 5]}
-              >
-                <Checkbox.Group
-                  options={[
-                    { label: 'Thứ 2', value: 1 },
-                    { label: 'Thứ 3', value: 2 },
-                    { label: 'Thứ 4', value: 3 },
-                    { label: 'Thứ 5', value: 4 },
-                    { label: 'Thứ 6', value: 5 },
-                    { label: 'Thứ 7', value: 6 },
-                    { label: 'Chủ nhật', value: 0 },
-                  ]}
-                />
-              </Form.Item>
-            )}
-
-            {/* Monthly specific options */}
-            {frequency === 'monthly' && (
-              <Form.Item
-                name="monthDay"
-                label="Ngày trong tháng"
-                initialValue={1}
-              >
-                <InputNumber min={1} max={31} />
-              </Form.Item>
-            )}
-
-            <Form.Item
-              name="enabled"
-              label="Kích hoạt ngay"
-              valuePropName="checked"
-              initialValue={true}
-            >
-              <Switch />
-            </Form.Item>
+            <FrequencyStepContent form={form} />
           </div>
         );
         

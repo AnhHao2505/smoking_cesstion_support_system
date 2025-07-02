@@ -32,7 +32,7 @@ import {
   EditOutlined,
   MessageOutlined,
   CalendarOutlined,
-  TargetOutlined,
+  AimOutlined,
   TrophyOutlined,
   ExclamationCircleOutlined,
   InfoCircleOutlined,
@@ -266,7 +266,7 @@ const PhaseDetail = () => {
       <div className="container py-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <Title level={2}>
-            <TargetOutlined /> Chi tiết giai đoạn: {phase.phase_name}
+            <AimOutlined /> Chi tiết giai đoạn: {phase.phase_name}
           </Title>
           <Space>
             {currentUser?.role === 'COACH' && (
@@ -341,7 +341,7 @@ const PhaseDetail = () => {
             </Card>
 
             {/* Phase Goals */}
-            <Card title={<><TargetOutlined /> Mục tiêu giai đoạn</>} className="mb-4">
+            <Card title={<><AimOutlined /> Mục tiêu giai đoạn</>} className="mb-4">
               <div className="mb-3">
                 <Space>
                   <Statistic 

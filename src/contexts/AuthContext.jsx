@@ -19,9 +19,15 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is already logged in on app initialization
   useEffect(() => {
-    const user = authService.getCurrentUser();
-    setCurrentUser(user);
-    setLoading(false);
+    try {
+      const user = authService.getCurrentUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      setCurrentUser(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   // Login function

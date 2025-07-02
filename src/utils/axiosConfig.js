@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { API_BASE_URL } from './apiEndpoints';
 
 // Create axios instance with base configuration
 const axiosInstance = axios.create({
-  baseURL: 'https://smokingcessationsupportswp391-production.up.railway.app/',
+  baseURL: API_BASE_URL,
   timeout: 10000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json',
@@ -15,7 +16,12 @@ axiosInstance.interceptors.request.use(
   (config) => {
     // Get auth token from localStorage
     const token = localStorage.getItem('authToken');
-    if (token) {
+    
+    // Only add authorization header if token exists and it's not a public endpoint
+    const publicEndpoints = ['/auth/login', '/auth/register', '/blog', '/public'];
+    const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
+    
+    if (token && !isPublicEndpoint) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     

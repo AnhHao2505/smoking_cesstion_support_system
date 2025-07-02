@@ -30,7 +30,7 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   PlayCircleOutlined,
-  TargetOutlined,
+  AimOutlined,
   LineChartOutlined,
   CalendarOutlined,
   TrophyOutlined,
@@ -293,7 +293,7 @@ const PhaseProgress = () => {
                 precision={1}
                 suffix="%"
                 valueStyle={{ color: '#3f8600' }}
-                prefix={<TargetOutlined />}
+                prefix={<AimOutlined />}
               />
               <Progress 
                 percent={progressData.overallProgress} 

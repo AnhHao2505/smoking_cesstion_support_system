@@ -201,3 +201,13 @@ export const acceptQuitPlan = async (planId) => {
     throw handleApiError(error);
   }
 };
+
+// Get quit plan by plan ID
+export const getQuitPlanByPlanId = async (planId) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.GET_BY_ID(planId));
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};

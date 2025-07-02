@@ -4,15 +4,15 @@ import { AuthProvider } from '../contexts/AuthContext';
 import * as authService from '../services/authService';
 
 // Layout components
-import Navbar from './common/Navbar';
-import Footer from './common/Footer';
+import Navbar from './layout/Navbar';
+// import Footer from './common/Footer'; // Commented out as Footer component doesn't exist
 
 // Public pages
-import HomePage from '../pages/HomePage';
+// import HomePage from '../pages/HomePage'; // Commented out as HomePage doesn't exist
 
 // Auth pages
-import LoginPage from '../pages/auth/LoginPage';
-import RegisterPage from '../pages/auth/RegisterPage';
+import LoginPage from './auth/LoginPage';
+import RegisterPage from './auth/RegisterPage';
 
 // Dashboard pages
 import MemberDashboard from './member/MemberDashboard';
@@ -61,6 +61,8 @@ import MembershipStatus from './member/MembershipStatus';
 // Import QnA pages
 import { QAForumPage, AskQuestionPage, QuestionListPage, AnswerQuestionPage } from '../pages/qna';
 
+import LandingPage from './public/LandingPage';
+import WelcomePage from './public/WelcomePage';
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = authService.isAuthenticated();
@@ -88,7 +90,9 @@ const App = () => {
           <main className="flex-grow-1">
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={<WelcomePage />} />
+              <Route path="/home" element={<LandingPage />} />
+              {/* <Route path="/" element={<div>Welcome to Smoking Cessation Support</div>} /> */}
               <Route path="/blog" element={<BlogListPage />} />
               <Route path="/blog/:id" element={<BlogDetailPage />} />
               
@@ -359,7 +363,7 @@ const App = () => {
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>
-          <Footer />
+          {/* <Footer /> */}
         </div>
       </AuthProvider>
     </Router>

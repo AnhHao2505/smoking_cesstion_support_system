@@ -262,6 +262,11 @@ export const resetPassword = async (email, otpInput, newPassword) => {
   }
 };
 
+// Get auth token
+export const getToken = () => {
+  return localStorage.getItem('authToken');
+};
+
 // Get tester accounts
 export const getTesters = async () => {
   try {
