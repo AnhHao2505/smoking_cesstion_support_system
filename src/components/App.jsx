@@ -58,6 +58,9 @@ import UserSettings from './member/UserSettings';
 import AccountManagement from './member/AccountManagement';
 import MembershipStatus from './member/MembershipStatus';
 
+// Import QnA pages
+import { QAForumPage, AskQuestionPage, QuestionListPage, AnswerQuestionPage } from '../pages/qna';
+
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = authService.isAuthenticated();
@@ -265,6 +268,43 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['COACH']}>
                     <CoachDashboard />
+                  </PrivateRoute>
+                }
+              />
+
+              {/* Q&A Forum Routes */}
+              <Route 
+                path="/qa-forum" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER', 'COACH', 'ADMIN']}>
+                    <QAForumPage />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/ask-question" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <AskQuestionPage />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/questions" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER', 'COACH', 'ADMIN']}>
+                    <QuestionListPage />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/answer-question/:questionId" 
+                element={
+                  <PrivateRoute allowedRoles={['COACH', 'ADMIN']}>
+                    <AnswerQuestionPage />
                   </PrivateRoute>
                 }
               />

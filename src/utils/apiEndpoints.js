@@ -158,6 +158,15 @@ export const API_ENDPOINTS = {
     SUCCESS_RATES: '/analytics/success-rates',
     USAGE_STATISTICS: '/analytics/usage',
   },
+
+  // QnA Management
+  QNA: {
+    ASK: '/qna/ask',
+    ANSWER: '/qna/answer',
+    ALL: '/qna/all',
+    ALL_MEMBER: '/qna/member',
+    ALL_COACH: '/qna/coach',
+  },
 };
 
 // Helper function to build URL with query parameters

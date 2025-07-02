@@ -10,6 +10,7 @@ import {
   MenuUnfoldOutlined,
   BellOutlined,
   FormOutlined,
+  QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -62,6 +63,11 @@ const MemberLayout = () => {
       label: <Link to="/appointments">Appointments</Link>,
     },
     {
+      key: 'qa-forum',
+      icon: <QuestionCircleOutlined />,
+      label: <Link to="/qa-forum">Q&A Forum</Link>,
+    },
+    {
       key: 'profile',
       icon: <UserOutlined />,
       label: <Link to="/profile">My Profile</Link>,
@@ -92,6 +98,11 @@ const MemberLayout = () => {
           onClick: () => navigate('/member/premium-upgrade')
         }
       ]
+    },
+    {
+      key: 'qa',
+      icon: <QuestionCircleOutlined />,
+      label: <Link to="/qa">Q&A</Link>,
     }
   ];
 

@@ -43,7 +43,8 @@ const NavBar = () => {
       { path: '/member/dashboard', label: 'Dashboard' },
       { path: '/member/quit-progress', label: 'My Progress' },
       { path: '/member/quit-plan', label: 'My Quit Plan' },
-      { path: '/member/appointments', label: 'Appointments' }
+      { path: '/member/appointments', label: 'Appointments' },
+      { path: '/qa-forum', label: 'Q&A Forum' }
     ];
 
     // Coach-specific links
@@ -51,7 +52,8 @@ const NavBar = () => {
       { path: '/coach/dashboard', label: 'Dashboard' },
       { path: '/coach/schedule', label: 'Schedule' },
       { path: '/coach/appointments', label: 'Appointments' },
-      { path: '/coach/plan-approvals', label: 'Plan Approvals' } // Add this line
+      { path: '/coach/plan-approvals', label: 'Plan Approvals' },
+      { path: '/qa-forum', label: 'Q&A Forum' }
     ];
 
     // Admin-specific links
