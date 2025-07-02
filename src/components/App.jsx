@@ -28,6 +28,7 @@ import QuitPlanDetail from './member/QuitPlanDetail';
 import DailyRecordForm from './member/DailyRecordForm';
 import AppointmentManagement from './member/AppointmentManagement';
 import CoachSelection from './member/CoachSelection';
+import QuitPlanHistory from './member/QuitPlanHistory';
 
 // Import blog pages
 import BlogListPage from '../pages/blog/BlogListPage';
@@ -60,6 +61,7 @@ const PrivateRoute = ({ children, allowedRoles = [] }) => {
 
 // Add import for QuitPlanApproval
 import QuitPlanApproval from './coach/QuitPlanApproval';
+import QuitPlanEdit from './coach/QuitPlanEdit';
 
 const App = () => {
   return (
@@ -136,10 +138,19 @@ const App = () => {
               />
               
               <Route 
-                path="/member/quit-plan" 
+                path="/member/quit-plan/:id" 
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
                     <QuitPlanDetail />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/quit-plan-history" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <QuitPlanHistory />
                   </PrivateRoute>
                 }
               />
@@ -205,6 +216,15 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['COACH']}>
                     <QuitPlanApproval />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/coach/edit-plan/:id" 
+                element={
+                  <PrivateRoute allowedRoles={['COACH']}>
+                    <QuitPlanEdit />
                   </PrivateRoute>
                 }
               />

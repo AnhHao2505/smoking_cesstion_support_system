@@ -50,7 +50,8 @@ const NavBar = () => {
     const coachLinks = [
       { path: '/coach/dashboard', label: 'Dashboard' },
       { path: '/coach/schedule', label: 'Schedule' },
-      { path: '/coach/appointments', label: 'Appointments' }
+      { path: '/coach/appointments', label: 'Appointments' },
+      { path: '/coach/plan-approvals', label: 'Plan Approvals' } // Add this line
     ];
 
     // Admin-specific links
