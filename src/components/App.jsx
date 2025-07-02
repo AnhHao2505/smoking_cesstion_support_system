@@ -35,6 +35,12 @@ import ReminderList from './member/ReminderList';
 import ReminderCreation from './member/ReminderCreation';
 import ReminderCalendar from './member/ReminderCalendar';
 
+// Daily Tracking Flow components - ADD THESE IMPORTS
+import DailyCheckIn from './member/DailyCheckin';
+import SmokingStatusTracker from './member/SmokingStatusTracker';
+import ProgressChart from './member/ProgressChart';
+import CravingLogger from './member/CravingLogger';
+
 // Import blog pages
 import BlogListPage from '../pages/blog/BlogListPage';
 import BlogDetailPage from '../pages/blog/BlogDetailPage';
@@ -114,6 +120,43 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
                     <DailyRecordForm />
+                  </PrivateRoute>
+                }
+              />
+
+              {/* Daily Tracking Flow Routes - ADD THESE */}
+              <Route 
+                path="/member/daily-checkin" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <DailyCheckIn />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/smoking-status" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <SmokingStatusTracker />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/progress-chart" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <ProgressChart />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/craving-logger" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <CravingLogger />
                   </PrivateRoute>
                 }
               />
