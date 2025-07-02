@@ -4,25 +4,21 @@ import { AuthProvider } from '../contexts/AuthContext';
 import * as authService from '../services/authService';
 
 // Layout components
-import Navbar from './layout/Navbar';
+import Navbar from './common/Navbar';
+import Footer from './common/Footer';
 
 // Public pages
-import LandingPage from './public/LandingPage';
-import AboutPage from './public/AboutPage';
+import HomePage from '../pages/HomePage';
 
 // Auth pages
-import LoginPage from './auth/LoginPage';
-import RegisterPage from './auth/RegisterPage';
+import LoginPage from '../pages/auth/LoginPage';
+import RegisterPage from '../pages/auth/RegisterPage';
 
 // Dashboard pages
-import Dashboard from './dashboard/Dashboard';
-import CoachDashboard from './coach/CoachDashboard';
 import MemberDashboard from './member/MemberDashboard';
+import CoachDashboard from './coach/CoachDashboard';
 
 // Member components
-import QuitProgressOverview from './member/QuitProgressOverview';
-import QuitPlanCreation from './member/QuitPlanCreation';
-import CoachScheduleManagement from './coach/CoachScheduleManagement';
 import MemberProfile from './member/MemberProfile';
 import QuitPlanDetail from './member/QuitPlanDetail';
 import DailyRecordForm from './member/DailyRecordForm';
@@ -32,6 +28,12 @@ import QuitPlanHistory from './member/QuitPlanHistory';
 import PhaseDetail from './member/PhaseDetail';
 import PhaseProgress from './member/PhaseProgress';
 import PhaseTaskManager from './member/PhaseTaskManager';
+
+// Reminder components
+import ReminderSettings from './member/ReminderSettings';
+import ReminderList from './member/ReminderList';
+import ReminderCreation from './member/ReminderCreation';
+import ReminderCalendar from './member/ReminderCalendar';
 
 // Import blog pages
 import BlogListPage from '../pages/blog/BlogListPage';
@@ -62,10 +64,6 @@ const PrivateRoute = ({ children, allowedRoles = [] }) => {
   return children;
 };
 
-// Add import for QuitPlanApproval
-import QuitPlanApproval from './coach/QuitPlanApproval';
-import QuitPlanEdit from './coach/QuitPlanEdit';
-
 const App = () => {
   return (
     <Router>
@@ -75,42 +73,13 @@ const App = () => {
           <main className="flex-grow-1">
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/about" element={<AboutPage />} />
+              <Route path="/" element={<HomePage />} />
+              <Route path="/blog" element={<BlogListPage />} />
+              <Route path="/blog/:id" element={<BlogDetailPage />} />
+              
+              {/* Auth Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              <Route path="/unauthorized" element={
-                <div className="container py-5 text-center">
-                  <h1>Unauthorized Access</h1>
-                  <p>You don't have permission to access this page.</p>
-                </div>
-              } />
-              
-              {/* Blog Routes - Public but with different interactions based on auth */}
-              <Route path="/blog" element={<BlogListPage />} />
-              <Route path="/blog/featured" element={<BlogListPage featuredOnly={true} />} />
-              <Route path="/blog/:id" element={<BlogDetailPage />} />
-              <Route path="/blog/category/:categoryId" element={<BlogListPage />} />
-              <Route path="/blog/author/:authorId" element={<BlogListPage />} />
-              
-              {/* Authenticated Routes - Any authenticated user */}
-              <Route 
-                path="/dashboard" 
-                element={
-                  <PrivateRoute>
-                    <Dashboard />
-                  </PrivateRoute>
-                } 
-              />
-              
-              <Route 
-                path="/profile" 
-                element={
-                  <PrivateRoute>
-                    <MemberProfile />
-                  </PrivateRoute>
-                } 
-              />
               
               {/* Member Routes */}
               <Route 
@@ -119,41 +88,23 @@ const App = () => {
                   <PrivateRoute allowedRoles={['MEMBER']}>
                     <MemberDashboard />
                   </PrivateRoute>
-                } 
+                }
               />
               
               <Route 
-                path="/member/quit-progress" 
+                path="/member/profile" 
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
-                    <QuitProgressOverview />
+                    <MemberProfile />
                   </PrivateRoute>
                 }
               />
               
               <Route 
-                path="/member/create-quit-plan" 
+                path="/member/quit-plan/:planId" 
                 element={
-                  <PrivateRoute allowedRoles={['MEMBER']}>
-                    <QuitPlanCreation />
-                  </PrivateRoute>
-                }
-              />
-              
-              <Route 
-                path="/member/quit-plan/:id" 
-                element={
-                  <PrivateRoute allowedRoles={['MEMBER']}>
+                  <PrivateRoute allowedRoles={['MEMBER', 'COACH']}>
                     <QuitPlanDetail />
-                  </PrivateRoute>
-                }
-              />
-              
-              <Route 
-                path="/member/quit-plan-history" 
-                element={
-                  <PrivateRoute allowedRoles={['MEMBER']}>
-                    <QuitPlanHistory />
                   </PrivateRoute>
                 }
               />
@@ -162,7 +113,7 @@ const App = () => {
                 path="/member/daily-record" 
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
-                    <DailyRecordForm userId={101} />
+                    <DailyRecordForm />
                   </PrivateRoute>
                 }
               />
@@ -177,7 +128,7 @@ const App = () => {
               />
               
               <Route 
-                path="/member/choose-coach" 
+                path="/member/coach-selection" 
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
                     <CoachSelection />
@@ -185,6 +136,16 @@ const App = () => {
                 }
               />
               
+              <Route 
+                path="/member/quit-plan-history" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <QuitPlanHistory />
+                  </PrivateRoute>
+                }
+              />
+              
+              {/* Phase Management Routes */}
               <Route 
                 path="/member/phase/:phaseId/:planId" 
                 element={
@@ -211,6 +172,43 @@ const App = () => {
                   </PrivateRoute>
                 }
               />
+
+              {/* Reminder Routes */}
+              <Route 
+                path="/member/reminders" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <ReminderList />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/reminders/create" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <ReminderCreation />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/reminders/settings" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <ReminderSettings />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/reminders/calendar" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <ReminderCalendar />
+                  </PrivateRoute>
+                }
+              />
               
               {/* Coach Routes */}
               <Route 
@@ -218,43 +216,6 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['COACH']}>
                     <CoachDashboard />
-                  </PrivateRoute>
-                } 
-              />
-              
-              <Route 
-                path="/coach/schedule" 
-                element={
-                  <PrivateRoute allowedRoles={['COACH']}>
-                    <CoachScheduleManagement />
-                  </PrivateRoute>
-                } 
-              />
-              
-              <Route 
-                path="/coach/appointments" 
-                element={
-                  <PrivateRoute allowedRoles={['COACH']}>
-                    <AppointmentManagement />
-                  </PrivateRoute>
-                }
-              />
-              
-              {/* Add QuitPlanApproval route */}
-              <Route 
-                path="/coach/plan-approvals" 
-                element={
-                  <PrivateRoute allowedRoles={['COACH']}>
-                    <QuitPlanApproval />
-                  </PrivateRoute>
-                }
-              />
-              
-              <Route 
-                path="/coach/edit-plan/:id" 
-                element={
-                  <PrivateRoute allowedRoles={['COACH']}>
-                    <QuitPlanEdit />
                   </PrivateRoute>
                 }
               />
@@ -266,20 +227,29 @@ const App = () => {
                   <PrivateRoute allowedRoles={['ADMIN']}>
                     <AdminDashboard />
                   </PrivateRoute>
-                } 
+                }
               />
               
               <Route 
                 path="/admin/coaches" 
                 element={
                   <PrivateRoute allowedRoles={['ADMIN']}>
-                    <CoachList />
+                    <CoachManagement />
                   </PrivateRoute>
-                } 
+                }
               />
               
               <Route 
-                path="/admin/coach-assignments" 
+                path="/admin/coaches/list" 
+                element={
+                  <PrivateRoute allowedRoles={['ADMIN']}>
+                    <CoachList />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/admin/coaches/assignment" 
                 element={
                   <PrivateRoute allowedRoles={['ADMIN']}>
                     <CoachAssignment />
@@ -288,7 +258,7 @@ const App = () => {
               />
               
               <Route 
-                path="/admin/coach-performance" 
+                path="/admin/coaches/performance" 
                 element={
                   <PrivateRoute allowedRoles={['ADMIN']}>
                     <CoachPerformance />
@@ -296,10 +266,11 @@ const App = () => {
                 }
               />
               
-              {/* Fallback Route */}
+              {/* Default redirect */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>
+          <Footer />
         </div>
       </AuthProvider>
     </Router>
