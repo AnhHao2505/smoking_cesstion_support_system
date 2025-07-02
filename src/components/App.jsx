@@ -29,6 +29,9 @@ import DailyRecordForm from './member/DailyRecordForm';
 import AppointmentManagement from './member/AppointmentManagement';
 import CoachSelection from './member/CoachSelection';
 import QuitPlanHistory from './member/QuitPlanHistory';
+import PhaseDetail from './member/PhaseDetail';
+import PhaseProgress from './member/PhaseProgress';
+import PhaseTaskManager from './member/PhaseTaskManager';
 
 // Import blog pages
 import BlogListPage from '../pages/blog/BlogListPage';
@@ -178,6 +181,33 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
                     <CoachSelection />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/phase/:phaseId/:planId" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER', 'COACH']}>
+                    <PhaseDetail />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/phase-progress/:planId" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER', 'COACH']}>
+                    <PhaseProgress />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/phase-tasks/:phaseId/:planId" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER', 'COACH']}>
+                    <PhaseTaskManager />
                   </PrivateRoute>
                 }
               />
