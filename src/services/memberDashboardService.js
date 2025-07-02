@@ -4,7 +4,9 @@ import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEn
 // Get member profile data - Updated to use new API endpoint
 export const getMemberProfile = async (memberId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_PROFILE(memberId));
+    const response = await axiosInstance.get(API_ENDPOINTS.PROFILE.MEMBER, {
+      params: { memberId }
+    });
     return handleApiResponse(response);
   } catch (error) {
     console.error('Error fetching member profile:', error);
@@ -24,7 +26,9 @@ export const getMemberProfile = async (memberId) => {
 // Get quit plan data
 export const getQuitPlanData = async (userId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_QUIT_PLAN(userId));
+    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.NEWEST, {
+      params: { memberId: userId }
+    });
     return handleApiResponse(response);
   } catch (error) {
     console.error('Error fetching quit plan data:', error);
@@ -50,10 +54,9 @@ export const getQuitPlanData = async (userId) => {
 // Get daily state records
 export const getDailyStateRecords = async (userId, limit = 7) => {
   try {
-    const response = await axiosInstance.get(
-      API_ENDPOINTS.DAILY_RECORDS.GET_BY_MEMBER(userId),
-      { params: { limit } }
-    );
+    const response = await axiosInstance.get(API_ENDPOINTS.DAILY_LOGS.GET_BY_MEMBER, {
+      params: { memberId: userId, limit }
+    });
     return handleApiResponse(response);
   } catch (error) {
     console.error('Error fetching daily state records:', error);
@@ -82,10 +85,8 @@ export const getDailyStateRecords = async (userId, limit = 7) => {
 // Get earned badges
 export const getEarnedBadges = async (userId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_BADGES(userId));
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error('Error fetching earned badges:', error);
+    // Note: MEMBERS.GET_BADGES endpoint doesn't exist in API specification
+    console.warn('MEMBERS.GET_BADGES endpoint not available, using mock data');
     // Mock data
     return [
       {
@@ -103,16 +104,17 @@ export const getEarnedBadges = async (userId) => {
         earned_date: "2024-02-15"
       }
     ];
+  } catch (error) {
+    console.error('Error fetching earned badges:', error);
+    return [];
   }
 };
 
 // Get health improvements
 export const getHealthImprovements = async (userId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_HEALTH_IMPROVEMENTS(userId));
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error('Error fetching health improvements:', error);
+    // Note: MEMBERS.GET_HEALTH_IMPROVEMENTS endpoint doesn't exist in API specification
+    console.warn('MEMBERS.GET_HEALTH_IMPROVEMENTS endpoint not available, using mock data');
     // Mock data
     return [
       {
@@ -130,17 +132,17 @@ export const getHealthImprovements = async (userId) => {
         category: "sleep"
       }
     ];
+  } catch (error) {
+    console.error('Error fetching health improvements:', error);
+    return [];
   }
 };
 
 // Get upcoming reminders
 export const getUpcomingReminders = async (userId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_REMINDERS(userId));
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error('Error fetching upcoming reminders:', error);
-    // Mock data
+    // Note: MEMBERS.GET_REMINDERS endpoint doesn't exist in API specification
+    console.warn('MEMBERS.GET_REMINDERS endpoint not available, using mock data');
     return [
       {
         reminder_id: 1,
@@ -157,16 +159,18 @@ export const getUpcomingReminders = async (userId) => {
         reminder_type: "appointment"
       }
     ];
+  } catch (error) {
+    console.error('Error fetching upcoming reminders:', error);
+    return [];
   }
 };
 
 // Get recent questions and answers
 export const getRecentQuestionsAnswers = async (userId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.MEMBERS.GET_QUESTIONS_ANSWERS(userId));
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error('Error fetching recent questions and answers:', error);
+    // Note: This endpoint doesn't exist in the API specification
+    // Using QNA endpoints instead
+    console.warn('MEMBERS.GET_QUESTIONS_ANSWERS endpoint not available, using mock data');
     // Mock data
     return [
       {
@@ -184,5 +188,8 @@ export const getRecentQuestionsAnswers = async (userId) => {
         answered_by: "Dr. Michael Chen"
       }
     ];
+  } catch (error) {
+    console.error('Error fetching recent questions and answers:', error);
+    return [];
   }
 };

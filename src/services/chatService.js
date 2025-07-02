@@ -14,7 +14,7 @@ export const getWSChannelsDoc = async () => {
 // Get all messages for a chat room
 export const getChatRoomMessages = async (roomId) => {
   try {
-    const response = await axiosInstance.get(`${API_ENDPOINTS.CHAT.ROOM_MESSAGES}/${roomId}/messages`);
+    const response = await axiosInstance.get(API_ENDPOINTS.CHAT.ROOM_MESSAGES(roomId));
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);

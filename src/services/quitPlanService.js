@@ -106,10 +106,12 @@ export const getSuggestedMedications = () => {
   ];
 };
 
+// Real API functions for quit plan operations
+
 // Create a new quit plan
-export const createQuitPlan = async (memberId, planData) => {
+export const createQuitPlan = async (memberId, quitPlanData) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.QUIT_PLANS.CREATE, planData, {
+    const response = await axiosInstance.post(API_ENDPOINTS.QUIT_PLANS.CREATE, quitPlanData, {
       params: { memberId }
     });
     return handleApiResponse(response);
@@ -119,9 +121,9 @@ export const createQuitPlan = async (memberId, planData) => {
 };
 
 // Update quit plan by coach
-export const updateQuitPlanByCoach = async (planId, planData) => {
+export const updateQuitPlanByCoach = async (planId, quitPlanData) => {
   try {
-    const response = await axiosInstance.put(API_ENDPOINTS.QUIT_PLANS.UPDATE, planData, {
+    const response = await axiosInstance.put(API_ENDPOINTS.QUIT_PLANS.UPDATE, quitPlanData, {
       params: { planId }
     });
     return handleApiResponse(response);
@@ -166,7 +168,7 @@ export const getAllPlanCreatedByCoach = async (coachId, page = 0, size = 10) => 
   }
 };
 
-// Disable quit plan (coach)
+// Coach disables a quit plan
 export const disableQuitPlan = async (planId) => {
   try {
     const response = await axiosInstance.patch(API_ENDPOINTS.QUIT_PLANS.DISABLE, null, {
@@ -178,19 +180,7 @@ export const disableQuitPlan = async (planId) => {
   }
 };
 
-// Member denies quit plan
-export const denyQuitPlan = async (planId) => {
-  try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.QUIT_PLANS.DENY, null, {
-      params: { planId }
-    });
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
-};
-
-// Member accepts quit plan
+// Member accepts a quit plan
 export const acceptQuitPlan = async (planId) => {
   try {
     const response = await axiosInstance.patch(API_ENDPOINTS.QUIT_PLANS.ACCEPT, null, {
@@ -202,12 +192,17 @@ export const acceptQuitPlan = async (planId) => {
   }
 };
 
-// Get quit plan by plan ID
-export const getQuitPlanByPlanId = async (planId) => {
+// Member denies a quit plan
+export const denyQuitPlan = async (planId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.GET_BY_ID(planId));
+    const response = await axiosInstance.patch(API_ENDPOINTS.QUIT_PLANS.DENY, null, {
+      params: { planId }
+    });
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
   }
 };
+
+// Note: GET quit plan by ID is not available in the API specification
+// The available endpoints are only for getting newest, old plans, and coach created plans

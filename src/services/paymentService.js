@@ -4,7 +4,7 @@ import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEn
 // Create VN Pay payment
 export const createPayment = async (amount, language = 'vn') => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.PAYMENT.CREATE, null, {
+    const response = await axiosInstance.post(API_ENDPOINTS.PAYMENT.CREATE_PAYMENT, null, {
       params: { amount, language }
     });
     return handleApiResponse(response);

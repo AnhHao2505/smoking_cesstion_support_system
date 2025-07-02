@@ -14,7 +14,7 @@ export const createDailyLog = async (logData) => {
 // Get daily logs by phase
 export const getLogsByPhase = async (phaseId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.DAILY_LOGS.BY_PHASE, {
+    const response = await axiosInstance.get(API_ENDPOINTS.DAILY_LOGS.GET_BY_PHASE, {
       params: { phaseId }
     });
     return handleApiResponse(response);
@@ -26,7 +26,7 @@ export const getLogsByPhase = async (phaseId) => {
 // Get all daily logs of a member
 export const getMemberDailyLogs = async (memberId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.DAILY_LOGS.MEMBER, {
+    const response = await axiosInstance.get(API_ENDPOINTS.DAILY_LOGS.GET_BY_MEMBER, {
       params: { memberId }
     });
     return handleApiResponse(response);
@@ -38,7 +38,7 @@ export const getMemberDailyLogs = async (memberId) => {
 // Get member's daily log by date
 export const getMemberDailyLogByDate = async (memberId, date) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.DAILY_LOGS.MEMBER_BY_DATE, {
+    const response = await axiosInstance.get(API_ENDPOINTS.DAILY_LOGS.GET_BY_MEMBER_DATE, {
       params: { memberId, date }
     });
     return handleApiResponse(response);

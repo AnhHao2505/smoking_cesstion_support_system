@@ -35,7 +35,7 @@ export const getFeedbacksForCoach = async (coachId) => {
   }
 };
 
-// Get all feedbacks (admin)
+// Get all feedbacks (admin only)
 export const getAllFeedbacks = async () => {
   try {
     const response = await axiosInstance.get(API_ENDPOINTS.FEEDBACKS.ADMIN_ALL);
@@ -45,10 +45,10 @@ export const getAllFeedbacks = async () => {
   }
 };
 
-// Mark feedback as reviewed
-export const markFeedbackReviewed = async (feedbackId) => {
+// Approve feedback for publishing (admin only)
+export const approveFeedback = async (feedbackId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.FEEDBACKS.REVIEWED, null, {
+    const response = await axiosInstance.patch(API_ENDPOINTS.FEEDBACKS.APPROVE_PUBLISH, null, {
       params: { feedbackId }
     });
     return handleApiResponse(response);
@@ -57,7 +57,7 @@ export const markFeedbackReviewed = async (feedbackId) => {
   }
 };
 
-// Hide feedback
+// Hide feedback (admin only)
 export const hideFeedback = async (feedbackId) => {
   try {
     const response = await axiosInstance.patch(API_ENDPOINTS.FEEDBACKS.HIDE, null, {
@@ -69,10 +69,10 @@ export const hideFeedback = async (feedbackId) => {
   }
 };
 
-// Approve and publish feedback (admin)
-export const publishFeedback = async (feedbackId) => {
+// Mark feedback as reviewed (admin only)
+export const markFeedbackReviewed = async (feedbackId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.FEEDBACKS.APPROVE_PUBLISH, null, {
+    const response = await axiosInstance.patch(API_ENDPOINTS.FEEDBACKS.REVIEWED, null, {
       params: { feedbackId }
     });
     return handleApiResponse(response);
@@ -80,3 +80,6 @@ export const publishFeedback = async (feedbackId) => {
     throw handleApiError(error);
   }
 };
+
+// Alias for backward compatibility
+export const publishFeedback = approveFeedback;

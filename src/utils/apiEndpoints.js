@@ -1,179 +1,34 @@
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+export const API_BASE_URL = 'https://smokingcessationsupportswp391-production.up.railway.app/';
 
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: '/auth/login', // Updated to match new API endpoint
+    LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
-    VERIFY_TOKEN: '/auth/verify-token',
-    REFRESH_TOKEN: '/auth/refresh-token',
-    FORGOT_PASSWORD: '/auth/forgot-password',
-    RESET_PASSWORD: '/auth/reset-password',
     VERIFY_ACCOUNT: '/auth/verify-account',
+    RESET_PASSWORD: '/auth/reset-password',
     SEND_VERIFY_OTP: '/auth/send-verify-otp',
     SEND_RESET_OTP: '/auth/send-reset-otp',
-    TEST_USERS: '/auth/get-testers'
+    GET_TESTERS: '/auth/get-testers'
   },
 
   // User Management
-  USERS: {
-    GET_ALL: '/users',
-    GET_BY_ID: (id) => `/users/${id}`,
-    CREATE: '/users',
-    UPDATE: (id) => `/users/${id}`,
-    DELETE: (id) => `/users/${id}`,
-    GET_PROFILE: '/users/profile',
-    UPDATE_PROFILE: '/users/profile',
-    UPLOAD_AVATAR: '/users/upload-avatar',
+  USER: {
+    ALL: '/user',
+    MEMBERS: '/user/members',
+    CURRENT_ASSIGNMENT: '/user/member/current-assignment',
+    UPGRADE_PREMIUM: '/user/upgrade-premium',
   },
 
   // Coach Management
   COACHES: {
-    GET_ALL: '/coaches',
-    GET_BY_ID: (id) => `/coaches/${id}`,
-    CREATE: '/coaches',
-    UPDATE: (id) => `/coaches/${id}`,
-    DELETE: (id) => `/coaches/${id}`,
-    GET_SPECIALTIES: '/coaches/specialties',
-    GET_AVAILABLE: '/coaches/available',
-    GET_DASHBOARD: (id) => `/coaches/${id}/dashboard`,
-    GET_SCHEDULE: (id) => `/coaches/${id}/schedule`,
-    UPDATE_AVAILABILITY: (id) => `/coaches/${id}/availability`,
-    GET_PERFORMANCE: (id) => `/coaches/${id}/performance`,
-  },
-
-  // Member Management
-  MEMBERS: {
-    GET_ALL: '/members',
-    GET_BY_ID: (id) => `/members/${id}`,
-    GET_DASHBOARD: (id) => `/members/${id}/dashboard`,
-    GET_PROFILE: (id) => `/profile/member/${id}`, // Updated endpoint for new API
-    UPDATE_PROFILE: (id) => `/profile/member/${id}`,
-    CREATE_QUIT_PLAN: '/members/quit-plan',
-    GET_QUIT_PLAN: (id) => `/members/${id}/quit-plan`,
-    UPDATE_QUIT_PLAN: (id) => `/members/${id}/quit-plan`,
-    GET_DAILY_RECORDS: (id) => `/members/${id}/daily-records`,
-    CREATE_DAILY_RECORD: (id) => `/members/${id}/daily-records`,
-    GET_BADGES: (id) => `/members/${id}/badges`,
-    GET_HEALTH_IMPROVEMENTS: (id) => `/members/${id}/health-improvements`,
-  },
-
-  // Quit Plans
-  QUIT_PLANS: {
-    GET_ALL: '/quit-plans',
-    GET_BY_ID: (id) => `/quit-plans/${id}`,
-    CREATE: '/quit-plans',
-    UPDATE: (id) => `/quit-plans/${id}`,
-    DELETE: (id) => `/quit-plans/${id}`,
-    GET_BY_MEMBER: (memberId) => `/quit-plans/member/${memberId}`,
-    GET_BY_COACH: (coachId) => `/quit-plans/coach/${coachId}`,
-    UPDATE_PROGRESS: (id) => `/quit-plans/${id}/progress`,
-    GET_PHASES: (id) => `/quit-plans/${id}/phases`,
-    UPDATE_PHASE: (id, phaseId) => `/quit-plans/${id}/phases/${phaseId}`,
-  },
-
-  // Appointments
-  APPOINTMENTS: {
-    GET_ALL: '/appointments',
-    GET_BY_ID: (id) => `/appointments/${id}`,
-    CREATE: '/appointments',
-    UPDATE: (id) => `/appointments/${id}`,
-    DELETE: (id) => `/appointments/${id}`,
-    GET_BY_MEMBER: (memberId) => `/appointments/member/${memberId}`,
-    GET_BY_COACH: (coachId) => `/appointments/coach/${coachId}`,
-    CANCEL: (id) => `/appointments/${id}/cancel`,
-    RESCHEDULE: (id) => `/appointments/${id}/reschedule`,
-    GET_AVAILABILITY: (coachId) => `/appointments/availability/${coachId}`,
-  },
-
-  // Daily Records
-  DAILY_RECORDS: {
-    GET_ALL: '/daily-records',
-    GET_BY_ID: (id) => `/daily-records/${id}`,
-    CREATE: '/daily-records',
-    UPDATE: (id) => `/daily-records/${id}`,
-    DELETE: (id) => `/daily-records/${id}`,
-    GET_BY_MEMBER: (memberId) => `/daily-records/member/${memberId}`,
-    GET_BY_DATE_RANGE: (memberId) => `/daily-records/member/${memberId}/range`,
-  },
-
-  // Blog Posts
-  BLOG: {
-    GET_ALL: '/blog/posts',
-    GET_BY_ID: (id) => `/blog/posts/${id}`,
-    CREATE: '/blog/posts',
-    UPDATE: (id) => `/blog/posts/${id}`,
-    DELETE: (id) => `/blog/posts/${id}`,
-    GET_FEATURED: '/blog/posts/featured',
-    GET_POPULAR: '/blog/posts/popular',
-    GET_RELATED: (id) => `/blog/posts/${id}/related`,
-    GET_BY_CATEGORY: (categoryId) => `/blog/posts/category/${categoryId}`,
-    GET_BY_AUTHOR: (authorId) => `/blog/posts/author/${authorId}`,
-    SEARCH: '/blog/posts/search',
-  },
-
-  // Blog Categories
-  BLOG_CATEGORIES: {
-    GET_ALL: '/blog/categories',
-    GET_BY_ID: (id) => `/blog/categories/${id}`,
-    CREATE: '/blog/categories',
-    UPDATE: (id) => `/blog/categories/${id}`,
-    DELETE: (id) => `/blog/categories/${id}`,
-  },
-
-  // Admin Dashboard
-  ADMIN: {
-    DASHBOARD: '/admin/dashboard',
-    SYSTEM_OVERVIEW: '/admin/system-overview',
-    USER_STATISTICS: '/admin/user-statistics',
-    QUIT_PLAN_STATISTICS: '/admin/quit-plan-statistics',
-    CONTENT_STATISTICS: '/admin/content-statistics',
-    COACH_PERFORMANCE: '/admin/coach-performance',
-    SYSTEM_ALERTS: '/admin/system-alerts',
-    MEMBERSHIP_REVENUE: '/admin/membership-revenue',
-  },
-
-  // File Upload
-  UPLOAD: {
-    IMAGE: '/upload/image',
-    DOCUMENT: '/upload/document',
-    AVATAR: '/upload/avatar',
-  },
-
-  // Notifications
-  NOTIFICATIONS: {
-    GET_ALL: '/notifications',
-    GET_BY_USER: (userId) => `/notifications/user/${userId}`,
-    MARK_READ: (id) => `/notifications/${id}/read`,
-    MARK_ALL_READ: (userId) => `/notifications/user/${userId}/read-all`,
-    DELETE: (id) => `/notifications/${id}`,
-  },
-
-  // Progress & Analytics
-  ANALYTICS: {
-    MEMBER_PROGRESS: (memberId) => `/analytics/member/${memberId}/progress`,
-    COACH_ANALYTICS: (coachId) => `/analytics/coach/${coachId}`,
-    SYSTEM_ANALYTICS: '/analytics/system',
-    SUCCESS_RATES: '/analytics/success-rates',
-    USAGE_STATISTICS: '/analytics/usage',
-  },
-
-  // QnA Management
-  QNA: {
-    ASK: '/qna/ask',
-    ANSWER: '/qna/answer',
-    ALL: '/qna/all',
-    ALL_MEMBER: '/qna/member',
-    ALL_COACH: '/qna/coach',
-  },
-
-  // User Management (additional endpoints)
-  USER: {
-    ALL: '/users/all',
-    MEMBERS: '/users/members',
-    CURRENT_ASSIGNMENT: '/users/current-assignment',
-    UPGRADE_PREMIUM: '/users/upgrade-premium',
+    GET_ALL: '/coach/all',
+    CREATE: '/coach/create',
+    CHOOSE: '/coach/choose',
+    ASSIGNED_MEMBERS: '/coach/assigned-members',
+    DISABLE_BY_MEMBER: '/coach/member/disable',
+    DISABLE_BY_ADMIN: '/coach/admin/disable',
   },
 
   // Profile Management
@@ -183,27 +38,88 @@ export const API_ENDPOINTS = {
     COACH: '/profile/coach',
   },
 
+  // Quit Plans
+  QUIT_PLANS: {
+    CREATE: '/api/quit-plans',
+    UPDATE: '/api/quit-plans',
+    NEWEST: '/api/quit-plans/newest',
+    MEMBER_OLD: '/api/quit-plans/member/old',
+    COACH_CREATED: '/api/quit-plans/coach/created',
+    DISABLE: '/api/quit-plans/disable',
+    DENY: '/api/quit-plans/deny',
+    ACCEPT: '/api/quit-plans/accept',
+  },
+
+  // Quit Phases
+  QUIT_PHASES: {
+    PLAN: '/api/quit-phases/plan',
+    MEMBER_NEWEST: '/api/quit-phases/member/newest',
+    DEFAULT: '/api/quit-phases/default',
+    CREATE_GOALS: '/api/quit-phases/create-goals',
+  },
+
+  // Daily Logs
+  DAILY_LOGS: {
+    GET_BY_PHASE: '/api/daily-logs',
+    CREATE: '/api/daily-logs',
+    GET_BY_MEMBER: '/api/daily-logs/member',
+    GET_BY_MEMBER_DATE: '/api/daily-logs/member/date',
+  },
+
+  // Member Smoking Status
+  MEMBER_SMOKING_STATUS: {
+    GET: '/api/member-smoking-status',
+    CREATE: '/api/member-smoking-status',
+    LATEST: '/api/member-smoking-status/latest',
+  },
+
+  // Feedbacks
+  FEEDBACKS: {
+    CREATE: '/api/feedbacks',
+    PUBLISHED: '/api/feedbacks/published',
+    COACH: '/api/feedbacks/coach',
+    ADMIN_ALL: '/api/feedbacks/admin/all',
+    APPROVE_PUBLISH: '/api/feedbacks/approve-publish',
+    HIDE: '/api/feedbacks/hide',
+    REVIEWED: '/api/feedbacks/reviewed',
+  },
+
+  // QnA Management
+  QNA: {
+    ASK: '/api/qna/ask',
+    ANSWER: '/api/qna/answer',
+    ALL: '/api/qna/all',
+    ALL_MEMBER: '/api/qna/all/member',
+    ALL_COACH: '/api/qna/all/coach',
+  },
+
+  // Notifications
+  NOTIFICATIONS: {
+    ALL: '/api/notifications/all',
+    UNREAD: '/api/notifications/unread',
+    READ: '/api/notifications/read',
+    IMPORTANT: '/api/notifications/important',
+    MARK_READ: '/api/notifications/mark-read',
+  },
+
+  // Reminders
+  REMINDERS: {
+    CREATE: '/api/reminders',
+    UPDATE: '/api/reminders/update',
+    DISABLE: '/api/reminders/disable',
+  },
+
   // Chat Management
   CHAT: {
     WS_CHANNELS: '/chat/ws-channels',
-    ROOM_MESSAGES: '/chat/room',
-    PRIVATE_ROOMS: '/chat/private-rooms',
-    CREATE_ROOM: '/chat/create-room',
-    JOIN_ROOM: '/chat/join-room',
-    LEAVE_ROOM: '/chat/leave-room',
+    ROOM_MESSAGES: (roomId) => `/chat/rooms/${roomId}/messages`,
+    PRIVATE_ROOMS: '/chat/rooms/private',
+    DELETE_MESSAGE: '/chat/delete/message',
   },
 
-  // Reminder Management
-  REMINDERS: {
-    GET_ALL: '/reminders',
-    GET_BY_USER: (userId) => `/reminders/user/${userId}`,
-    CREATE: '/reminders',
-    UPDATE: (id) => `/reminders/${id}`,
-    DELETE: (id) => `/reminders/${id}`,
-    DISABLE: (id) => `/reminders/${id}/disable`,
-    TOGGLE: (id) => `/reminders/${id}/toggle`,
-    GET_SETTINGS: '/reminders/settings',
-    UPDATE_SETTINGS: '/reminders/settings',
+  // Payment
+  PAYMENT: {
+    CREATE_PAYMENT: '/vn-pay/create-payment',
   },
 };
 

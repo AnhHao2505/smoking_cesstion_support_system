@@ -1,69 +1,39 @@
 import axiosInstance from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Get member appointments
+// Note: Appointment endpoints are not available in the current API specification
+// The following functions are mock implementations and should be updated when API endpoints are available
+
+// Get member appointments - NOT AVAILABLE IN API
 export const getMemberAppointments = async (userId) => {
-  try {
-    const response = await axiosInstance.get(API_ENDPOINTS.APPOINTMENTS.GET_BY_MEMBER(userId));
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error('Error fetching member appointments:', error);
-    return handleApiError(error);
-  }
+  console.warn('Appointment endpoints are not available in the current API specification');
+  // Return mock data for development
+  return [];
 };
 
-// Get coach availability slots
+// Get coach availability slots - NOT AVAILABLE IN API
 export const getCoachAvailability = async (coachId, startDate, endDate) => {
-  try {
-    const response = await axiosInstance.get(
-      API_ENDPOINTS.APPOINTMENTS.GET_AVAILABILITY(coachId),
-      { params: { start_date: startDate, end_date: endDate } }
-    );
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error('Error fetching coach availability:', error);
-    return handleApiError(error);
-  }
+  console.warn('Appointment endpoints are not available in the current API specification');
+  // Return mock data for development
+  return [];
 };
 
-// Book a new appointment
+// Book a new appointment - NOT AVAILABLE IN API
 export const bookAppointment = async (appointmentData) => {
-  try {
-    const response = await axiosInstance.post(API_ENDPOINTS.APPOINTMENTS.CREATE, appointmentData);
-    const data = handleApiResponse(response);
-    
-    return {
-      success: true,
-      message: data.message || "Appointment booked successfully",
-      appointment_id: data.appointment_id
-    };
-  } catch (error) {
-    console.error('Error booking appointment:', error);
-    throw {
-      success: false,
-      message: error.message || "Failed to book appointment"
-    };
-  }
+  console.warn('Appointment endpoints are not available in the current API specification');
+  // Return mock response for development
+  return {
+    success: false,
+    message: "Appointment booking is not yet available - API endpoint missing"
+  };
 };
 
-// Cancel an appointment
+// Cancel an appointment - NOT AVAILABLE IN API
 export const cancelAppointment = async (appointmentId, reason) => {
-  try {
-    const response = await axiosInstance.post(
-      API_ENDPOINTS.APPOINTMENTS.CANCEL(appointmentId),
-      { reason }
-    );
-    const data = handleApiResponse(response);
-    
-    return {
-      success: true,
-      message: data.message || "Appointment cancelled successfully"
-    };
-  } catch (error) {
-    console.error('Error cancelling appointment:', error);
-    throw {
-      success: false,
-      message: error.message || "Failed to cancel appointment"
-    };
-  }
+  console.warn('Appointment endpoints are not available in the current API specification');
+  // Return mock response for development
+  return {
+    success: false,
+    message: "Appointment cancellation is not yet available - API endpoint missing"
+  };
 };

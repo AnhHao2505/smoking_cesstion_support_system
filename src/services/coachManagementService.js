@@ -26,7 +26,7 @@ export const createCoach = async (coachData) => {
 // Member chooses a coach
 export const chooseCoach = async (coachId) => {
   try {
-    const response = await axiosInstance.post(`/coach/choose`, null, {
+    const response = await axiosInstance.post(API_ENDPOINTS.COACHES.CHOOSE, null, {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -38,7 +38,7 @@ export const chooseCoach = async (coachId) => {
 // Get assigned members for a coach
 export const getAssignedMembers = async (coachId) => {
   try {
-    const response = await axiosInstance.get(`/coach/assigned-members`, {
+    const response = await axiosInstance.get(API_ENDPOINTS.COACHES.ASSIGNED_MEMBERS, {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -50,7 +50,7 @@ export const getAssignedMembers = async (coachId) => {
 // Member disables their coach
 export const disableCoachForMember = async (coachId) => {
   try {
-    const response = await axiosInstance.patch(`/coach/disable-by-member`, null, {
+    const response = await axiosInstance.patch(API_ENDPOINTS.COACHES.DISABLE_BY_MEMBER, null, {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -62,37 +62,7 @@ export const disableCoachForMember = async (coachId) => {
 // Admin disables a coach
 export const disableCoachByAdmin = async (coachId) => {
   try {
-    const response = await axiosInstance.patch(`/coach/disable-by-admin`, coachId);
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
-};
-
-// Get coach specialties
-export const getCoachSpecialties = async () => {
-  try {
-    const response = await axiosInstance.get(API_ENDPOINTS.COACHES.GET_SPECIALTIES);
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
-};
-
-// Update coach information
-export const updateCoach = async (coachId, coachData) => {
-  try {
-    const response = await axiosInstance.put(API_ENDPOINTS.COACHES.UPDATE(coachId), coachData);
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
-};
-
-// Delete coach
-export const deleteCoach = async (coachId) => {
-  try {
-    const response = await axiosInstance.delete(API_ENDPOINTS.COACHES.DELETE(coachId));
+    const response = await axiosInstance.patch(API_ENDPOINTS.COACHES.DISABLE_BY_ADMIN, coachId);
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
