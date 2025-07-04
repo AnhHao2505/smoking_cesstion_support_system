@@ -53,10 +53,8 @@ const { TextArea } = Input;
 const { Step } = Steps;
 const { RangePicker } = DatePicker;
 
-// Component for frequency step content that uses Form.useWatch
-const FrequencyStepContent = ({ form }) => {
-  const frequency = Form.useWatch('frequency', form);
-  
+// Component for frequency step content
+const FrequencyStepContent = ({ form, frequency }) => {
   return (
     <div>
       <Form.Item
@@ -235,6 +233,9 @@ const ReminderCreation = () => {
   const [reminderType, setReminderType] = useState('custom');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [previewData, setPreviewData] = useState({});
+  
+  // Watch frequency value for conditional rendering
+  const frequency = Form.useWatch('frequency', form);
 
   useEffect(() => {
     const user = getCurrentUser();
@@ -637,7 +638,7 @@ const ReminderCreation = () => {
       case 2:
         return (
           <div>
-            <FrequencyStepContent form={form} />
+            <FrequencyStepContent form={form} frequency={frequency} />
           </div>
         );
         

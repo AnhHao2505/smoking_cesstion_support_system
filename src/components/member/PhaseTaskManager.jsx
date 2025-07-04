@@ -27,9 +27,9 @@ import {
   Alert,
   Tabs,
   Calendar,
-  Popconfirm,
-  Statistic
+  Popconfirm
 } from 'antd';
+import { Statistic } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
