@@ -2,6 +2,34 @@ import axiosInstance, { isTokenValid, clearAuthData } from '../utils/axiosConfig
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 import { getCurrentAuthUser, getCurrentAuthToken, getCurrentUserId } from '../utils/authUtils';
 
+// Helper function to parse JWT token
+const parseJwtTokenInternal = (token) => {
+  try {
+    // JWT has 3 parts separated by dots: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      throw new Error('Invalid JWT token format');
+    }
+    
+    // Decode the payload (second part)
+    const payload = parts[1];
+    
+    // Add padding if needed for base64 decoding
+    const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+    
+    // Decode from base64
+    const decodedPayload = atob(paddedPayload);
+    
+    // Parse JSON
+    const parsedPayload = JSON.parse(decodedPayload);
+    
+    return parsedPayload;
+  } catch (error) {
+    console.error('Error parsing JWT token:', error);
+    return null;
+  }
+};
+
 // Login function - Updated to match exact API specification
 export const login = async (email, password) => {
   try {
@@ -17,12 +45,19 @@ export const login = async (email, password) => {
     
     // Handle successful login response based on the new format
     if (data && data.token) {
-      // Create a basic user object from the email in the response
+      // Parse JWT token to extract user information
+      const tokenPayload = parseJwtTokenInternal(data.token);
+      
+      if (!tokenPayload) {
+        throw new Error('Invalid token format');
+      }
+      
+      // Extract user information from token payload
       const user = {
-        email: data.email,
-        userId: data.userId || null,      
-        role: data.role || 'MEMBER', // Default to 'member' if no role provided
-        isPremiumMembership: data.isPremiumMembership || false,
+        email: tokenPayload.sub || email, // Use 'sub' from token or fallback to login email
+        userId: tokenPayload.userId || null,
+        role: tokenPayload.role || 'MEMBER',
+        isPremiumMembership: tokenPayload.isPremiumMembership || false,
       };
       
       // Store auth token and user data
@@ -268,5 +303,41 @@ export const getTesters = async () => {
   } catch (error) {
     console.error('Error fetching testers:', error);
     throw handleApiError(error);
+  }
+};
+
+// Export JWT parsing function for use in other modules
+export const parseJwtToken = parseJwtTokenInternal;
+
+// Refresh user data from stored token
+export const refreshUserFromToken = () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      return null;
+    }
+    
+    const tokenPayload = parseJwtTokenInternal(token);
+    if (!tokenPayload) {
+      clearAuthData();
+      return null;
+    }
+    
+    // Create updated user object from token
+    const user = {
+      email: tokenPayload.sub || '',
+      userId: tokenPayload.userId || null,
+      role: tokenPayload.role || 'MEMBER',
+      isPremiumMembership: tokenPayload.isPremiumMembership || false,
+    };
+    
+    // Update localStorage with refreshed user data
+    localStorage.setItem('user', JSON.stringify(user));
+    
+    return user;
+  } catch (error) {
+    console.error('Error refreshing user from token:', error);
+    clearAuthData();
+    return null;
   }
 };
