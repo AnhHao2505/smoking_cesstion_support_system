@@ -1,6 +1,28 @@
 import axios from 'axios';
 import { API_BASE_URL } from './apiEndpoints';
 
+// Helper function to check if token is valid (not expired)
+const isTokenValid = (token) => {
+  if (!token) return false;
+  
+  try {
+    // Simple token format check - you can enhance this with JWT decoding if needed
+    const parts = token.split('.');
+    if (parts.length !== 3) return false; // Basic JWT structure check
+    
+    // Additional validation can be added here
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
+// Helper function to clear auth data
+const clearAuthData = () => {
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('user');
+};
+
 // Create axios instance with base configuration
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -17,12 +39,38 @@ axiosInstance.interceptors.request.use(
     // Get auth token from localStorage
     const token = localStorage.getItem('authToken');
     
-    // Only add authorization header if token exists and it's not a public endpoint
-    const publicEndpoints = ['/auth/login', '/auth/register', '/blog', '/public'];
-    const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
+    // Define public endpoints that don't require authentication
+    const publicEndpoints = [
+      '/auth/login',
+      '/auth/register', 
+      '/auth/send-verify-otp',
+      '/auth/send-reset-otp',
+      '/auth/verify-account',
+      '/auth/reset-password',
+      '/auth/get-testers',
+      '/blog',
+      '/public',
+      '/api/feedbacks/published' // Published feedbacks are public
+    ];
     
+    // Check if current request is to a public endpoint
+    const isPublicEndpoint = publicEndpoints.some(endpoint => {
+      const fullUrl = config.url || '';
+      return fullUrl.includes(endpoint);
+    });
+    
+    // Add authorization header for authenticated endpoints
     if (token && !isPublicEndpoint) {
-      config.headers.Authorization = `Bearer ${token}`;
+      // Validate token before using it
+      if (isTokenValid(token)) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('Adding auth token to request');
+      } else {
+        // Token is invalid, clear auth data
+        console.warn('Invalid token detected, clearing auth data');
+        clearAuthData();
+        // Don't add invalid token to request
+      }
     }
     
     // Log request for debugging (remove in production)
@@ -51,12 +99,10 @@ axiosInstance.interceptors.response.use(
       
       switch (status) {
         case 401:
-          // Unauthorized - only clear token, don't redirect automatically
+          // Unauthorized - clear token and auth data
           console.error('Authentication failed:', data.message || 'Unauthorized access');
-          // Only clear auth data, let components handle the response
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
-          // Remove automatic redirect - let components handle this
+          clearAuthData();
+          // Let components handle the redirect
           break;
         case 403:
           // Forbidden
@@ -90,3 +136,6 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
+
+// Export helper functions for use in other parts of the application
+export { isTokenValid, clearAuthData };

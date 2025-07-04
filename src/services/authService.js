@@ -1,5 +1,6 @@
-import axiosInstance from '../utils/axiosConfig';
+import axiosInstance, { isTokenValid, clearAuthData } from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
+import { getCurrentAuthUser, getCurrentAuthToken, getCurrentUserId } from '../utils/authUtils';
 
 // Login function - Updated to match exact API specification
 export const login = async (email, password) => {
@@ -108,9 +109,8 @@ export const logout = async () => {
     console.error('Logout API error:', error);
     // Continue with local logout even if API call fails
   } finally {
-    // Clear local storage regardless of API call result
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+    // Clear local storage using helper function
+    clearAuthData();
   }
   
   return { 
@@ -123,26 +123,19 @@ export const logout = async () => {
 export const isAuthenticated = () => {
   const token = localStorage.getItem('authToken');
   const user = getCurrentUser();
-  return !!token && !!user;
-};
-
-// Get current user from localStorage
-export const getCurrentUser = () => {
-  const userStr = localStorage.getItem('user');
-  if (!userStr) return null;
   
-  try {
-    return JSON.parse(userStr);
-  } catch (e) {
-    console.error('Error parsing user data:', e);
-    return null;
-  }
+  // Check if both token and user exist, and token is valid
+  return !!token && !!user && isTokenValid(token);
 };
 
-// Get member ID from current user
+// Get current user from localStorage (deprecated - use getCurrentAuthUser instead)
+export const getCurrentUser = () => {
+  return getCurrentAuthUser();
+};
+
+// Get member ID from current user (deprecated - use getCurrentUserId instead)
 export const getMemberId = () => {
-  const user = getCurrentUser();
-  return user?.userId || null;
+  return getCurrentUserId();
 };
 
 // Verify token with server
@@ -262,9 +255,9 @@ export const resetPassword = async (email, otpInput, newPassword) => {
   }
 };
 
-// Get auth token
+// Get auth token (deprecated - use getCurrentAuthToken instead)
 export const getToken = () => {
-  return localStorage.getItem('authToken');
+  return getCurrentAuthToken();
 };
 
 // Get tester accounts
