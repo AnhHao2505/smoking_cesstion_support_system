@@ -118,9 +118,13 @@ const MemberDashboard = () => {
 
   // Get current phase index for the Steps component
   const getCurrentPhaseIndex = () => {
-    return quitPlan.phases.findIndex(phase => 
+    if (!quitPlan || !quitPlan.phases || !quitPlan.current_phase) {
+      return 0;
+    }
+    const index = quitPlan.phases.findIndex(phase => 
       phase.phase_name === quitPlan.current_phase.phase_name
     );
+    return index >= 0 ? index : 0;
   };
 
   return (
@@ -150,15 +154,15 @@ const MemberDashboard = () => {
                 </Text>
                 <br />
                 <Text type="secondary">
-                  <strong>Plan:</strong> {quitPlan.plan_name}
+                  <strong>Plan:</strong> {quitPlan?.plan_name || 'N/A'}
                 </Text>
                 <br />
                 <Text type="secondary">
-                  <strong>Start Date:</strong> {formatDate(quitPlan.start_date)}
+                  <strong>Start Date:</strong> {formatDate(quitPlan?.start_date)}
                 </Text>
                 <br />
                 <Text type="secondary">
-                  <strong>Target Date:</strong> {formatDate(quitPlan.end_date)}
+                  <strong>Target Date:</strong> {formatDate(quitPlan?.end_date)}
                 </Text>
               </Paragraph>
             </Col>
@@ -171,7 +175,7 @@ const MemberDashboard = () => {
             <Card>
               <Statistic
                 title="Days Smoke-Free"
-                value={quitPlan.days_smoke_free}
+                value={quitPlan?.days_smoke_free || 0}
                 prefix={<ClockCircleOutlined />}
                 valueStyle={{ color: '#3f8600' }}
               />
@@ -181,19 +185,19 @@ const MemberDashboard = () => {
             <Card>
               <Statistic
                 title="Progress"
-                value={quitPlan.overall_progress}
+                value={quitPlan?.overall_progress || 0}
                 suffix="%"
                 prefix={<RiseOutlined />}
                 valueStyle={{ color: '#1890ff' }}
               />
-              <Progress percent={quitPlan.overall_progress} showInfo={false} />
+              <Progress percent={quitPlan?.overall_progress || 0} showInfo={false} />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
                 title="Money Saved"
-                value={quitPlan.money_saved}
+                value={quitPlan?.money_saved || 0}
                 prefix={<DollarOutlined />}
                 suffix="$"
                 valueStyle={{ color: '#faad14' }}
@@ -204,7 +208,7 @@ const MemberDashboard = () => {
             <Card>
               <Statistic
                 title="Cigarettes Avoided"
-                value={quitPlan.cigarettes_avoided}
+                value={quitPlan?.cigarettes_avoided || 0}
                 prefix={<FireOutlined />}
                 valueStyle={{ color: '#cf1322' }}
               />
@@ -218,96 +222,114 @@ const MemberDashboard = () => {
           <Col xs={24} lg={16}>
             {/* Quit Phase Progress */}
             <Card title="Quit Plan Phases" className="mb-4">
-              <Steps current={getCurrentPhaseIndex()} direction="vertical">
-                {quitPlan.phases.map((phase, index) => (
-                  <Step
-                    key={index}
-                    title={phase.phase_name}
-                    description={
-                      <div>
-                        <Text>{phase.objective}</Text>
-                        <br />
-                        <Text type="secondary">
-                          {formatDate(phase.start_date)} - {formatDate(phase.end_date)}
-                        </Text>
-                        {phase.phase_name === quitPlan.current_phase.phase_name && (
-                          <Progress 
-                            percent={phase.completion_percentage} 
-                            size="small" 
-                            style={{ marginTop: 8 }}
-                          />
-                        )}
-                      </div>
-                    }
-                    status={
-                      phase.is_completed 
-                        ? 'finish' 
-                        : phase.phase_name === quitPlan.current_phase.phase_name 
-                          ? 'process' 
-                          : 'wait'
-                    }
-                  />
-                ))}
-              </Steps>
+              {quitPlan && quitPlan.phases && quitPlan.phases.length > 0 ? (
+                <Steps current={getCurrentPhaseIndex()} direction="vertical">
+                  {quitPlan.phases.map((phase, index) => (
+                    <Step
+                      key={index}
+                      title={phase.phase_name}
+                      description={
+                        <div>
+                          <Text>{phase.objective}</Text>
+                          <br />
+                          <Text type="secondary">
+                            {formatDate(phase.start_date)} - {formatDate(phase.end_date)}
+                          </Text>
+                          {quitPlan.current_phase && phase.phase_name === quitPlan.current_phase.phase_name && (
+                            <Progress 
+                              percent={phase.completion_percentage || 0} 
+                              size="small" 
+                              style={{ marginTop: 8 }}
+                            />
+                          )}
+                        </div>
+                      }
+                      status={
+                        phase.is_completed 
+                          ? 'finish' 
+                          : quitPlan.current_phase && phase.phase_name === quitPlan.current_phase.phase_name 
+                            ? 'process' 
+                            : 'wait'
+                      }
+                    />
+                  ))}
+                </Steps>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Text type="secondary">No phases data available</Text>
+                </div>
+              )}
             </Card>
 
             {/* Health Improvements */}
             <Card title="Health Improvements" className="mb-4">
-              <Timeline>
-                {healthImprovements.slice(0, 3).map((improvement, index) => (
-                  <Timeline.Item 
-                    key={index}
-                    color={improvement.achieved ? 'green' : 'blue'}
-                  >
-                    <Text strong>{improvement.title}</Text>
-                    <br />
-                    <Text type="secondary">{improvement.description}</Text>
-                    {improvement.achieved && (
-                      <div>
-                        <Tag color="success" style={{ marginTop: 4 }}>
-                          Achieved on {formatDate(improvement.achieved_date)}
-                        </Tag>
-                      </div>
-                    )}
-                  </Timeline.Item>
-                ))}
-              </Timeline>
+              {healthImprovements && healthImprovements.length > 0 ? (
+                <Timeline>
+                  {healthImprovements.slice(0, 3).map((improvement, index) => (
+                    <Timeline.Item 
+                      key={index}
+                      color={improvement.achieved ? 'green' : 'blue'}
+                    >
+                      <Text strong>{improvement.title}</Text>
+                      <br />
+                      <Text type="secondary">{improvement.description}</Text>
+                      {improvement.achieved && (
+                        <div>
+                          <Tag color="success" style={{ marginTop: 4 }}>
+                            Achieved on {formatDate(improvement.achieved_date)}
+                          </Tag>
+                        </div>
+                      )}
+                    </Timeline.Item>
+                  ))}
+                </Timeline>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Text type="secondary">No health improvements data available</Text>
+                </div>
+              )}
             </Card>
 
             {/* Recent Daily Records */}
             <Card title="Recent Daily Records" className="mb-4">
-              <List
-                itemLayout="horizontal"
-                dataSource={dailyRecords.slice(0, 3)}
-                renderItem={record => (
-                  <List.Item>
-                    <List.Item.Meta
-                      avatar={
-                        <Avatar 
-                          icon={record.smoked_today ? <FireOutlined /> : <CheckCircleOutlined />}
-                          style={{ 
-                            backgroundColor: record.smoked_today ? '#ff4d4f' : '#52c41a' 
-                          }}
-                        />
-                      }
-                      title={formatDate(record.record_date)}
-                      description={
-                        <div>
-                          <Text>Mood: {record.mood_level}/10</Text>
-                          <Divider type="vertical" />
-                          <Text>Stress: {record.stress_level}/10</Text>
-                          <Divider type="vertical" />
-                          <Text>
-                            {record.smoked_today 
-                              ? `Smoked ${record.cigarettes_smoked} cigarettes` 
-                              : 'Smoke-free day!'}
-                          </Text>
-                        </div>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
+              {dailyRecords && dailyRecords.length > 0 ? (
+                <List
+                  itemLayout="horizontal"
+                  dataSource={dailyRecords.slice(0, 3)}
+                  renderItem={record => (
+                    <List.Item>
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar 
+                            icon={record.smoked_today ? <FireOutlined /> : <CheckCircleOutlined />}
+                            style={{ 
+                              backgroundColor: record.smoked_today ? '#ff4d4f' : '#52c41a' 
+                            }}
+                          />
+                        }
+                        title={formatDate(record.record_date)}
+                        description={
+                          <div>
+                            <Text>Mood: {record.mood_level}/10</Text>
+                            <Divider type="vertical" />
+                            <Text>Stress: {record.stress_level}/10</Text>
+                            <Divider type="vertical" />
+                            <Text>
+                              {record.smoked_today 
+                                ? `Smoked ${record.cigarettes_smoked} cigarettes` 
+                                : 'Smoke-free day!'}
+                            </Text>
+                          </div>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Text type="secondary">No daily records available</Text>
+                </div>
+              )}
             </Card>
           </Col>
 
@@ -315,63 +337,81 @@ const MemberDashboard = () => {
           <Col xs={24} lg={8}>
             {/* Achievements */}
             <Card title="Recent Achievements" className="mb-4">
-              <List
-                itemLayout="horizontal"
-                dataSource={badges.slice(0, 3)}
-                renderItem={badge => (
-                  <List.Item>
-                    <List.Item.Meta
-                      avatar={<Avatar icon={<TrophyOutlined />} style={{ backgroundColor: '#faad14' }} />}
-                      title={badge.badge_name}
-                      description={formatDate(badge.earned_date)}
-                    />
-                  </List.Item>
-                )}
-              />
+              {badges && badges.length > 0 ? (
+                <List
+                  itemLayout="horizontal"
+                  dataSource={badges.slice(0, 3)}
+                  renderItem={badge => (
+                    <List.Item>
+                      <List.Item.Meta
+                        avatar={<Avatar icon={<TrophyOutlined />} style={{ backgroundColor: '#faad14' }} />}
+                        title={badge.badge_name}
+                        description={formatDate(badge.earned_date)}
+                      />
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Text type="secondary">No achievements yet</Text>
+                </div>
+              )}
             </Card>
 
             {/* Upcoming Reminders */}
             <Card title="Upcoming Reminders" className="mb-4">
-              <List
-                itemLayout="horizontal"
-                dataSource={reminders.slice(0, 3)}
-                renderItem={reminder => (
-                  <List.Item>
-                    <List.Item.Meta
-                      avatar={<Avatar icon={<BellOutlined />} style={{ backgroundColor: '#1890ff' }} />}
-                      title={reminder.message}
-                      description={formatDate(reminder.nextDate)}
-                    />
-                  </List.Item>
-                )}
-              />
+              {reminders && reminders.length > 0 ? (
+                <List
+                  itemLayout="horizontal"
+                  dataSource={reminders.slice(0, 3)}
+                  renderItem={reminder => (
+                    <List.Item>
+                      <List.Item.Meta
+                        avatar={<Avatar icon={<BellOutlined />} style={{ backgroundColor: '#1890ff' }} />}
+                        title={reminder.message}
+                        description={formatDate(reminder.nextDate)}
+                      />
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Text type="secondary">No upcoming reminders</Text>
+                </div>
+              )}
             </Card>
 
             {/* Recent Q&A */}
             <Card title="Recent Questions & Answers" className="mb-4">
-              <List
-                itemLayout="horizontal"
-                dataSource={questionsAnswers.slice(0, 2)}
-                renderItem={qa => (
-                  <List.Item>
-                    <List.Item.Meta
-                      avatar={<Avatar icon={<QuestionOutlined />} style={{ backgroundColor: '#722ed1' }} />}
-                      title={qa.question}
-                      description={
-                        <div>
-                          <Text type="secondary">{formatDate(qa.created_date)}</Text>
-                          {qa.answer && (
-                            <>
-                              <br />
-                              <Text>{qa.answer.substring(0, 100)}...</Text>
-                            </>
-                          )}
-                        </div>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
+              {questionsAnswers && questionsAnswers.length > 0 ? (
+                <List
+                  itemLayout="horizontal"
+                  dataSource={questionsAnswers.slice(0, 2)}
+                  renderItem={qa => (
+                    <List.Item>
+                      <List.Item.Meta
+                        avatar={<Avatar icon={<QuestionOutlined />} style={{ backgroundColor: '#722ed1' }} />}
+                        title={qa.question}
+                        description={
+                          <div>
+                            <Text type="secondary">{formatDate(qa.created_date)}</Text>
+                            {qa.answer && (
+                              <>
+                                <br />
+                                <Text>{qa.answer.substring(0, 100)}...</Text>
+                              </>
+                            )}
+                          </div>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Text type="secondary">No Q&A available</Text>
+                </div>
+              )}
             </Card>
           </Col>
         </Row>

@@ -53,8 +53,11 @@ const SmokingStatusTracker = () => {
         getDailyStateRecords(userId, 30), // Get last 30 days
         getLatestMemberSmokingStatus(userId)
       ]);
-
-      // Mock data structure to match the expected format
+console.log(recordsData)
+      // Use real records data if available, otherwise use mock data
+      const actualRecords = recordsData && Array.isArray(recordsData) ? recordsData : [];
+      
+      // Mock data structure to match the expected format (for demonstration)
       const mockRecords = [
         {
           id: 1,
@@ -94,8 +97,27 @@ const SmokingStatusTracker = () => {
         }
       ];
 
-      setRecords(mockRecords);
-      setLatestStatus(latestData || mockRecords[0]);
+      // Use actual records if available, fallback to mock data
+      const finalRecords = actualRecords.length > 0 ? actualRecords : mockRecords;
+      setRecords(finalRecords);
+
+      // Handle latestData - it contains initial status info, not daily records
+      if (latestData) {
+        // Create a status summary from the initial status data
+        const statusSummary = {
+          memberName: latestData.memberName,
+          addiction: latestData.addiction,
+          dailySmoking: latestData.dailySmoking,
+          initialStatusId: latestData.initialStatusId,
+          goal: latestData.goal,
+          reasonToQuit: latestData.reasonToQuit
+        };
+        setLatestStatus(statusSummary);
+      } else {
+        // Fallback to the latest record if no status data
+        setLatestStatus(finalRecords[0] || null);
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error('Error fetching smoking data:', error);
@@ -332,19 +354,48 @@ const SmokingStatusTracker = () => {
         </div>
 
         {/* Today's Status Alert */}
-        {latestStatus && moment(latestStatus.record_date).isSame(moment(), 'day') && (
+        {latestStatus && (
           <Alert
-            message="Trạng thái hôm nay"
+            message={latestStatus.memberName ? `Thông tin của ${latestStatus.memberName}` : "Trạng thái hôm nay"}
             description={
-              <Space>
-                {getStatusIcon(latestStatus.smoking_status)}
-                <Text strong>{getStatusText(latestStatus.smoking_status)}</Text>
-                {latestStatus.cigarettes_count > 0 && (
-                  <Text>- {latestStatus.cigarettes_count} điếu thuốc</Text>
-                )}
-              </Space>
+              latestStatus.addiction ? (
+                <Space direction="vertical">
+                  <Space>
+                    <Text strong>Mức độ nghiện:</Text>
+                    <Tag color={latestStatus.addiction === 'SEVERE' ? 'red' : latestStatus.addiction === 'MODERATE' ? 'orange' : 'green'}>
+                      {latestStatus.addiction === 'SEVERE' ? 'Nghiêm trọng' : 
+                       latestStatus.addiction === 'MODERATE' ? 'Trung bình' : 'Nhẹ'}
+                    </Tag>
+                  </Space>
+                  <Space>
+                    <Text strong>Số điếu/ngày:</Text>
+                    <Text>{latestStatus.dailySmoking || 0}</Text>
+                  </Space>
+                  {latestStatus.goal && (
+                    <Space>
+                      <Text strong>Mục tiêu:</Text>
+                      <Text>{latestStatus.goal}</Text>
+                    </Space>
+                  )}
+                  {latestStatus.reasonToQuit && (
+                    <Space>
+                      <Text strong>Lý do bỏ thuốc:</Text>
+                      <Text>{latestStatus.reasonToQuit}</Text>
+                    </Space>
+                  )}
+                </Space>
+              ) : (
+                <Space>
+                  {getStatusIcon(latestStatus.smoking_status)}
+                  <Text strong>{getStatusText(latestStatus.smoking_status)}</Text>
+                  {latestStatus.cigarettes_count > 0 && (
+                    <Text>- {latestStatus.cigarettes_count} điếu thuốc</Text>
+                  )}
+                </Space>
+              )
             }
-            type={latestStatus.smoking_status === 'smoke_free' ? 'success' : 'warning'}
+            type={latestStatus.addiction === 'SEVERE' ? 'error' : latestStatus.addiction ? 'warning' : 
+                  latestStatus.smoking_status === 'smoke_free' ? 'success' : 'warning'}
             showIcon
             className="mb-4"
           />
