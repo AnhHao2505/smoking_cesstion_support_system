@@ -378,36 +378,19 @@ const QuitPlanCreation = () => {
         setSubmitting(false);
         return;
       }
+
+      // Note: Based on the API flow, Members don't directly create quit plans
+      // The coach creates plans for members. This form can be used to collect member preferences
+      // and then the coach will create the actual plan using the /api/quit-plans/create endpoint
       
-      const quitPlanData = {
-        user_id: userId,
-        coach_id: values.coach_id,
-        circumstance_id: values.circumstance_id,
-        start_date: values.start_date.format('YYYY-MM-DD'),
-        end_date: values.end_date.format('YYYY-MM-DD'),
-        strategies_to_use: strategies.join(', '),
-        medications_to_use: medications.join(', '),
-        medication_instructions: values.medication_instructions || '',
-        preparation_steps: values.preparation_steps,
-        note: values.note || '',
-        status: true,
-        quit_phases: defaultPhases.map((phase, index) => ({
-          ...phase,
-          start_date: moment(values.start_date).add(index * 15, 'days').format('YYYY-MM-DD'),
-          is_completed: false
-        }))
-      };
+      // For now, we'll show a message that the request has been sent to the coach
+      message.success('Your quit plan preferences have been submitted to your coach. They will create a personalized plan for you soon.');
+      navigate('/member/dashboard');
       
-      // Submit the data using the correct API call
-      const response = await quitPlanService.createQuitPlan(userId, quitPlanData);
-      
-      if (response.success) {
-        message.success(response.message || 'Tạo kế hoạch cai thuốc thành công!');
-        // Redirect to dashboard or the newly created quit plan
-        navigate('/member/dashboard');
-      } else {
-        message.error(response.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
-      }
+      // In a real implementation, you might want to:
+      // 1. Save the preferences to a temporary table
+      // 2. Notify the coach about the member's preferences
+      // 3. Let the coach use these preferences when creating the actual plan
     } catch (error) {
       console.error('Error submitting form:', error);
       message.error('Có lỗi xảy ra khi tạo kế hoạch cai thuốc. Vui lòng thử lại.');

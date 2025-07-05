@@ -45,21 +45,30 @@ const NavBar = () => {
       icon: <FileTextOutlined />,
       items: [
         { key: '/member/quit-plan', label: 'Current Plan', path: '/member/quit-plan' },
+        { key: '/member/quit-plan-flow', label: 'Quit Journey', path: '/member/quit-plan-flow' },
         { key: '/member/quit-plan-creation', label: 'Create New Plan', path: '/member/quit-plan-creation' },
-        { key: '/member/quit-plan-history', label: 'Plan History', path: '/member/quit-plan-history' },
+        { key: '/member/quit-plan-history', label: 'Plan History', path: '/member/quit-plan-history' }
       ]
     },
     tracking: {
-      label: 'Tracking',
+      label: 'Daily Tracking',
       icon: <HeartOutlined />,
       items: [
         { key: '/member/daily-checkin', label: 'Daily Check-in', path: '/member/daily-checkin' },
+        { key: '/member/daily-record', label: 'Daily Log', path: '/member/daily-record' },
         { key: '/member/craving-logger', label: 'Craving Logger', path: '/member/craving-logger' },
         { key: '/member/smoking-status', label: 'Smoking Status', path: '/member/smoking-status' }
       ]
     },
+    progress: {
+      label: 'Progress & Analytics',
+      icon: <BarChartOutlined />,
+      items: [
+        { key: '/member/progress-chart', label: 'Progress Charts', path: '/member/progress-chart' }
+      ]
+    },
     support: {
-      label: 'Support',
+      label: 'Support & Coaching',
       icon: <UserOutlined />,
       items: [
         { key: '/member/appointments', label: 'Appointments', path: '/member/appointments' },
@@ -67,12 +76,21 @@ const NavBar = () => {
         { key: '/member/reminders', label: 'Reminders', path: '/member/reminders' }
       ]
     },
+    phases: {
+      label: 'Phase Management',
+      icon: <AimOutlined />,
+      items: [
+        { key: '/member/phase-progress', label: 'Phase Progress', path: '/member/phase-progress' }
+      ]
+    },
     account: {
-      label: 'Account',
+      label: 'Account & Settings',
       icon: <UserOutlined />,
       items: [
         { key: '/member/membership-status', label: 'Membership', path: '/member/membership-status' },
-        { key: '/member/account-management', label: 'Settings', path: '/member/account-management' }
+        { key: '/member/account-management', label: 'Settings', path: '/member/account-management' },
+        { key: '/member/premium-upgrade', label: 'Premium Upgrade', path: '/member/premium-upgrade' },
+        { key: '/member/user-settings', label: 'User Settings', path: '/member/user-settings' }
       ]
     }
   };
@@ -98,7 +116,8 @@ const NavBar = () => {
       label: 'Plan Management',
       icon: <BarChartOutlined />,
       items: [
-        { key: '/coach/plan-approvals', label: 'Plan Approvals', path: '/coach/plan-approvals' }
+        { key: '/coach/quit-plan-approval', label: 'Plan Approvals', path: '/coach/quit-plan-approval' },
+        { key: '/coach/member-management', label: 'Member Management', path: '/coach/member-management' }
       ]
     },
     community: {
@@ -115,7 +134,7 @@ const NavBar = () => {
     // Public links available to all users
     const publicLinks = [
       { path: '/', label: 'Home' },
-      // { path: '/blog', label: 'Articles' },
+      { path: '/blog', label: 'Articles' }
       // { path: '/about', label: 'About' },
       // { path: '/contact', label: 'Contact' }
     ];

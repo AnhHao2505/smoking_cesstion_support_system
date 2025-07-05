@@ -23,6 +23,7 @@ import MemberProfile from './member/MemberProfile';
 import QuitPlanDetail from './member/QuitPlanDetail';
 import QuitPlanCreation from './member/QuitPlanCreation';
 import QuitPlanEdit from './member/QuitPlanEdit';
+import MemberQuitPlanFlow from './member/MemberQuitPlanFlow';
 import DailyRecordForm from './member/DailyRecordForm';
 import AppointmentManagement from './member/AppointmentManagement';
 import CoachSelection from './member/CoachSelection';
@@ -46,6 +47,11 @@ import CravingLogger from './member/CravingLogger';
 // Import blog pages
 import BlogListPage from '../pages/blog/BlogListPage';
 import BlogDetailPage from '../pages/blog/BlogDetailPage';
+
+// Coach components  
+import QuitPlanApproval from './coach/QuitPlanApproval';
+import QuitPlanApprovalNewFlow from './coach/QuitPlanApprovalNewFlow';
+import CoachScheduleManagement from './coach/CoachScheduleManagement';
 
 // Admin components
 import AdminDashboard from './admin/AdminDashboard';
@@ -135,6 +141,15 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
                     <QuitPlanDetail />
+                  </PrivateRoute>
+                }
+              />
+
+              <Route 
+                path="/member/quit-plan-flow" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <MemberQuitPlanFlow />
                   </PrivateRoute>
                 }
               />
@@ -301,6 +316,33 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['COACH']}>
                     <CoachDashboard />
+                  </PrivateRoute>
+                }
+              />
+
+              <Route 
+                path="/coach/quit-plan-approval" 
+                element={
+                  <PrivateRoute allowedRoles={['COACH']}>
+                    <QuitPlanApproval />
+                  </PrivateRoute>
+                }
+              />
+
+              <Route 
+                path="/coach/member-management" 
+                element={
+                  <PrivateRoute allowedRoles={['COACH']}>
+                    <QuitPlanApprovalNewFlow />
+                  </PrivateRoute>
+                }
+              />
+
+              <Route 
+                path="/coach/schedule" 
+                element={
+                  <PrivateRoute allowedRoles={['COACH']}>
+                    <CoachScheduleManagement />
                   </PrivateRoute>
                 }
               />

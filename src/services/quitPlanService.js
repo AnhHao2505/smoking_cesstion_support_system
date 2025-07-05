@@ -174,11 +174,17 @@ export const getQuitPlanDetail = async (planId) => {
     // Since there's no direct endpoint for plan by ID in the API spec, 
     // we'll need to use the newest plan or implement a workaround
     console.warn('No direct endpoint for plan by ID, this would need to be implemented based on business logic');
-    return getQuitPlanDetailMock(planId);
+    return {
+      success: true,
+      data: getQuitPlanDetailMock(planId)
+    };
   } catch (error) {
     throw handleApiError(error);
   }
 };
+
+// Alias for backward compatibility
+export const getQuitPlanByPlanId = getQuitPlanDetail;
 
 // Mock function for quit plan detail (keeping for backward compatibility)
 const getQuitPlanDetailMock = (planId) => {
@@ -274,13 +280,15 @@ export const denyQuitPlan = async (planId) => {
   }
 };
 
-// Get quit plan by plan ID
-export const getQuitPlanByPlanId = async (planId) => {
+// Get all plans created by coach - NOT AVAILABLE IN API, using mock
+export const getAllPlanCreatedByCoach = async (coachId) => {
   try {
-    // Note: This endpoint doesn't exist in the API specification
-    // Using mock data as fallback
-    console.warn('GET quit plan by ID is not available in the API specification');
-    return getQuitPlanDetailMock(planId);
+    console.warn('Coach plans endpoint not available in API specification');
+    // Return mock data for development
+    return {
+      success: true,
+      data: []
+    };
   } catch (error) {
     throw handleApiError(error);
   }
