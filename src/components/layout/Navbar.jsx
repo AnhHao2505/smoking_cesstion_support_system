@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Dropdown, Menu } from 'antd';
+import { DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import '../../styles/Navbar.css';
 
@@ -28,32 +30,93 @@ const NavBar = () => {
     navigate('/');
   };
 
+  // Member-specific dropdown menus
+  const memberDropdownMenus = {
+    dashboard: {
+      label: 'Dashboard',
+      icon: <DashboardOutlined />,
+      items: [
+        { key: '/member/dashboard', label: 'Overview', path: '/member/dashboard' },
+        { key: '/member/quit-progress', label: 'My Progress', path: '/member/quit-progress' }
+      ]
+    },
+    plan: {
+      label: 'My Plan',
+      icon: <BarChartOutlined />,
+      items: [
+        { key: '/member/quit-plan', label: 'Current Plan', path: '/member/quit-plan' },
+        { key: '/member/phase-progress', label: 'Phase Progress', path: '/member/phase-progress' }
+      ]
+    },
+    tracking: {
+      label: 'Tracking',
+      icon: <HeartOutlined />,
+      items: [
+        { key: '/member/daily-checkin', label: 'Daily Check-in', path: '/member/daily-checkin' },
+        { key: '/member/craving-logger', label: 'Craving Logger', path: '/member/craving-logger' },
+        { key: '/member/smoking-status', label: 'Smoking Status', path: '/member/smoking-status' }
+      ]
+    },
+    support: {
+      label: 'Support',
+      icon: <UserOutlined />,
+      items: [
+        { key: '/member/appointments', label: 'Appointments', path: '/member/appointments' },
+        { key: '/member/coach-selection', label: 'Coach Selection', path: '/member/coach-selection' },
+        { key: '/member/reminders', label: 'Reminders', path: '/member/reminders' }
+      ]
+    },
+    account: {
+      label: 'Account',
+      icon: <UserOutlined />,
+      items: [
+        { key: '/member/membership-status', label: 'Membership', path: '/member/membership-status' },
+        { key: '/member/account-management', label: 'Settings', path: '/member/account-management' }
+      ]
+    }
+  };
+
+  // Coach-specific dropdown menus
+  const coachDropdownMenus = {
+    dashboard: {
+      label: 'Dashboard',
+      icon: <DashboardOutlined />,
+      items: [
+        { key: '/coach/dashboard', label: 'Overview', path: '/coach/dashboard' }
+      ]
+    },
+    schedule: {
+      label: 'Schedule & Appointments',
+      icon: <CalendarOutlined />,
+      items: [
+        { key: '/coach/schedule', label: 'My Schedule', path: '/coach/schedule' },
+        { key: '/coach/appointments', label: 'Appointments', path: '/coach/appointments' }
+      ]
+    },
+    management: {
+      label: 'Plan Management',
+      icon: <BarChartOutlined />,
+      items: [
+        { key: '/coach/plan-approvals', label: 'Plan Approvals', path: '/coach/plan-approvals' }
+      ]
+    },
+    community: {
+      label: 'Community',
+      icon: <QuestionCircleOutlined />,
+      items: [
+        { key: '/qa-forum', label: 'Q&A Forum', path: '/qa-forum' }
+      ]
+    }
+  };
+
   // Render navigation links based on user role
   const renderNavLinks = () => {
     // Public links available to all users
     const publicLinks = [
       { path: '/', label: 'Home' },
-      { path: '/blog', label: 'Articles' },
-      { path: '/about', label: 'About' },
-      { path: '/contact', label: 'Contact' }
-    ];
-
-    // Member-specific links
-    const memberLinks = [
-      { path: '/member/dashboard', label: 'Dashboard' },
-      { path: '/member/quit-progress', label: 'My Progress' },
-      { path: '/member/quit-plan', label: 'My Quit Plan' },
-      { path: '/member/appointments', label: 'Appointments' },
-      { path: '/qa-forum', label: 'Q&A Forum' }
-    ];
-
-    // Coach-specific links
-    const coachLinks = [
-      { path: '/coach/dashboard', label: 'Dashboard' },
-      { path: '/coach/schedule', label: 'Schedule' },
-      { path: '/coach/appointments', label: 'Appointments' },
-      { path: '/coach/plan-approvals', label: 'Plan Approvals' },
-      { path: '/qa-forum', label: 'Q&A Forum' }
+      // { path: '/blog', label: 'Articles' },
+      // { path: '/about', label: 'About' },
+      // { path: '/contact', label: 'Contact' }
     ];
 
     // Admin-specific links
@@ -67,11 +130,14 @@ const NavBar = () => {
 
     if (user) {
       // Add role-specific links
-      if (user.role === 'member') {
-        links = [...links, ...memberLinks];
-      } else if (user.role === 'coach') {
-        links = [...coachLinks];
-      } else if (user.role === 'admin') {
+      const userRole = user.role?.toLowerCase();
+      if (userRole === 'member') {
+        // Add Q&A Forum link for members
+        links.push({ path: '/qa-forum', label: 'Q&A Forum' });
+      } else if (userRole === 'coach') {
+        // Coaches will use dropdown menus instead of links
+        links = [...publicLinks];
+      } else if (userRole === 'admin') {
         links = [...adminLinks];
       }
     }
@@ -85,6 +151,49 @@ const NavBar = () => {
         >
           {link.label}
         </Link>
+      </li>
+    ));
+  };
+
+  // Create dropdown menu for member dropdowns
+  const createDropdownMenu = (dropdown) => {
+    const menu = (
+      <Menu>
+        {dropdown.items.map(item => (
+          <Menu.Item key={item.key}>
+            <Link to={item.path} onClick={() => setIsOpen(false)}>
+              {item.label}
+            </Link>
+          </Menu.Item>
+        ))}
+      </Menu>
+    );
+
+    return (
+      <Dropdown overlay={menu} trigger={['hover']}>
+        <a className="nav-link d-flex align-items-center" onClick={(e) => e.preventDefault()}>
+          {dropdown.icon}
+          <span className="ms-1">{dropdown.label}</span>
+          <DownOutlined className="ms-1" style={{ fontSize: '12px' }} />
+        </a>
+      </Dropdown>
+    );
+  };
+
+  // Render member dropdown menus
+  const renderMemberDropdowns = () => {
+    return Object.values(memberDropdownMenus).map((dropdown, index) => (
+      <li className="nav-item nav-link-no-underline" key={index}>
+      {createDropdownMenu(dropdown)}
+      </li>
+    ));
+  };
+
+  // Render coach dropdown menus
+  const renderCoachDropdowns = () => {
+    return Object.values(coachDropdownMenus).map((dropdown, index) => (
+      <li className="nav-item nav-link-no-underline" key={index}>
+        {createDropdownMenu(dropdown)}
       </li>
     ));
   };
@@ -131,6 +240,8 @@ const NavBar = () => {
         <div className={`collapse navbar-collapse ${isOpen ? 'show' : ''}`} id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             {renderNavLinks()}
+            {user && user.role?.toLowerCase() === 'member' && renderMemberDropdowns()}
+            {user && user.role?.toLowerCase() === 'coach' && renderCoachDropdowns()}
           </ul>
           {renderAuthSection()}
         </div>
