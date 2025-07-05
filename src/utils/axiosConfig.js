@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { message } from 'antd';
 import { API_BASE_URL } from './apiEndpoints';
 
 // Helper function to check if token is valid (not expired)
@@ -97,39 +98,71 @@ axiosInstance.interceptors.response.use(
       // Server responded with error status
       const { status, data } = error.response;
       
+      // Extract error message from response
+      let errorMessage = '';
+      if (data.error) {
+        errorMessage = data.error;
+      } else if (data.message) {
+        errorMessage = data.message;
+      } else if (data.errors && Array.isArray(data.errors)) {
+        errorMessage = data.errors.join(', ');
+      } else if (data.errors && typeof data.errors === 'object') {
+        errorMessage = Object.values(data.errors).flat().join(', ');
+      }
+      
       switch (status) {
         case 401:
           // Unauthorized - clear token and auth data
-          console.error('Authentication failed:', data.message || 'Unauthorized access');
+          console.error('Authentication failed:', errorMessage || 'Unauthorized access');
+          if (errorMessage) {
+            message.error(errorMessage);
+          } else {
+            message.error('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại');
+          }
           clearAuthData();
           // Let components handle the redirect
           break;
         case 403:
           // Forbidden
-          console.error('Access forbidden:', data.message);
+          console.error('Access forbidden:', errorMessage);
+          message.error(errorMessage || 'Bạn không có quyền truy cập tài nguyên này');
           break;
         case 404:
-          console.error('Resource not found:', data.message);
+          console.error('Resource not found:', errorMessage);
+          message.error(errorMessage || 'Không tìm thấy tài nguyên yêu cầu');
           break;
         case 422:
           // Validation errors
           console.error('Validation errors:', data.errors);
+          if (errorMessage) {
+            message.error(errorMessage);
+          } else {
+            message.error('Dữ liệu không hợp lệ');
+          }
           break;
         case 500:
-          console.error('Server error:', data.message);
+          console.error('Server error:', errorMessage);
+          message.error(errorMessage || 'Lỗi máy chủ, vui lòng thử lại sau');
           break;
         default:
-          console.error(`HTTP ${status}:`, data.message);
+          console.error(`HTTP ${status}:`, errorMessage);
+          if (errorMessage) {
+            message.error(errorMessage);
+          } else {
+            message.error(`Lỗi ${status}: Có lỗi xảy ra, vui lòng thử lại`);
+          }
       }
       
       return Promise.reject(error);
     } else if (error.request) {
       // Network error
       console.error('Network error:', error.request);
+      message.error('Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet của bạn.');
       return Promise.reject(new Error('Network error. Please check your connection.'));
     } else {
       // Something else happened
       console.error('Error:', error.message);
+      message.error('Có lỗi xảy ra, vui lòng thử lại');
       return Promise.reject(error);
     }
   }
