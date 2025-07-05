@@ -7,6 +7,8 @@ import App from './components/App';
 // Import Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+// Initialize ResizeObserver error handler globally
+import './utils/resizeObserverErrorHandler';
 
 ReactDOM.render(
   <React.StrictMode>

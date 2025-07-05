@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Card, Form, Button, Select, InputNumber, DatePicker, 
-  Typography, Row, Col, Slider, Radio, Input, message,
+  Card, Form, Button, InputNumber, DatePicker, 
+  Typography, Row, Col, Slider, Input, message,
   Steps, Progress, Tag, Space, Alert, Modal
 } from 'antd';
 import {
   CheckCircleOutlined, HeartOutlined, SmileOutlined,
-  FrownOutlined, MehOutlined, ClockCircleOutlined,
-  TrophyOutlined, FireOutlined
+  ClockCircleOutlined, TrophyOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +21,6 @@ import { getQuitPlanData } from '../../services/memberDashboardService';
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Step } = Steps;
-const { Option } = Select;
 
 const DailyCheckIn = () => {
   const { currentUser } = useAuth();
@@ -54,9 +52,9 @@ const DailyCheckIn = () => {
         setQuitPlan(planData);
         setLatestStatus(statusData);
         
-        // Check if already checked in today
+        // Check if already submitted assessment today
         if (statusData && moment(statusData.record_date).isSame(moment(), 'day')) {
-          message.info('Bạn đã cập nhật tiến trình hôm nay rồi!');
+          message.info('Bạn đã hoàn thành đánh giá hôm nay rồi!');
           navigate('/member/smoking-status');
         }
         
@@ -72,218 +70,195 @@ const DailyCheckIn = () => {
 
   const checkInSteps = [
     {
-      title: 'Tình trạng hôm nay',
+      title: 'Thông tin hút thuốc',
       icon: <HeartOutlined />,
       content: (
         <div className="step-content">
-          <Title level={4}>Bạn cảm thấy thế nào hôm nay?</Title>
+          <Title level={4}>Thông tin về thói quen hút thuốc</Title>
           
           <Form.Item
-            name="smoking_status"
-            label="Tình trạng hút thuốc hôm nay"
-            rules={[{ required: true, message: 'Vui lòng chọn tình trạng' }]}
-          >
-            <Radio.Group size="large">
-              <Space direction="vertical">
-                <Radio value="smoke_free">
-                  <Space>
-                    <CheckCircleOutlined style={{ color: '#52c41a' }} />
-                    Không hút thuốc
-                  </Space>
-                </Radio>
-                <Radio value="reduced">
-                  <Space>
-                    <FireOutlined style={{ color: '#faad14' }} />
-                    Giảm lượng hút
-                  </Space>
-                </Radio>
-                <Radio value="normal">
-                  <Space>
-                    <FrownOutlined style={{ color: '#ff4d4f' }} />
-                    Hút như bình thường
-                  </Space>
-                </Radio>
-                <Radio value="increased">
-                  <Space>
-                    <FrownOutlined style={{ color: '#ff4d4f' }} />
-                    Hút nhiều hơn bình thường
-                  </Space>
-                </Radio>
-              </Space>
-            </Radio.Group>
-          </Form.Item>
-
-          <Form.Item
-            name="cigarettes_count"
-            label="Số điếu thuốc đã hút"
+            name="dailySmoking"
+            label="Số điếu thuốc hút mỗi ngày"
             rules={[{ required: true, message: 'Vui lòng nhập số điếu thuốc' }]}
           >
             <InputNumber
               min={0}
               max={100}
               style={{ width: '100%' }}
-              placeholder="Nhập số điếu thuốc"
+              placeholder="Nhập số điếu thuốc hút mỗi ngày"
             />
           </Form.Item>
 
           <Form.Item
-            name="mood"
-            label="Tâm trạng chung"
-            rules={[{ required: true, message: 'Vui lòng chọn tâm trạng' }]}
+            name="startSmokingAge"
+            label="Tuổi bắt đầu hút thuốc"
+            rules={[{ required: true, message: 'Vui lòng nhập tuổi bắt đầu hút thuốc' }]}
           >
-            <Select placeholder="Chọn tâm trạng của bạn">
-              <Option value="very_good">Rất tốt 😄</Option>
-              <Option value="good">Tốt 😊</Option>
-              <Option value="normal">Bình thường 😐</Option>
-              <Option value="bad">Không tốt 😔</Option>
-              <Option value="very_bad">Rất tệ 😢</Option>
-            </Select>
+            <InputNumber
+              min={1}
+              max={100}
+              style={{ width: '100%' }}
+              placeholder="Nhập tuổi bắt đầu hút thuốc"
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="yearsSmoking"
+            label="Số năm đã hút thuốc"
+            rules={[{ required: true, message: 'Vui lòng nhập số năm đã hút thuốc' }]}
+          >
+            <InputNumber
+              min={0}
+              max={100}
+              style={{ width: '100%' }}
+              placeholder="Nhập số năm đã hút thuốc"
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="smokingTime"
+            label="Thời gian hút thuốc trong ngày (điểm số 0-10)"
+            rules={[{ required: true, message: 'Vui lòng chọn điểm số' }]}
+          >
+            <Slider
+              min={0}
+              max={10}
+              marks={{
+                0: '0',
+                5: '5',
+                10: '10'
+              }}
+            />
           </Form.Item>
         </div>
       )
     },
     {
-      title: 'Mức độ khó khăn',
+      title: 'Đánh giá tình trạng',
       icon: <ClockCircleOutlined />,
       content: (
         <div className="step-content">
-          <Title level={4}>Đánh giá mức độ khó khăn</Title>
+          <Title level={4}>Đánh giá các yếu tố</Title>
           
           <Form.Item
-            name="stress_level"
-            label="Mức độ căng thẳng (1-10)"
-            rules={[{ required: true, message: 'Vui lòng chọn mức độ căng thẳng' }]}
+            name="desireToQuit"
+            label="Mức độ mong muốn bỏ thuốc (0-10)"
+            rules={[{ required: true, message: 'Vui lòng chọn mức độ mong muốn' }]}
           >
             <Slider
-              min={1}
+              min={0}
               max={10}
               marks={{
-                1: 'Rất thấp',
+                0: 'Không muốn',
                 5: 'Trung bình',
-                10: 'Rất cao'
+                10: 'Rất muốn'
               }}
-              included={false}
             />
           </Form.Item>
 
           <Form.Item
-            name="craving_intensity"
-            label="Cường độ cơn thèm (1-10)"
-            rules={[{ required: true, message: 'Vui lòng chọn cường độ cơn thèm' }]}
+            name="healthProblems"
+            label="Vấn đề sức khỏe do hút thuốc (0-10)"
+            rules={[{ required: true, message: 'Vui lòng chọn mức độ' }]}
           >
             <Slider
-              min={1}
+              min={0}
               max={10}
               marks={{
-                1: 'Rất nhẹ',
+                0: 'Không có',
                 5: 'Trung bình',
-                10: 'Rất mạnh'
+                10: 'Nghiêm trọng'
               }}
-              included={false}
             />
           </Form.Item>
 
           <Form.Item
-            name="craving_frequency"
-            label="Tần suất cơn thèm"
-            rules={[{ required: true, message: 'Vui lòng chọn tần suất' }]}
+            name="stressSmoking"
+            label="Hút thuốc khi căng thẳng (0-10)"
+            rules={[{ required: true, message: 'Vui lòng chọn mức độ' }]}
           >
-            <Select placeholder="Chọn tần suất cơn thèm">
-              <Option value="none">Không có</Option>
-              <Option value="rare">Hiếm khi (1-2 lần)</Option>
-              <Option value="occasional">Thỉnh thoảng (3-5 lần)</Option>
-              <Option value="frequent">Thường xuyên (6-10 lần)</Option>
-              <Option value="constant">Liên tục (10 lần)</Option>
-            </Select>
+            <Slider
+              min={0}
+              max={10}
+              marks={{
+                0: 'Không bao giờ',
+                5: 'Thỉnh thoảng',
+                10: 'Luôn luôn'
+              }}
+            />
           </Form.Item>
 
           <Form.Item
-            name="triggers"
-            label="Những yếu tố kích hoạt cơn thèm"
+            name="withdrawalSymptoms"
+            label="Triệu chứng cai thuốc (0-10)"
+            rules={[{ required: true, message: 'Vui lòng chọn mức độ' }]}
           >
-            <Select
-              mode="multiple"
-              placeholder="Chọn các yếu tố kích hoạt"
-              allowClear
-            >
-              <Option value="stress">Căng thẳng</Option>
-              <Option value="alcohol">Rượu bia</Option>
-              <Option value="coffee">Cà phê</Option>
-              <Option value="social">Hoạt động xã hội</Option>
-              <Option value="after_meal">Sau bữa ăn</Option>
-              <Option value="boredom">Buồn chán</Option>
-              <Option value="work_pressure">Áp lực công việc</Option>
-              <Option value="emotional">Cảm xúc tiêu cực</Option>
-            </Select>
+            <Slider
+              min={0}
+              max={10}
+              marks={{
+                0: 'Không có',
+                5: 'Trung bình',
+                10: 'Rất nặng'
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="previousAttempts"
+            label="Số lần đã cố gắng bỏ thuốc trước đây"
+            rules={[{ required: true, message: 'Vui lòng nhập số lần' }]}
+          >
+            <InputNumber
+              min={0}
+              max={50}
+              style={{ width: '100%' }}
+              placeholder="Nhập số lần đã cố gắng bỏ thuốc"
+            />
           </Form.Item>
         </div>
       )
     },
     {
-      title: 'Ghi chú & Mục tiêu',
+      title: 'Mục tiêu & Lý do',
       icon: <SmileOutlined />,
       content: (
         <div className="step-content">
-          <Title level={4}>Chia sẻ thêm về ngày hôm nay</Title>
+          <Title level={4}>Mục tiêu và lý do bỏ thuốc</Title>
           
           <Form.Item
-            name="notes"
-            label="Ghi chú về ngày hôm nay"
+            name="reasonToQuit"
+            label="Lý do muốn bỏ thuốc"
+            rules={[{ required: true, message: 'Vui lòng nhập lý do' }]}
           >
             <TextArea
               rows={4}
-              placeholder="Chia sẻ cảm xúc, khó khăn hoặc thành công của bạn hôm nay..."
+              placeholder="Mô tả lý do tại sao bạn muốn bỏ thuốc..."
             />
           </Form.Item>
 
           <Form.Item
-            name="strategies_used"
-            label="Chiến lược đã sử dụng"
-          >
-            <Select
-              mode="multiple"
-              placeholder="Chọn các chiến lược bạn đã áp dụng"
-              allowClear
-            >
-              <Option value="deep_breathing">Thở sâu</Option>
-              <Option value="exercise">Tập thể dục</Option>
-              <Option value="meditation">Thiền</Option>
-              <Option value="distraction">Chuyển hướng chú ý</Option>
-              <Option value="support_group">Nhóm hỗ trợ</Option>
-              <Option value="nicotine_replacement">Thay thế nicotine</Option>
-              <Option value="healthy_snacks">Ăn vặt lành mạnh</Option>
-              <Option value="positive_thinking">Suy nghĩ tích cực</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="tomorrow_goal"
-            label="Mục tiêu ngày mai"
+            name="goal"
+            label="Mục tiêu cụ thể"
+            rules={[{ required: true, message: 'Vui lòng nhập mục tiêu' }]}
           >
             <TextArea
-              rows={2}
-              placeholder="Đặt mục tiêu cho ngày mai..."
+              rows={3}
+              placeholder="Đặt mục tiêu cụ thể cho việc bỏ thuốc..."
             />
           </Form.Item>
 
           <Form.Item
-            name="physical_symptoms"
-            label="Triệu chứng thể chất"
+            name="point"
+            label="Điểm tự đánh giá tổng thể (0-100)"
+            rules={[{ required: true, message: 'Vui lòng nhập điểm' }]}
           >
-            <Select
-              mode="multiple"
-              placeholder="Chọn các triệu chứng bạn gặp phải"
-              allowClear
-            >
-              <Option value="headache">Đau đầu</Option>
-              <Option value="fatigue">Mệt mỏi</Option>
-              <Option value="irritability">Cáu kỉnh</Option>
-              <Option value="difficulty_concentrating">Khó tập trung</Option>
-              <Option value="increased_appetite">Tăng cảm giác đói</Option>
-              <Option value="sleep_problems">Khó ngủ</Option>
-              <Option value="cough">Ho</Option>
-              <Option value="none">Không có triệu chứng</Option>
-            </Select>
+            <InputNumber
+              min={0}
+              max={100}
+              style={{ width: '100%' }}
+              placeholder="Tự đánh giá điểm từ 0-100"
+            />
           </Form.Item>
         </div>
       )
@@ -307,11 +282,11 @@ const DailyCheckIn = () => {
   const getFieldsForStep = (step) => {
     switch (step) {
       case 0:
-        return ['smoking_status', 'cigarettes_count', 'mood'];
+        return ['dailySmoking', 'startSmokingAge', 'yearsSmoking', 'smokingTime'];
       case 1:
-        return ['stress_level', 'craving_intensity', 'craving_frequency'];
+        return ['desireToQuit', 'healthProblems', 'stressSmoking', 'withdrawalSymptoms', 'previousAttempts'];
       case 2:
-        return [];
+        return ['reasonToQuit', 'goal', 'point'];
       default:
         return [];
     }
@@ -323,19 +298,18 @@ const DailyCheckIn = () => {
       setSubmitting(true);
 
       const statusData = {
-        member_id: userId,
-        record_date: moment().format('YYYY-MM-DD'),
-        smoking_status: values.smoking_status,
-        cigarettes_count: values.cigarettes_count || 0,
-        mood: values.mood,
-        stress_level: values.stress_level,
-        craving_intensity: values.craving_intensity,
-        craving_frequency: values.craving_frequency,
-        triggers: values.triggers ? values.triggers.join(',') : '',
-        strategies_used: values.strategies_used ? values.strategies_used.join(',') : '',
-        physical_symptoms: values.physical_symptoms ? values.physical_symptoms.join(',') : '',
-        notes: values.notes || '',
-        tomorrow_goal: values.tomorrow_goal || ''
+        point: values.point || 0,
+        dailySmoking: values.dailySmoking || 0,
+        desireToQuit: values.desireToQuit || 0,
+        healthProblems: values.healthProblems || 0,
+        previousAttempts: values.previousAttempts || 0,
+        smokingTime: values.smokingTime || 0,
+        startSmokingAge: values.startSmokingAge || 0,
+        stressSmoking: values.stressSmoking || 0,
+        withdrawalSymptoms: values.withdrawalSymptoms || 0,
+        yearsSmoking: values.yearsSmoking || 0,
+        reasonToQuit: values.reasonToQuit || '',
+        goal: values.goal || ''
       };
 
       let response;
@@ -346,12 +320,12 @@ const DailyCheckIn = () => {
       }
 
       if (response.success) {
-        // Show congratulations if smoke-free
-        if (values.smoking_status === 'smoke_free') {
+        // Show congratulations for high motivation to quit
+        if (values.desireToQuit >= 7) {
           setShowCongrats(true);
         }
         
-        message.success('Cập nhật tiến trình thành công!');
+        message.success('Cập nhật đánh giá thành công!');
         setTimeout(() => {
           navigate('/member/smoking-status');
         }, 2000);
@@ -359,8 +333,8 @@ const DailyCheckIn = () => {
         message.error(response.message || 'Có lỗi xảy ra');
       }
     } catch (error) {
-      console.error('Error submitting daily check-in:', error);
-      message.error('Có lỗi xảy ra khi cập nhật tiến trình');
+      console.error('Error submitting smoking assessment:', error);
+      message.error('Có lỗi xảy ra khi cập nhật đánh giá');
     } finally {
       setSubmitting(false);
     }
@@ -387,10 +361,10 @@ const DailyCheckIn = () => {
           <div className="text-center mb-4">
             <Title level={2}>
               <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-              Cập nhật tiến trình hàng ngày
+              Đánh giá thói quen hút thuốc
             </Title>
             <Text type="secondary">
-              Ngày {moment().format('DD/MM/YYYY')} - Ngày thứ {getDaysSmokeFree() + 1} trong hành trình
+              Ngày {moment().format('DD/MM/YYYY')} - Đánh giá chi tiết về tình trạng hút thuốc
             </Text>
           </div>
 
@@ -465,7 +439,7 @@ const DailyCheckIn = () => {
                   size="large"
                   icon={<CheckCircleOutlined />}
                 >
-                  Hoàn thành cập nhật
+                  Hoàn thành đánh giá
                 </Button>
               )}
             </div>
@@ -486,13 +460,13 @@ const DailyCheckIn = () => {
           <div className="text-center py-4">
             <TrophyOutlined style={{ fontSize: '48px', color: '#faad14' }} />
             <Title level={3} style={{ color: '#52c41a' }}>
-              Chúc mừng bạn!
+              Tuyệt vời!
             </Title>
             <Paragraph>
-              Bạn đã có thêm một ngày không thuốc lá! Hãy tiếp tục duy trì tinh thần này.
+              Bạn có động lực cao để bỏ thuốc! Hãy giữ vững quyết tâm này.
             </Paragraph>
             <Tag color="success" style={{ fontSize: '16px', padding: '8px 16px' }}>
-              Ngày thứ {getDaysSmokeFree() + 1} không thuốc lá
+              Động lực cao để thay đổi
             </Tag>
           </div>
         </Modal>

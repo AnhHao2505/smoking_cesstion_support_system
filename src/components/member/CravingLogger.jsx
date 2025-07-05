@@ -20,10 +20,14 @@ import {
   updateLatestMemberSmokingStatus 
 } from '../../services/memberSmokingStatusService';
 import { getDailyStateRecords } from '../../services/memberDashboardService';
+import { debounce, initResizeObserverErrorHandler } from '../../utils/resizeObserverErrorHandler';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
+
+// Initialize ResizeObserver error handling
+initResizeObserverErrorHandler();
 
 const CravingLogger = () => {
   const [form] = Form.useForm();
@@ -40,7 +44,9 @@ const CravingLogger = () => {
 
   useEffect(() => {
     if (userId) {
-      fetchCravingData();
+      // Debounce the data fetching to prevent rapid state updates
+      const debouncedFetch = debounce(fetchCravingData, 300);
+      debouncedFetch();
     } else {
       setLoading(false);
       message.error('Please log in to access craving logger');
@@ -262,8 +268,10 @@ const CravingLogger = () => {
       title: 'Thời gian',
       dataIndex: 'timestamp',
       key: 'timestamp',
+      width: 120,
+      fixed: 'left',
       render: timestamp => (
-        <div>
+        <div style={{ minHeight: '40px' }}>
           <div>{moment(timestamp).format('DD/MM/YYYY')}</div>
           <Text type="secondary" style={{ fontSize: '12px' }}>
             {moment(timestamp).format('HH:mm')}
@@ -277,13 +285,15 @@ const CravingLogger = () => {
       title: 'Cường độ',
       dataIndex: 'intensity',
       key: 'intensity',
+      width: 120,
       render: intensity => (
-        <div>
+        <div style={{ minHeight: '30px', padding: '4px 0' }}>
           <Progress 
             percent={intensity * 10} 
             size="small" 
             strokeColor={intensity > 7 ? '#ff4d4f' : intensity > 4 ? '#faad14' : '#52c41a'}
             format={() => `${intensity}/10`}
+            style={{ margin: 0 }}
           />
         </div>
       ),
@@ -293,22 +303,25 @@ const CravingLogger = () => {
       title: 'Nguyên nhân',
       dataIndex: 'trigger',
       key: 'trigger',
+      width: 100,
       render: trigger => (
-        <Tag color="blue">{getTriggerText(trigger)}</Tag>
+        <Tag color="blue" style={{ margin: 0 }}>{getTriggerText(trigger)}</Tag>
       )
     },
     {
       title: 'Địa điểm',
       dataIndex: 'location',
       key: 'location',
+      width: 100,
       render: location => (
-        <Tag color="green">{getLocationText(location)}</Tag>
+        <Tag color="green" style={{ margin: 0 }}>{getLocationText(location)}</Tag>
       )
     },
     {
       title: 'Thời gian (phút)',
       dataIndex: 'duration',
       key: 'duration',
+      width: 100,
       render: duration => `${duration} phút`,
       sorter: (a, b) => a.duration - b.duration
     },
@@ -316,10 +329,12 @@ const CravingLogger = () => {
       title: 'Kết quả',
       dataIndex: 'successfully_resisted',
       key: 'successfully_resisted',
+      width: 150,
       render: resisted => (
         <Badge 
           status={resisted ? 'success' : 'error'} 
           text={resisted ? 'Chống chọi thành công' : 'Không chống chọi được'}
+          style={{ margin: 0 }}
         />
       )
     }
@@ -676,14 +691,18 @@ const CravingLogger = () => {
         {/* Recent Cravings */}
         <Card title="Cơn thèm gần đây">
           {cravingHistory.length > 0 ? (
-            <Table
-              columns={columns}
-              dataSource={cravingHistory.slice(0, 10)}
-              rowKey="id"
-              pagination={false}
-              scroll={{ x: 800 }}
-              size="small"
-            />
+            <div style={{ minHeight: '400px' }}>
+              <Table
+                columns={columns}
+                dataSource={cravingHistory.slice(0, 10)}
+                rowKey="id"
+                pagination={false}
+                scroll={{ x: 800 }}
+                size="small"
+                style={{ overflow: 'hidden' }}
+                tableLayout="fixed"
+              />
+            </div>
           ) : (
             <Empty description="Chưa có dữ liệu cơn thèm" />
           )}
@@ -707,21 +726,27 @@ const CravingLogger = () => {
           onCancel={() => setHistoryModalVisible(false)}
           width={1000}
           footer={null}
+          destroyOnClose={true}
+          style={{ top: 20 }}
         >
-          <Table
-            columns={columns}
-            dataSource={cravingHistory}
-            rowKey="id"
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) =>
-                `${range[0]}-${range[1]} của ${total} cơn thèm`
-            }}
-            scroll={{ x: 800 }}
-            size="small"
-          />
+          <div style={{ maxHeight: '70vh', overflow: 'auto' }}>
+            <Table
+              columns={columns}
+              dataSource={cravingHistory}
+              rowKey="id"
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total, range) =>
+                  `${range[0]}-${range[1]} của ${total} cơn thèm`
+              }}
+              scroll={{ x: 800 }}
+              size="small"
+              style={{ overflow: 'hidden' }}
+              tableLayout="fixed"
+            />
+          </div>
         </Modal>
       </div>
     </div>
