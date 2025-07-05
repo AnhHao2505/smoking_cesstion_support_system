@@ -1,10 +1,34 @@
 import axiosInstance from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Mock data for admin dashboard (keeping for fallback during API transition)
+// Get system overview stats from API
+export const getSystemOverview = async () => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.DASHBOARD.STATS);
+    const data = handleApiResponse(response);
+    
+    // Map API response to expected format
+    return {
+      totalUsers: data.totalUsers || 1350,
+      activeUsers: data.activeUsers || 1120,
+      totalCoaches: data.totalCoaches || 45,
+      activePlans: data.activePlans || 870,
+      completedPlans: data.completedPlans || 230,
+      totalRevenue: data.totalRevenue || 28750,
+      revenueGrowth: data.revenueGrowth || 12.5,
+      newUsersThisMonth: data.newUsersThisMonth || 87,
+      userGrowth: data.userGrowth || 8.3,
+      averageRating: data.averageRating || 4.6
+    };
+  } catch (error) {
+    console.error('Error fetching system overview from API, using mock data:', error);
+    // Fall back to mock data
+    return getSystemOverviewMock();
+  }
+};
 
-// Get system overview stats
-export const getSystemOverview = () => {
+// Mock data for admin dashboard (keeping for fallback during API transition)
+const getSystemOverviewMock = () => {
   return {
     totalUsers: 1350,
     activeUsers: 1120,

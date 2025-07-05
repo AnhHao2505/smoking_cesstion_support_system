@@ -1,6 +1,20 @@
-// Mock data for the dashboard statistics
+import axiosInstance from '../utils/axiosConfig';
+import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-export const getDashboardStatistics = () => {
+// Get dashboard statistics from API
+export const getDashboardStatistics = async () => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.DASHBOARD.STATS);
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error fetching dashboard stats from API, using mock data:', error);
+    // Fall back to mock data
+    return getDashboardStatisticsMock();
+  }
+};
+
+// Mock data for the dashboard statistics (fallback)
+const getDashboardStatisticsMock = () => {
   return {
     totalMembers: 1250,
     successfulQuits: 487,

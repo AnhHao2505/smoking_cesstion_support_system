@@ -4,20 +4,8 @@ import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEn
 // Get phases of a specific plan
 export const getPhasesOfPlan = async (quitPlanId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PHASES.PLAN, {
+    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PHASES.FROM_PLAN, {
       params: { quitPlanId }
-    });
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
-};
-
-// Get phases of member's newest plan
-export const getPhasesOfNewestPlan = async (memberId) => {
-  try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PHASES.MEMBER_NEWEST, {
-      params: { memberId }
     });
     return handleApiResponse(response);
   } catch (error) {

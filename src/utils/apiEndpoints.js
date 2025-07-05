@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
     MEMBERS: '/user/members',
     CURRENT_ASSIGNMENT: '/user/member/current-assignment',
     UPGRADE_PREMIUM: '/user/upgrade-premium',
+    DISABLE: '/user/disable',
   },
 
   // Coach Management
@@ -27,8 +28,7 @@ export const API_ENDPOINTS = {
     CREATE: '/coach/create',
     CHOOSE: '/coach/choose',
     ASSIGNED_MEMBERS: '/coach/assigned-members',
-    DISABLE_BY_MEMBER: '/coach/member/disable',
-    DISABLE_BY_ADMIN: '/coach/admin/disable',
+    CANCEL_BY_MEMBER: '/coach/member/cancel',
   },
 
   // Profile Management
@@ -40,27 +40,26 @@ export const API_ENDPOINTS = {
 
   // Quit Plans
   QUIT_PLANS: {
-    CREATE: '/api/quit-plans',
-    UPDATE: '/api/quit-plans',
+    CREATE: '/api/quit-plans/create',
+    UPDATE: '/api/quit-plans/update',
     NEWEST: '/api/quit-plans/newest',
-    MEMBER_OLD: '/api/quit-plans/member/old',
-    COACH_CREATED: '/api/quit-plans/coach/created',
+    OLDS: '/api/quit-plans/olds',
     DISABLE: '/api/quit-plans/disable',
     DENY: '/api/quit-plans/deny',
     ACCEPT: '/api/quit-plans/accept',
+    FINISH: '/api/quit-plans/finish',
   },
 
   // Quit Phases
   QUIT_PHASES: {
-    PLAN: '/api/quit-phases/plan',
-    MEMBER_NEWEST: '/api/quit-phases/member/newest',
+    FROM_PLAN: '/api/quit-phases/from-plan',
     DEFAULT: '/api/quit-phases/default',
-    CREATE_GOALS: '/api/quit-phases/create-goals',
+    CREATE_GOALS: '/api/quit-phases/default/create-goals',
   },
 
   // Daily Logs
   DAILY_LOGS: {
-    GET_BY_PHASE: '/api/daily-logs',
+    GET_BY_PHASE: '/api/daily-logs/byPhase',
     CREATE: '/api/daily-logs',
     GET_BY_MEMBER: '/api/daily-logs/member',
     GET_BY_MEMBER_DATE: '/api/daily-logs/member/date',
@@ -68,7 +67,6 @@ export const API_ENDPOINTS = {
 
   // Member Smoking Status
   MEMBER_SMOKING_STATUS: {
-    GET: '/api/member-smoking-status',
     CREATE: '/api/member-smoking-status',
     LATEST: '/api/member-smoking-status/latest',
   },
@@ -78,7 +76,7 @@ export const API_ENDPOINTS = {
     CREATE: '/api/feedbacks',
     PUBLISHED: '/api/feedbacks/published',
     COACH: '/api/feedbacks/coach',
-    ADMIN_ALL: '/api/feedbacks/admin/all',
+    ADMIN_ALL: '/api/feedbacks/all/unreviewed',
     APPROVE_PUBLISH: '/api/feedbacks/approve-publish',
     HIDE: '/api/feedbacks/hide',
     REVIEWED: '/api/feedbacks/reviewed',
@@ -89,7 +87,12 @@ export const API_ENDPOINTS = {
     ASK: '/api/qna/ask',
     ANSWER: '/api/qna/answer',
     MINE: '/api/qna/mine',
-    UNANSWERED: '/api/qna/unaswered',
+    UNANSWERED: '/api/qna/unanswered',
+  },
+
+  // Dashboard
+  DASHBOARD: {
+    STATS: '/api/dashboard/stats',
   },
 
   // Notifications
@@ -103,6 +106,7 @@ export const API_ENDPOINTS = {
 
   // Reminders
   REMINDERS: {
+    GET_ALL: '/api/reminders',
     CREATE: '/api/reminders',
     UPDATE: '/api/reminders/update',
     DISABLE: '/api/reminders/disable',
@@ -119,6 +123,7 @@ export const API_ENDPOINTS = {
   // Payment
   PAYMENT: {
     CREATE_PAYMENT: '/vn-pay/create-payment',
+    VNPAY_RETURN: '/vn-pay/return',
   },
 };
 

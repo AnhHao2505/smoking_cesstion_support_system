@@ -47,10 +47,10 @@ export const getAssignedMembers = async (coachId) => {
   }
 };
 
-// Member disables their coach
-export const disableCoachForMember = async (coachId) => {
+// Member cancels their coach
+export const cancelCoach = async (coachId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.COACHES.DISABLE_BY_MEMBER, null, {
+    const response = await axiosInstance.put(API_ENDPOINTS.COACHES.CANCEL_BY_MEMBER, null, {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -59,41 +59,57 @@ export const disableCoachForMember = async (coachId) => {
   }
 };
 
-// Admin disables a coach
-export const disableCoachByAdmin = async (coachId) => {
+// Get coach profile
+export const getCoachProfile = async (coachId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.COACHES.DISABLE_BY_ADMIN, coachId);
+    const response = await axiosInstance.get(API_ENDPOINTS.PROFILE.COACH, {
+      params: { coachId }
+    });
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
-// Get coach specialties
+// Update coach profile (admin only)
+export const updateCoachProfile = async (coachId, profileData) => {
+  try {
+    const response = await axiosInstance.put(API_ENDPOINTS.PROFILE.COACH, profileData, {
+      params: { coachId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Get coach specialties - Mock function since not available in API
 export const getCoachSpecialties = async () => {
-  try {
-    const response = await axiosInstance.get(API_ENDPOINTS.COACHES.SPECIALTIES);
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
+  console.warn('Coach specialties endpoint not available, using mock data');
+  return [
+    'Behavioral Psychology',
+    'Addiction Counseling',
+    'Cognitive Behavioral Therapy',
+    'Motivational Interviewing',
+    'Mindfulness-Based Interventions',
+    'Stress Management',
+    'Nicotine Replacement Therapy'
+  ];
 };
 
-// Update coach information (admin only)
-export const updateCoach = async (coachId, coachData) => {
-  try {
-    const response = await axiosInstance.put(`${API_ENDPOINTS.COACHES.UPDATE}/${coachId}`, coachData);
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
-};
+// Alias for updateCoachProfile to match component expectations
+export const updateCoach = updateCoachProfile;
 
-// Delete coach (admin only)
+// Delete coach - Not available in API, mock function
 export const deleteCoach = async (coachId) => {
+  console.warn('Delete coach endpoint not available in API specification');
+  throw new Error('Delete coach functionality is not yet available - API endpoint missing');
+};
+
+// Additional function to help with coach assignment cancellation
+export const disableCoachForMember = async (coachId) => {
   try {
-    const response = await axiosInstance.delete(`${API_ENDPOINTS.COACHES.DELETE}/${coachId}`);
-    return handleApiResponse(response);
+    return await cancelCoach(coachId);
   } catch (error) {
     throw handleApiError(error);
   }

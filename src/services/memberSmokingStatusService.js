@@ -11,18 +11,6 @@ export const createMemberSmokingStatus = async (statusData) => {
   }
 };
 
-// Get member smoking status by ID
-export const getMemberSmokingStatus = async (initialStatusId) => {
-  try {
-    const response = await axiosInstance.get(API_ENDPOINTS.MEMBER_SMOKING_STATUS.GET, {
-      params: { initialStatusId }
-    });
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
-};
-
 // Get latest member smoking status
 export const getLatestMemberSmokingStatus = async (memberId) => {
   try {

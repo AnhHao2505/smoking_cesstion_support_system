@@ -1,7 +1,7 @@
 import axiosInstance from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Ask a question
+// Ask a question (member)
 export const askQuestion = async (question) => {
   try {
     const response = await axiosInstance.post(API_ENDPOINTS.QNA.ASK, null, {
@@ -13,7 +13,7 @@ export const askQuestion = async (question) => {
   }
 };
 
-// Answer a question
+// Answer a question (coach)
 export const answerQuestion = async (qnaId, answer) => {
   try {
     const response = await axiosInstance.post(API_ENDPOINTS.QNA.ANSWER, null, {
@@ -25,32 +25,50 @@ export const answerQuestion = async (qnaId, answer) => {
   }
 };
 
-// Get all QnA (admin)
+// Get unanswered questions (coach)
+export const getUnansweredQna = async (pageNo = 0, pageSize = 10) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.QNA.UNANSWERED, {
+      params: { pageNo, pageSize }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Get my questions (member)
+export const getMyQna = async (pageNo = 0, pageSize = 10) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.QNA.MINE, {
+      params: { pageNo, pageSize }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Get questions of a member - Using getMyQna as alias
+export const getQnaOfMember = getMyQna;
+
+// Get questions by coach - Using getUnansweredQna as alias
+export const getQnaByCoach = async (coachId) => {
+  console.warn('Coach-specific QnA endpoint not available, using unanswered questions');
+  return getUnansweredQna();
+};
+
+// Get all QnA - Using getUnansweredQna as alias (since only unanswered endpoint is available)
 export const getAllQna = async () => {
-  try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QNA.UNANSWERED);
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
+  console.warn('Admin all QnA endpoint not available, using unanswered questions');
+  return getUnansweredQna();
 };
 
-// Get QnA of member
-export const getQnaOfMember = async () => {
-  try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QNA.MINE);
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
+// Helper function for backward compatibility
+const getAnsweredQuestions = () => {
+  console.warn('getAnsweredQuestions is not available in API');
+  return Promise.resolve([]);
 };
 
-// Get QnA by coach
-export const getQnaByCoach = async () => {
-  try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QNA.UNANSWERED);
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
-};
+// Helper function for backward compatibility  
+const getUnansweredQuestions = getUnansweredQna;

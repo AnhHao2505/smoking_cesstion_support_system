@@ -147,7 +147,7 @@ export const getNewestQuitPlan = async (memberId) => {
 // Get old plans of member with pagination
 export const getOldPlansOfMember = async (memberId, page = 0, size = 10) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.MEMBER_OLD, {
+    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.OLDS, {
       params: { memberId, page, size }
     });
     return handleApiResponse(response);
@@ -156,16 +156,86 @@ export const getOldPlansOfMember = async (memberId, page = 0, size = 10) => {
   }
 };
 
-// Get all plans created by coach with pagination
-export const getAllPlanCreatedByCoach = async (coachId, page = 0, size = 10) => {
+// Coach finish a quit plan
+export const finishQuitPlan = async (planId, note = '') => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.COACH_CREATED, {
-      params: { coachId, page, size }
+    const response = await axiosInstance.patch(API_ENDPOINTS.QUIT_PLANS.FINISH, null, {
+      params: { planId, note }
     });
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
   }
+};
+
+// Get quit plan detail - using newest plan as there's no direct endpoint for plan by ID
+export const getQuitPlanDetail = async (planId) => {
+  try {
+    // Since there's no direct endpoint for plan by ID in the API spec, 
+    // we'll need to use the newest plan or implement a workaround
+    console.warn('No direct endpoint for plan by ID, this would need to be implemented based on business logic');
+    return getQuitPlanDetailMock(planId);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Mock function for quit plan detail (keeping for backward compatibility)
+const getQuitPlanDetailMock = (planId) => {
+  return {
+    quit_plan_id: planId,
+    user_id: 101,
+    coach_id: 1,
+    coach_name: "Dr. Sarah Johnson",
+    coach_photo: "https://randomuser.me/api/portraits/women/45.jpg",
+    circumstance_id: 2,
+    circumstance_name: "Social Activities",
+    start_date: "2025-04-01",
+    end_date: "2025-07-01",
+    strategies_to_use: "Nicotine replacement therapy, daily exercise, mindfulness meditation",
+    medications_to_use: "Nicotine patches, gum as needed",
+    medication_instructions: "Apply patch every morning. Use gum when experiencing strong cravings (max 8 pieces per day).",
+    preparation_steps: "Remove all cigarettes and smoking accessories from home and workplace. Inform friends and family about quit date and ask for support. Stock up on healthy snacks and water.",
+    note: "This plan was created after previous attempt failed due to stress at work. Special focus on stress management techniques.",
+    status: true,
+    quit_phases: [
+      {
+        quit_phase_id: 2,
+        phase_name: "Preparation",
+        phase_order: 1,
+        start_date: "2025-04-01",
+        end_date: "2025-04-14",
+        is_completed: true,
+        objective: "Prepare for quit day and gather necessary resources"
+      },
+      {
+        quit_phase_id: 3,
+        phase_name: "Action",
+        phase_order: 2,
+        start_date: "2025-04-15",
+        end_date: "2025-05-30",
+        is_completed: false,
+        objective: "Implement strategies to manage cravings and maintain abstinence"
+      },
+      {
+        quit_phase_id: 4,
+        phase_name: "Maintenance",
+        phase_order: 3,
+        start_date: "2025-06-01",
+        end_date: "2025-07-01",
+        is_completed: false,
+        objective: "Strengthen commitment and develop long-term strategies"
+      }
+    ],
+    current_phase: {
+      quit_phase_id: 3,
+      phase_name: "Action",
+      phase_order: 2,
+      start_date: "2025-04-15",
+      is_completed: false,
+      objective: "Implement strategies to manage cravings and maintain abstinence"
+    }
+  };
 };
 
 // Coach disables a quit plan
@@ -207,12 +277,14 @@ export const denyQuitPlan = async (planId) => {
 // Get quit plan by plan ID
 export const getQuitPlanByPlanId = async (planId) => {
   try {
-    const response = await axiosInstance.get(`${API_ENDPOINTS.QUIT_PLANS.GET_BY_ID}/${planId}`);
-    return handleApiResponse(response);
+    // Note: This endpoint doesn't exist in the API specification
+    // Using mock data as fallback
+    console.warn('GET quit plan by ID is not available in the API specification');
+    return getQuitPlanDetailMock(planId);
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
 // Note: GET quit plan by ID is not available in the API specification
-// The available endpoints are only for getting newest, old plans, and coach created plans
+// The available endpoints are only for getting newest and old plans

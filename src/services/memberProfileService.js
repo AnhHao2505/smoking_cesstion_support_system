@@ -26,7 +26,7 @@ export const getMemberProfile = async (memberId) => {
 // Update member profile (member only) - Updated to use correct function name
 export const updateMemberProfile = async (name) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.PROFILE.MEMBER, null, {
+    const response = await axiosInstance.patch(API_ENDPOINTS.PROFILE.ME, null, {
       params: { name }
     });
     return handleApiResponse(response);

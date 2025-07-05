@@ -45,6 +45,16 @@ export const upgradeToPremium = async () => {
   }
 };
 
+// Disable user (admin function)
+export const disableUser = async (userId) => {
+  try {
+    const response = await axiosInstance.put(API_ENDPOINTS.USER.DISABLE, { userId });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
 // Note: The following functions are not available in the current API specification
 // They have been removed to match the actual available endpoints:
 // - getUserProfile, updateUserProfile, uploadAvatar

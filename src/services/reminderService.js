@@ -37,11 +37,15 @@ export const disableReminder = async (reminderId) => {
   }
 };
 
-// Get all reminders for a user - NOT AVAILABLE IN API
-export const getAllReminders = async (userId) => {
+// Get all reminders with pagination
+export const getAllReminders = async (pageNo = 0, pageSize = 10) => {
   try {
-    // Note: This endpoint doesn't exist in the API specification
-    console.warn('Get all reminders endpoint not available, using mock data');
+    const response = await axiosInstance.get(API_ENDPOINTS.REMINDERS.GET_ALL, {
+      params: { pageNo, pageSize }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    console.warn('Get all reminders endpoint failed, using mock data');
     // Mock data for development
     return {
       success: true,
@@ -68,9 +72,6 @@ export const getAllReminders = async (userId) => {
         }
       ]
     };
-  } catch (error) {
-    console.error('Error fetching reminders:', error);
-    return { success: false, data: [] };
   }
 };
 
