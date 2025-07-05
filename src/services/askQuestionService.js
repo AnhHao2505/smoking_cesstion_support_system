@@ -28,7 +28,7 @@ export const answerQuestion = async (qnaId, answer) => {
 // Get all QnA (admin)
 export const getAllQna = async () => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QNA.ALL);
+    const response = await axiosInstance.get(API_ENDPOINTS.QNA.UNANSWERED);
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
@@ -36,11 +36,9 @@ export const getAllQna = async () => {
 };
 
 // Get QnA of member
-export const getQnaOfMember = async (memberId) => {
+export const getQnaOfMember = async () => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QNA.ALL_MEMBER, {
-      params: { memberId }
-    });
+    const response = await axiosInstance.get(API_ENDPOINTS.QNA.MINE);
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
@@ -48,11 +46,9 @@ export const getQnaOfMember = async (memberId) => {
 };
 
 // Get QnA by coach
-export const getQnaByCoach = async (coachId) => {
+export const getQnaByCoach = async () => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QNA.ALL_COACH, {
-      params: { coachId }
-    });
+    const response = await axiosInstance.get(API_ENDPOINTS.QNA.UNANSWERED);
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);

@@ -88,9 +88,8 @@ export const API_ENDPOINTS = {
   QNA: {
     ASK: '/api/qna/ask',
     ANSWER: '/api/qna/answer',
-    ALL: '/api/qna/all',
-    ALL_MEMBER: '/api/qna/all/member',
-    ALL_COACH: '/api/qna/all/coach',
+    MINE: '/api/qna/mine',
+    UNANSWERED: '/api/qna/unaswered',
   },
 
   // Notifications

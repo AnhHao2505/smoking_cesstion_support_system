@@ -8,20 +8,22 @@ import {
   CalendarOutlined 
 } from '@ant-design/icons';
 import { getAllQna, getQnaOfMember, getQnaByCoach } from '../../services/askQuestionService';
-import { useAuth } from '../../contexts/AuthContext';
+import { initResizeObserverErrorHandler } from '../../utils/resizeObserverErrorHandler';
 import '../../styles/global.css';
 import '../../styles/QnA.css';
 
 const { Title, Text, Paragraph } = Typography;
 
-const QuestionList = ({ filterBy = 'all', onQuestionSelect }) => {
+// Initialize ResizeObserver error handling
+initResizeObserverErrorHandler();
+
+const QuestionList = ({ filterBy = 'all', onQuestionSelect, refreshTrigger }) => {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { currentUser } = useAuth();
 
   useEffect(() => {
     fetchQuestions();
-  }, [filterBy, currentUser]);
+  }, [filterBy, refreshTrigger]);
 
   const fetchQuestions = async () => {
     setLoading(true);
@@ -29,19 +31,42 @@ const QuestionList = ({ filterBy = 'all', onQuestionSelect }) => {
       let response;
       switch (filterBy) {
         case 'member':
-          if (currentUser?.id) {
-            response = await getQnaOfMember(currentUser.id);
-          }
+          // Get all questions from current member (MINE endpoint)
+          console.log('Calling getQnaOfMember');
+          response = await getQnaOfMember();
           break;
         case 'coach':
-          if (currentUser?.id) {
-            response = await getQnaByCoach(currentUser.id);
-          }
+          // Get only unanswered questions for coach to answer (UNANSWERED endpoint)
+          response = await getQnaByCoach();
+          break;
+        case 'unanswered':
+          // Get all unanswered questions (UNANSWERED endpoint)
+          response = await getAllQna();
           break;
         default:
+          // Default to getting all unanswered questions
           response = await getAllQna();
       }
-      setQuestions(response || []);
+      
+      // Handle different response structures
+      let questionsData = [];
+      
+      if (Array.isArray(response)) {
+        // Direct array response
+        questionsData = response;
+      } else if (response?.content && Array.isArray(response.content)) {
+        // Paginated response with content field
+        questionsData = response.content;
+      } else if (response?.data) {
+        // Response with data field
+        if (Array.isArray(response.data)) {
+          questionsData = response.data;
+        } else if (response.data.content && Array.isArray(response.data.content)) {
+          questionsData = response.data.content;
+        }
+      }
+      
+      setQuestions(questionsData);
     } catch (error) {
       message.error('Có lỗi xảy ra khi tải danh sách câu hỏi: ' + error.message);
       setQuestions([]);
@@ -62,42 +87,47 @@ const QuestionList = ({ filterBy = 'all', onQuestionSelect }) => {
     return new Date(dateString).toLocaleString('vi-VN');
   };
 
-  const renderQuestionItem = (item) => (
-    <List.Item
-      actions={[
-        onQuestionSelect && (
-          <Button 
-            type={item.answer ? "default" : "primary"} 
-            onClick={() => onQuestionSelect(item)}
-          >
-            {item.answer ? 'Xem chi tiết' : 'Trả lời'}
-          </Button>
-        )
-      ].filter(Boolean)}
-    >
-      <List.Item.Meta
-        avatar={
-          <Avatar 
-            icon={<UserOutlined />} 
-            style={{ backgroundColor: '#1890ff' }}
-          />
-        }
-        title={
-          <Space direction="vertical" size={4} style={{ width: '100%' }}>
-            <Space>
-              <Text strong>{item.memberName || 'Thành viên'}</Text>
-              {getStatusTag(item)}
+  const renderQuestionItem = (item) => {
+    const actions = [];
+    
+    // Only show action button if onQuestionSelect is provided and filterBy is not 'member'
+    if (onQuestionSelect && filterBy !== 'member') {
+      actions.push(
+        <Button 
+          key="action"
+          type={item.answer ? "default" : "primary"} 
+          onClick={() => onQuestionSelect(item)}
+        >
+          {item.answer ? 'Xem chi tiết' : 'Trả lời'}
+        </Button>
+      );
+    }
+
+    return (
+      <List.Item actions={actions}>
+        <List.Item.Meta
+          avatar={
+            <Avatar 
+              icon={<UserOutlined />} 
+              style={{ backgroundColor: '#1890ff' }}
+            />
+          }
+          title={
+            <Space direction="vertical" size={4} style={{ width: '100%' }}>
+              <Space>
+                <Text strong>{item.memberName || 'Thành viên'}</Text>
+                {getStatusTag(item)}
+              </Space>
+              <Space size={4}>
+                <CalendarOutlined style={{ color: '#8c8c8c' }} />
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  {formatDate(item.createdAt)}
+                </Text>
+              </Space>
             </Space>
-            <Space size={4}>
-              <CalendarOutlined style={{ color: '#8c8c8c' }} />
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                {formatDate(item.createdAt)}
-              </Text>
-            </Space>
-          </Space>
-        }
-        description={
-          <div>
+          }
+          description={
+            <div>
             <Paragraph 
               ellipsis={{ rows: 2, expandable: true, symbol: 'Xem thêm' }}
               style={{ marginBottom: 8 }}
@@ -129,7 +159,8 @@ const QuestionList = ({ filterBy = 'all', onQuestionSelect }) => {
         }
       />
     </List.Item>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -150,8 +181,11 @@ const QuestionList = ({ filterBy = 'all', onQuestionSelect }) => {
         <Space>
           <QuestionCircleOutlined />
           <Title level={4} style={{ margin: 0 }}>
-            Danh sách câu hỏi
-            {questions.length > 0 && (
+            {filterBy === 'member' ? 'Câu hỏi của tôi' : 
+             filterBy === 'coach' ? 'Câu hỏi cần trả lời' : 
+             filterBy === 'unanswered' ? 'Câu hỏi chưa trả lời' :
+             'Danh sách câu hỏi'}
+            {Array.isArray(questions) && questions.length > 0 && (
               <Text type="secondary" style={{ fontWeight: 'normal' }}>
                 {' '}({questions.length} câu hỏi)
               </Text>
@@ -165,7 +199,7 @@ const QuestionList = ({ filterBy = 'all', onQuestionSelect }) => {
         </Button>
       }
     >
-      {questions.length === 0 ? (
+      {!Array.isArray(questions) || questions.length === 0 ? (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={
@@ -174,6 +208,8 @@ const QuestionList = ({ filterBy = 'all', onQuestionSelect }) => {
                 ? 'Bạn chưa có câu hỏi nào'
                 : filterBy === 'coach'
                 ? 'Chưa có câu hỏi nào để trả lời'
+                : filterBy === 'unanswered'
+                ? 'Chưa có câu hỏi nào chưa được trả lời'
                 : 'Chưa có câu hỏi nào trong hệ thống'
               }
             </span>
@@ -182,7 +218,7 @@ const QuestionList = ({ filterBy = 'all', onQuestionSelect }) => {
       ) : (
         <List
           itemLayout="vertical"
-          dataSource={questions}
+          dataSource={Array.isArray(questions) ? questions : []}
           renderItem={renderQuestionItem}
           pagination={{
             pageSize: 10,

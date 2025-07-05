@@ -17,11 +17,15 @@ import {
   CalendarOutlined 
 } from '@ant-design/icons';
 import { answerQuestion } from '../../services/askQuestionService';
+import { initResizeObserverErrorHandler } from '../../utils/resizeObserverErrorHandler';
 import '../../styles/global.css';
 import '../../styles/QnA.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
+
+// Initialize ResizeObserver error handling
+initResizeObserverErrorHandler();
 
 const AnswerQuestion = ({ question, onAnswerSubmitted, onCancel }) => {
   const [form] = Form.useForm();

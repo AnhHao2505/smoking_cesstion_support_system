@@ -3,10 +3,14 @@ import { Layout, Breadcrumb } from 'antd';
 import { HomeOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import QAForum from '../../components/qna/QAForum';
+import { initResizeObserverErrorHandler } from '../../utils/resizeObserverErrorHandler';
 import '../../styles/global.css';
 import '../../styles/QnA.css';
 
 const { Content } = Layout;
+
+// Initialize ResizeObserver error handling
+initResizeObserverErrorHandler();
 
 const QAForumPage = () => {
   return (

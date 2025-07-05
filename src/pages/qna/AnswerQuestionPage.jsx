@@ -27,7 +27,7 @@ const AnswerQuestionPage = () => {
       let questions = [];
       
       if (currentUser?.role === 'COACH') {
-        questions = await getQnaByCoach(currentUser.id);
+        questions = await getQnaByCoach();
       } else {
         questions = await getAllQna();
       }

@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, message, Space } from 'antd';
 import { QuestionCircleOutlined, SendOutlined } from '@ant-design/icons';
 import { askQuestion } from '../../services/askQuestionService';
+import { initResizeObserverErrorHandler } from '../../utils/resizeObserverErrorHandler';
 import '../../styles/global.css';
 import '../../styles/QnA.css';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
+
+// Initialize ResizeObserver error handling
+initResizeObserverErrorHandler();
 
 const AskQuestion = ({ onQuestionSubmitted }) => {
   const [form] = Form.useForm();
