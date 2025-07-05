@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Dropdown, Menu } from 'antd';
-import { DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import '../../styles/Navbar.css';
 
@@ -40,12 +40,13 @@ const NavBar = () => {
         { key: '/member/quit-progress', label: 'My Progress', path: '/member/quit-progress' }
       ]
     },
-    plan: {
-      label: 'My Plan',
-      icon: <BarChartOutlined />,
+    quitPlan: {
+      label: 'Quit Plan',
+      icon: <FileTextOutlined />,
       items: [
         { key: '/member/quit-plan', label: 'Current Plan', path: '/member/quit-plan' },
-        { key: '/member/phase-progress', label: 'Phase Progress', path: '/member/phase-progress' }
+        { key: '/member/quit-plan-creation', label: 'Create New Plan', path: '/member/quit-plan-creation' },
+        { key: '/member/quit-plan-history', label: 'Plan History', path: '/member/quit-plan-history' },
       ]
     },
     tracking: {

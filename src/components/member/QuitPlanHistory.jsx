@@ -76,61 +76,44 @@ const QuitPlanHistory = () => {
   const fetchQuitPlanHistory = async () => {
     try {
       setLoading(true);
-      // Mock data - in real app, this would come from API
-      const mockPlans = [
-        {
-          quit_plan_id: 1,
-          start_date: '2024-01-15',
-          end_date: '2024-04-15',
-          status: 'Completed',
-          success_rate: 85,
-          coach_name: 'Dr. Sarah Johnson',
-          coach_photo: 'https://randomuser.me/api/portraits/women/45.jpg',
-          strategies_used: 'Nicotine replacement therapy, Exercise',
-          outcome: 'Successfully completed',
-          days_completed: 90,
-          total_days: 90,
-          circumstances: 'Work stress',
-          created_at: '2024-01-10'
-        },
-        {
-          quit_plan_id: 2,
-          start_date: '2023-06-01',
-          end_date: '2023-08-30',
-          status: 'Failed',
-          success_rate: 45,
-          coach_name: 'Dr. Michael Chen',
-          coach_photo: 'https://randomuser.me/api/portraits/men/42.jpg',
-          strategies_used: 'Cold turkey, Support groups',
-          outcome: 'Relapsed after 45 days',
-          days_completed: 45,
-          total_days: 90,
-          circumstances: 'Social activities',
-          created_at: '2023-05-25'
-        },
-        {
-          quit_plan_id: 3,
-          start_date: '2023-01-01',
-          end_date: '2023-03-31',
-          status: 'Incomplete',
-          success_rate: 30,
-          coach_name: 'Nguyễn Thị Hương',
-          coach_photo: 'https://randomuser.me/api/portraits/women/32.jpg',
-          strategies_used: 'Gradual reduction, Meditation',
-          outcome: 'Plan discontinued',
-          days_completed: 30,
-          total_days: 90,
-          circumstances: 'After meals',
-          created_at: '2022-12-20'
-        }
-      ];
-
-      setPlans(mockPlans);
-      setFilteredPlans(mockPlans);
-      setPagination(prev => ({ ...prev, total: mockPlans.length }));
-      setLoading(false);
+      const response = await getOldPlansOfMember(
+        userId, 
+        pagination.current - 1, 
+        pagination.pageSize
+      );
+      
+      if (response.success) {
+        setPlans(response.data.content || []);
+        setPagination(prev => ({
+          ...prev,
+          total: response.data.totalElements || 0
+        }));
+      } else {
+        console.error('Failed to fetch quit plan history:', response.message);
+        // Fallback to mock data for development
+        const mockPlans = [
+          {
+            quit_plan_id: 1,
+            start_date: '2024-01-15',
+            end_date: '2024-04-15',
+            status: 'Completed',
+            success_rate: 85,
+            coach_name: 'Dr. Sarah Johnson',
+            coach_photo: 'https://randomuser.me/api/portraits/women/45.jpg',
+            strategies_used: 'Nicotine replacement therapy, Exercise',
+            outcome: 'Successfully completed',
+            days_completed: 90,
+            total_days: 90,
+            circumstances: 'Work stress',
+            created_at: '2024-01-10'
+          }
+        ];
+        setPlans(mockPlans);
+      }
     } catch (error) {
       console.error('Error fetching quit plan history:', error);
+      message.error('Failed to load quit plan history');
+    } finally {
       setLoading(false);
     }
   };

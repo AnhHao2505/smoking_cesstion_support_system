@@ -21,6 +21,8 @@ import CoachDashboard from './coach/CoachDashboard';
 // Member components
 import MemberProfile from './member/MemberProfile';
 import QuitPlanDetail from './member/QuitPlanDetail';
+import QuitPlanCreation from './member/QuitPlanCreation';
+import QuitPlanEdit from './member/QuitPlanEdit';
 import DailyRecordForm from './member/DailyRecordForm';
 import AppointmentManagement from './member/AppointmentManagement';
 import CoachSelection from './member/CoachSelection';
@@ -124,6 +126,33 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['MEMBER', 'COACH']}>
                     <QuitPlanDetail />
+                  </PrivateRoute>
+                }
+              />
+
+              <Route 
+                path="/member/quit-plan" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <QuitPlanDetail />
+                  </PrivateRoute>
+                }
+              />
+
+              <Route 
+                path="/member/quit-plan-creation" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <QuitPlanCreation />
+                  </PrivateRoute>
+                }
+              />
+
+              <Route 
+                path="/member/quit-plan-edit/:planId" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER', 'COACH']}>
+                    <QuitPlanEdit />
                   </PrivateRoute>
                 }
               />

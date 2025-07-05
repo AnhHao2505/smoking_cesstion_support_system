@@ -86,6 +86,31 @@ const PhaseProgress = () => {
         const planResponse = await getQuitPlanByPlanId(planId);
         if (planResponse.success) {
           setQuitPlan(planResponse.data);
+          
+          // Get phases of the plan
+          const phasesResponse = await getPhasesOfPlan(planId);
+          if (phasesResponse.success) {
+            setPhases(phasesResponse.data.phases || []);
+            
+            // Set current phase
+            const currentPhase = phasesResponse.data.phases?.find(p => !p.is_completed);
+            if (currentPhase) {
+              setCurrentPhase(currentPhase);
+            }
+            
+            // Generate progress data
+            const progressData = generateProgressData(phasesResponse.data.phases || []);
+            setProgressData(progressData);
+            
+            // Generate milestones and history
+            setMilestones(generateMilestones(phasesResponse.data.phases || []));
+            setProgressHistory(generateProgressHistory(phasesResponse.data.phases || []));
+          }
+        }
+        
+        setLoading(false);
+        if (planResponse.success) {
+          setQuitPlan(planResponse.data);
         }
 
         // Get all phases of the plan

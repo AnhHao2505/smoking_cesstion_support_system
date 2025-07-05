@@ -30,7 +30,7 @@ import {
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import moment from 'moment';
-import { getQuitPlanDetail, updateQuitPlanByCoach } from '../../services/quitPlanService';
+import { getQuitPlanByPlanId, updateQuitPlanByCoach } from '../../services/quitPlanService';
 import { getSuggestedStrategies, getSuggestedMedications } from '../../services/quitPlanService';
 import '../../styles/Dashboard.css';
 
@@ -57,20 +57,25 @@ const QuitPlanEdit = () => {
   const fetchQuitPlanData = async () => {
     try {
       setLoading(true);
-      const planData = getQuitPlanDetail(planId);
-      setQuitPlan(planData);
-      
-      // Set form values
-      form.setFieldsValue({
-        strategies_to_use: planData.strategies_to_use?.split(', ') || [],
-        medications_to_use: planData.medications_to_use?.split(', ') || [],
-        medication_instructions: planData.medication_instructions,
-        preparation_steps: planData.preparation_steps,
-        end_date: moment(planData.end_date),
-        note: planData.note,
-        coach_recommendations: planData.coach_recommendations || ''
-      });
-      
+      const response = await getQuitPlanByPlanId(planId);
+      if (response.success) {
+        const planData = response.data;
+        setQuitPlan(planData);
+        
+        // Set form values
+        form.setFieldsValue({
+          strategies_to_use: planData.strategies_to_use?.split(', ') || [],
+          medications_to_use: planData.medications_to_use?.split(', ') || [],
+          medication_instructions: planData.medication_instructions,
+          preparation_steps: planData.preparation_steps,
+          end_date: moment(planData.end_date),
+          note: planData.note,
+          coach_recommendations: planData.coach_recommendations || ''
+        });
+      } else {
+        console.error('Failed to fetch quit plan:', response.message);
+        message.error('Failed to load quit plan');
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching quit plan:', error);

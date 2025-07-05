@@ -398,11 +398,11 @@ const QuitPlanCreation = () => {
         }))
       };
       
-      // Submit the data
-      const response = await quitPlanService.createQuitPlan(quitPlanData);
+      // Submit the data using the correct API call
+      const response = await quitPlanService.createQuitPlan(userId, quitPlanData);
       
       if (response.success) {
-        message.success(response.message);
+        message.success(response.message || 'Tạo kế hoạch cai thuốc thành công!');
         // Redirect to dashboard or the newly created quit plan
         navigate('/member/dashboard');
       } else {

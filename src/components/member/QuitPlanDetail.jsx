@@ -12,7 +12,7 @@ import {
   FireOutlined, BarChartOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
-import { getQuitPlanDetail, updateQuitPlanDetail } from '../../services/quitPlanDetailService';
+import { getQuitPlanByPlanId, updateQuitPlanByCoach } from '../../services/quitPlanService';
 import { getCurrentUser } from '../../services/authService';
 import '../../styles/Dashboard.css';
 
@@ -38,8 +38,13 @@ const QuitPlanDetail = ({ quitPlanId, allowEdit = true }) => {
 
   const fetchQuitPlanDetail = async () => {
     try {
-      const quitPlanData = getQuitPlanDetail(quitPlanId);
-      setQuitPlan(quitPlanData);
+      const response = await getQuitPlanByPlanId(quitPlanId);
+      if (response.success) {
+        setQuitPlan(response.data);
+      } else {
+        console.error('Failed to fetch quit plan details:', response.message);
+        message.error("Failed to load quit plan details");
+      }
       setLoading(false);
     } catch (error) {
       console.error("Error fetching quit plan details:", error);
@@ -81,12 +86,13 @@ const QuitPlanDetail = ({ quitPlanId, allowEdit = true }) => {
         end_date: values.end_date.format('YYYY-MM-DD')
       };
       
-      const response = await updateQuitPlanDetail(quitPlanId, updateData);
+      const response = await updateQuitPlanByCoach(quitPlanId, updateData);
       
       if (response.success) {
         message.success("Quit plan updated successfully");
         setEditModalVisible(false);
-        setQuitPlan({ ...quitPlan, ...updateData });
+        // Refresh the plan data
+        fetchQuitPlanDetail();
       } else {
         message.error(response.message || "Failed to update quit plan");
       }
