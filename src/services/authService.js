@@ -46,6 +46,7 @@ export const login = async (email, password) => {
     // Handle successful login response based on the new format
     if (data && data.token) {
       // Parse JWT token to extract user information
+      console.log(parseJwtTokenInternal(data.token));
       const tokenPayload = parseJwtTokenInternal(data.token);
       
       if (!tokenPayload) {

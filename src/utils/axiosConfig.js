@@ -51,7 +51,6 @@ axiosInstance.interceptors.request.use(
       '/auth/get-testers',
       '/blog',
       '/public',
-      '/api/feedbacks/published' // Published feedbacks are public
     ];
     
     // Check if current request is to a public endpoint
