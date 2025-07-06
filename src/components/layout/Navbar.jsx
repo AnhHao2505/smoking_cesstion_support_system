@@ -36,8 +36,9 @@ const NavBar = () => {
       label: 'Dashboard',
       icon: <DashboardOutlined />,
       items: [
-        { key: '/member/dashboard', label: 'Overview', path: '/member/dashboard' },
-        { key: '/member/quit-progress', label: 'My Progress', path: '/member/quit-progress' }
+        { key: '/member/dashboard', label: 'Overview', path: '/member/dashboard' }
+        // Remove quit-progress route as it doesn't exist
+        // { key: '/member/quit-progress', label: 'My Progress', path: '/member/quit-progress' }
       ]
     },
     quitPlan: {
@@ -75,14 +76,16 @@ const NavBar = () => {
         { key: '/member/coach-selection', label: 'Coach Selection', path: '/member/coach-selection' },
         { key: '/member/reminders', label: 'Reminders', path: '/member/reminders' }
       ]
-    },
-    phases: {
-      label: 'Phase Management',
-      icon: <AimOutlined />,
-      items: [
-        { key: '/member/phase-progress', label: 'Phase Progress', path: '/member/phase-progress' }
-      ]
-    },
+    }
+    // Remove phases dropdown since it has no valid routes
+    // phases: {
+    //   label: 'Phase Management',
+    //   icon: <AimOutlined />,
+    //   items: [
+    //     // Remove this as route requires planId parameter
+    //     // { key: '/member/phase-progress', label: 'Phase Progress', path: '/member/phase-progress' }
+    //   ]
+    // },
     // account: {
     //   label: 'Account & Settings',
     //   icon: <UserOutlined />,
@@ -108,8 +111,9 @@ const NavBar = () => {
       label: 'Schedule & Appointments',
       icon: <CalendarOutlined />,
       items: [
-        { key: '/coach/schedule', label: 'My Schedule', path: '/coach/schedule' },
-        { key: '/coach/appointments', label: 'Appointments', path: '/coach/appointments' }
+        { key: '/coach/schedule', label: 'My Schedule', path: '/coach/schedule' }
+        // Remove appointments route as it doesn't exist
+        // { key: '/coach/appointments', label: 'Appointments', path: '/coach/appointments' }
       ]
     },
     management: {
