@@ -48,7 +48,9 @@ export const upgradeToPremium = async () => {
 // Disable user (admin function)
 export const disableUser = async (userId) => {
   try {
-    const response = await axiosInstance.put(API_ENDPOINTS.USER.DISABLE, { userId });
+    const response = await axiosInstance.patch(API_ENDPOINTS.USER.DISABLE, null, {
+      params: { userId }
+    });
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
