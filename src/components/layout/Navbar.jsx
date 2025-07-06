@@ -83,16 +83,16 @@ const NavBar = () => {
         { key: '/member/phase-progress', label: 'Phase Progress', path: '/member/phase-progress' }
       ]
     },
-    account: {
-      label: 'Account & Settings',
-      icon: <UserOutlined />,
-      items: [
-        { key: '/member/membership-status', label: 'Membership', path: '/member/membership-status' },
-        { key: '/member/account-management', label: 'Settings', path: '/member/account-management' },
-        { key: '/member/premium-upgrade', label: 'Premium Upgrade', path: '/member/premium-upgrade' },
-        { key: '/member/user-settings', label: 'User Settings', path: '/member/user-settings' }
-      ]
-    }
+    // account: {
+    //   label: 'Account & Settings',
+    //   icon: <UserOutlined />,
+    //   items: [
+    //     { key: '/member/membership-status', label: 'Membership', path: '/member/membership-status' },
+    //     { key: '/member/account-management', label: 'Settings', path: '/member/account-management' },
+    //     { key: '/member/premium-upgrade', label: 'Premium Upgrade', path: '/member/premium-upgrade' },
+    //     { key: '/member/user-settings', label: 'User Settings', path: '/member/user-settings' }
+    //   ]
+    // }
   };
 
   // Coach-specific dropdown menus

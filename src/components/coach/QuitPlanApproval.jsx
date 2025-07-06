@@ -38,11 +38,13 @@ import {
 } from '@ant-design/icons';
 import moment from 'moment';
 import { 
-  getAllPlanCreatedByCoach, 
+  getNewestQuitPlan,
   acceptQuitPlan, 
   denyQuitPlan,
   updateQuitPlanByCoach 
 } from '../../services/quitPlanService';
+import { getAssignedMembers } from '../../services/coachManagementService';
+import { getLatestMemberSmokingStatus } from '../../services/memberSmokingStatusService';
 import { getCurrentUser } from '../../services/authService';
 import '../../styles/Dashboard.css';
 
@@ -65,101 +67,67 @@ const QuitPlanApproval = () => {
 
   useEffect(() => {
     if (coachId) {
-      fetchPendingPlans();
+      fetchAssignedMembersPlans();
     } else {
       setLoading(false);
       message.error('Please log in as a coach to access this feature');
     }
   }, [coachId]);
 
-  const fetchPendingPlans = async () => {
+  const fetchAssignedMembersPlans = async () => {
     try {
       setLoading(true);
-      // In real app, use: const response = await getAllPlanCreatedByCoach(coachId);
-      // Mock data for demonstration
-      const mockPlans = [
-        {
-          quit_plan_id: 101,
-          member_id: 201,
-          member_name: "Nguyễn Văn A",
-          member_email: "nguyenvana@email.com",
-          member_phone: "0901234567",
-          start_date: "2025-01-15",
-          end_date: "2025-04-15",
-          created_at: "2025-01-10T08:30:00",
-          status: "Pending Approval",
-          approval_status: "pending",
-          circumstances: "Work stress",
-          strategies_requested: "Nicotine replacement therapy, Exercise, Meditation",
-          medications_requested: "Nicotine patches, Lozenges",
-          preparation_steps: "Remove all cigarettes from home and office, inform family and friends, stock healthy snacks",
-          quit_reason: "Health concerns and family pressure",
-          previous_attempts: 2,
-          cigarettes_per_day: 15,
-          urgency_level: "high",
-          smoking_duration: "10 years",
-          triggers: ["Work stress", "After meals", "Social events"],
-          support_system: "Family and close friends",
-          health_conditions: "High blood pressure",
-          motivations: ["Better health", "Save money", "Family"]
-        },
-        {
-          quit_plan_id: 102,
-          member_id: 202,
-          member_name: "Trần Thị B",
-          member_email: "tranthib@email.com",
-          member_phone: "0907654321",
-          start_date: "2025-01-20",
-          end_date: "2025-05-20",
-          created_at: "2025-01-12T14:20:00",
-          status: "Pending Approval",
-          approval_status: "pending",
-          circumstances: "Social activities",
-          strategies_requested: "Cold turkey, Support groups",
-          medications_requested: "None",
-          preparation_steps: "Avoid social drinking, find new hobbies, join online support groups",
-          quit_reason: "Want to set good example for children",
-          previous_attempts: 1,
-          cigarettes_per_day: 10,
-          urgency_level: "medium",
-          smoking_duration: "5 years",
-          triggers: ["Social drinking", "Stress"],
-          support_system: "Spouse and children",
-          health_conditions: "None",
-          motivations: ["Children's health", "Personal example"]
-        },
-        {
-          quit_plan_id: 103,
-          member_id: 203,
-          member_name: "Lê Văn C",
-          member_email: "levanc@email.com",
-          member_phone: "0912345678",
-          start_date: "2025-01-25",
-          end_date: "2025-04-25",
-          created_at: "2025-01-14T10:15:00",
-          status: "Approved",
-          approval_status: "approved",
-          approved_at: "2025-01-15T09:00:00",
-          circumstances: "After meals",
-          strategies_requested: "Gradual reduction, Behavioral therapy",
-          medications_requested: "Varenicline",
-          preparation_steps: "Change eating habits, practice mindful eating",
-          quit_reason: "Doctor's recommendation due to health issues",
-          previous_attempts: 0,
-          cigarettes_per_day: 20,
-          urgency_level: "high",
-          smoking_duration: "15 years",
-          triggers: ["After meals", "Coffee breaks"],
-          support_system: "Family doctor and wife",
-          health_conditions: "COPD early stage",
-          motivations: ["Health recovery", "Doctor's advice"]
-        }
-      ];
+      
+      // Get assigned members
+      const membersResponse = await getAssignedMembers(coachId);
+      
+      if (!membersResponse.success) {
+        message.error('Failed to load assigned members');
+        setLoading(false);
+        return;
+      }
 
-      setPlans(mockPlans);
+      const assignedMembers = membersResponse.data || [];
+      const plansData = [];
+
+      // For each member, get their quit plan and smoking status
+      for (const member of assignedMembers) {
+        if (member.planId) {
+          try {
+            // Get quit plan details
+            const planResponse = await getNewestQuitPlan(member.memberId);
+            
+            // Get smoking status
+            let statusResponse = null;
+            if (member.initialStatusId) {
+              statusResponse = await getLatestMemberSmokingStatus(member.memberId);
+            }
+
+            if (planResponse.success && planResponse.data) {
+              const planData = {
+                ...planResponse.data,
+                member_id: member.memberId,
+                member_name: member.name,
+                member_email: member.email,
+                initial_status: statusResponse?.success ? statusResponse.data : null,
+                // Map status for approval display
+                approval_status: planResponse.data.status === 'PENDING_APPROVAL' ? 'pending' 
+                               : planResponse.data.status === 'ACTIVE' ? 'approved'
+                               : planResponse.data.status === 'DENIED' ? 'denied'
+                               : 'pending'
+              };
+              plansData.push(planData);
+            }
+          } catch (error) {
+            console.error(`Error fetching plan for member ${member.memberId}:`, error);
+          }
+        }
+      }
+
+      setPlans(plansData);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching pending plans:', error);
+      console.error('Error fetching assigned members plans:', error);
       message.error('Failed to load plans');
       setLoading(false);
     }
@@ -175,6 +143,47 @@ const QuitPlanApproval = () => {
     setActionType(action);
     form.resetFields();
     setApprovalModalVisible(true);
+  };
+
+  const getUrgencyColor = (level) => {
+    switch (level?.toLowerCase()) {
+      case 'high': return 'red';
+      case 'medium': return 'orange';
+      case 'low': return 'green';
+      default: return 'default';
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'PENDING_APPROVAL':
+      case 'pending':
+        return 'orange';
+      case 'ACTIVE':
+      case 'approved':
+        return 'green';
+      case 'DENIED':
+      case 'denied':
+        return 'red';
+      default:
+        return 'default';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'PENDING_APPROVAL':
+      case 'pending':
+        return 'Pending Approval';
+      case 'ACTIVE':
+      case 'approved':
+        return 'Approved';
+      case 'DENIED':
+      case 'denied':
+        return 'Denied';
+      default:
+        return status;
+    }
   };
 
   const submitApproval = async () => {
@@ -198,73 +207,51 @@ const QuitPlanApproval = () => {
             plan.quit_plan_id === selectedPlan.quit_plan_id 
               ? { 
                   ...plan, 
-                  status: 'Approved', 
+                  status: 'ACTIVE', 
                   approval_status: 'approved',
                   approved_at: moment().toISOString(),
                   coach_feedback: values.feedback
                 }
               : plan
           ));
-        } else {
-          message.error(response.message || 'Failed to approve plan');
         }
-      } else {
+      } else if (actionType === 'deny') {
         response = await denyQuitPlan(selectedPlan.quit_plan_id, approvalData);
         if (response.success) {
-          message.success('Plan denied. Member will be notified to revise their plan.');
+          message.success('Plan denied. Member will be notified.');
           setPlans(plans.map(plan => 
             plan.quit_plan_id === selectedPlan.quit_plan_id 
               ? { 
                   ...plan, 
-                  status: 'Needs Revision', 
+                  status: 'DENIED', 
                   approval_status: 'denied',
                   denied_at: moment().toISOString(),
-                  denial_reason: values.feedback
+                  coach_feedback: values.feedback
                 }
               : plan
           ));
-        } else {
-          message.error(response.message || 'Failed to deny plan');
         }
       }
-      
+
+      if (!response.success) {
+        message.error(response.message || `Failed to ${actionType} plan`);
+      }
+
       setApprovalModalVisible(false);
-      setSelectedPlan(null);
-      setSubmitting(false);
     } catch (error) {
-      console.error('Error processing approval:', error);
-      message.error('Failed to process approval');
+      console.error(`Error ${actionType} plan:`, error);
+      message.error(`Failed to ${actionType} plan`);
+    } finally {
       setSubmitting(false);
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Pending Approval': return 'orange';
-      case 'Approved': return 'green';
-      case 'Denied': 
-      case 'Needs Revision': return 'red';
-      case 'In Progress': return 'blue';
-      case 'Completed': return 'purple';
-      default: return 'default';
-    }
-  };
-
-  const getUrgencyColor = (level) => {
-    switch (level) {
-      case 'high': return 'red';
-      case 'medium': return 'orange';
-      case 'low': return 'green';
-      default: return 'default';
     }
   };
 
   const formatDate = (dateString) => {
-    return moment(dateString).format('DD/MM/YYYY');
+    return moment(dateString).format('MMM DD, YYYY');
   };
 
   const formatDateTime = (dateString) => {
-    return moment(dateString).format('DD/MM/YYYY HH:mm');
+    return moment(dateString).format('MMM DD, YYYY [at] HH:mm');
   };
 
   const getDuration = (startDate, endDate) => {
@@ -303,23 +290,26 @@ const QuitPlanApproval = () => {
             {getDuration(record.start_date, record.end_date)} days
           </Tag>
           <Tag color="cyan" size="small">
-            {record.cigarettes_per_day}/day
+            {record.initial_status?.dailySmoking || 'N/A'}/day
           </Tag>
         </div>
       )
     },
     {
-      title: 'Priority',
-      key: 'priority',
+      title: 'Addiction Level',
+      key: 'addiction_level',
       width: 120,
       render: (_, record) => (
         <div className="text-center">
-          <Tag color={getUrgencyColor(record.urgency_level)} size="small">
-            {record.urgency_level.toUpperCase()}
+          <Tag color={
+            record.initial_status?.addiction === 'SEVERE' ? 'red' :
+            record.initial_status?.addiction === 'MODERATE' ? 'orange' : 'green'
+          } size="small">
+            {record.initial_status?.addiction || 'Unknown'}
           </Tag>
           <br />
           <Text type="secondary" style={{ fontSize: '11px' }}>
-            {record.previous_attempts} prev attempts
+            {record.initial_status?.previousAttempts || 0} prev attempts
           </Text>
         </div>
       )
@@ -551,13 +541,18 @@ const QuitPlanApproval = () => {
                   <Col xs={24} md={12}>
                     <Descriptions size="small" column={1}>
                       <Descriptions.Item label="Cigarettes per Day">
-                        <Text strong>{selectedPlan.cigarettes_per_day}</Text>
+                        <Text strong>{selectedPlan.initial_status?.dailySmoking || 'N/A'}</Text>
                       </Descriptions.Item>
-                      <Descriptions.Item label="Smoking Duration">
-                        {selectedPlan.smoking_duration}
+                      <Descriptions.Item label="Addiction Level">
+                        <Tag color={
+                          selectedPlan.initial_status?.addiction === 'SEVERE' ? 'red' :
+                          selectedPlan.initial_status?.addiction === 'MODERATE' ? 'orange' : 'green'
+                        }>
+                          {selectedPlan.initial_status?.addiction || 'Unknown'}
+                        </Tag>
                       </Descriptions.Item>
                       <Descriptions.Item label="Previous Attempts">
-                        {selectedPlan.previous_attempts}
+                        {selectedPlan.initial_status?.previousAttempts || 0}
                       </Descriptions.Item>
                     </Descriptions>
                   </Col>
@@ -623,61 +618,50 @@ const QuitPlanApproval = () => {
               {/* Strategies & Support */}
               <Row gutter={[16, 16]} className="mb-3">
                 <Col xs={24} md={12}>
-                  <Card title={<><BulbOutlined /> Requested Strategies</>} size="small">
-                    <Paragraph>{selectedPlan.strategies_requested}</Paragraph>
+                  <Card title={<><BulbOutlined /> Strategies</>} size="small">
+                    <Paragraph>{selectedPlan.strategies_to_use || 'No strategies specified'}</Paragraph>
                   </Card>
                 </Col>
                 <Col xs={24} md={12}>
                   <Card title={<><MedicineBoxOutlined /> Medications</>} size="small">
                     <Paragraph>
-                      {selectedPlan.medications_requested || 'No medications requested'}
+                      {selectedPlan.medications_to_use || 'No medications specified'}
                     </Paragraph>
-                  </Card>
-                </Col>
-              </Row>
-
-              {/* Preparation Steps */}
-              <Card title="Preparation Steps" size="small" className="mb-3">
-                <Paragraph>{selectedPlan.preparation_steps}</Paragraph>
-              </Card>
-
-              {/* Additional Information */}
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
-                  <Card title="Triggers" size="small">
-                    {selectedPlan.triggers ? (
-                      <Space wrap>
-                        {selectedPlan.triggers.map((trigger, index) => (
-                          <Tag key={index} color="orange">{trigger}</Tag>
-                        ))}
-                      </Space>
-                    ) : (
-                      <Text type="secondary">No specific triggers identified</Text>
-                    )}
-                  </Card>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Card title="Support System" size="small">
-                    <Text>{selectedPlan.support_system || 'Not specified'}</Text>
-                    {selectedPlan.health_conditions && selectedPlan.health_conditions !== 'None' && (
-                      <div style={{ marginTop: 8 }}>
-                        <Text strong>Health Conditions:</Text>
+                    {selectedPlan.medication_instructions && (
+                      <div>
+                        <Text strong>Instructions:</Text>
                         <br />
-                        <Tag color="red">{selectedPlan.health_conditions}</Tag>
+                        <Text>{selectedPlan.medication_instructions}</Text>
                       </div>
                     )}
                   </Card>
                 </Col>
               </Row>
 
-              {/* Submission Info */}
-              <Card title="Submission Details" size="small" style={{ marginTop: 16 }}>
+              {/* Preparation Steps */}
+              {selectedPlan.preparation_steps && (
+                <Card title="Preparation Steps" size="small" className="mb-3">
+                  <Paragraph>{selectedPlan.preparation_steps}</Paragraph>
+                </Card>
+              )}
+
+              {/* Coach Notes */}
+              {selectedPlan.note && (
+                <Card title="Coach Notes" size="small" className="mb-3">
+                  <Paragraph>{selectedPlan.note}</Paragraph>
+                </Card>
+              )}
+
+              {/* Submission Information */}
+              <Card title="Submission Information" size="small">
                 <Descriptions size="small" column={2}>
-                  <Descriptions.Item label="Submitted">
-                    {formatDateTime(selectedPlan.created_at)}
+                  <Descriptions.Item label="Created">
+                    {moment(selectedPlan.created_at).format('MMMM DD, YYYY [at] HH:mm')}
                   </Descriptions.Item>
-                  <Descriptions.Item label="Time Pending">
-                    {moment(selectedPlan.created_at).fromNow()}
+                  <Descriptions.Item label="Status">
+                    <Tag color={getStatusColor(selectedPlan.approval_status)}>
+                      {getStatusText(selectedPlan.approval_status)}
+                    </Tag>
                   </Descriptions.Item>
                 </Descriptions>
               </Card>
