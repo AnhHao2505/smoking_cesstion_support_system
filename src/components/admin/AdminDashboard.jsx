@@ -46,7 +46,6 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import * as adminDashboardService from '../../services/adminDashboardService';
-import { getDetailedUserStats, getMembershipRevenue } from '../../services/adminDashboardService';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -67,34 +66,36 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchAdminDashboardData = async () => {
       try {
-        // Fetch all admin dashboard data
-        const overview = adminDashboardService.getSystemOverview();
-        const users = adminDashboardService.getUserStatistics();
-        const quitPlans = adminDashboardService.getQuitPlanStatistics();
-        const content = adminDashboardService.getContentStatistics();
-        const users_recent = adminDashboardService.getRecentUsers();
-        const coaches = adminDashboardService.getCoachPerformance();
-        const alerts = adminDashboardService.getSystemAlerts();
+        setLoading(true);
+        // Only fetch system overview data as other endpoints are not available
+        const overview = await adminDashboardService.getSystemOverview();
         
         // Set state with fetched data
-        setSystemOverview(overview);
-        setUserStats(users);
-        setQuitPlanStats(quitPlans);
-        setContentStats(content);
-        setRecentUsers(users_recent);
-        setCoachPerformance(coaches);
-        setSystemAlerts(alerts);
-
-        // Fetch additional data
-        const userStatsData = getDetailedUserStats();
-        const revenueData = getMembershipRevenue();
+        setSystemOverview(overview || {});
         
-        setDetailedUserStats(userStatsData);
-        setMembershipRevenue(revenueData);
+        // Set empty states for unavailable data
+        setUserStats({});
+        setQuitPlanStats({});
+        setContentStats({});
+        setRecentUsers([]);
+        setCoachPerformance([]);
+        setSystemAlerts([]);
+        setDetailedUserStats(null);
+        setMembershipRevenue(null);
         
         setLoading(false);
       } catch (error) {
         console.error("Error fetching admin dashboard data:", error);
+        // Set empty states on error
+        setSystemOverview({});
+        setUserStats({});
+        setQuitPlanStats({});
+        setContentStats({});
+        setRecentUsers([]);
+        setCoachPerformance([]);
+        setSystemAlerts([]);
+        setDetailedUserStats(null);
+        setMembershipRevenue(null);
         setLoading(false);
       }
     };
