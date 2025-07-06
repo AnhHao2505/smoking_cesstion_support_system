@@ -55,7 +55,7 @@ const NavBar = () => {
       label: 'Dashboard',
       icon: <DashboardOutlined />,
       items: [
-        { key: '/member/dashboard', label: 'Overview', path: '/member/dashboard' }
+        // { key: '/member/dashboard', label: 'Overview', path: '/member/dashboard' }
         // Remove quit-progress route as it doesn't exist
         // { key: '/member/quit-progress', label: 'My Progress', path: '/member/quit-progress' }
       ]
@@ -92,8 +92,8 @@ const NavBar = () => {
       icon: <UserOutlined />,
       items: [
         { key: '/member/appointments', label: 'Appointments', path: '/member/appointments' },
-        { key: '/member/coach-selection', label: 'Coach Selection', path: '/member/coach-selection' },
-        { key: '/member/reminders', label: 'Reminders', path: '/member/reminders' }
+        // { key: '/member/coach-selection', label: 'Coach Selection', path: '/member/coach-selection' },
+        // { key: '/member/reminders', label: 'Reminders', path: '/member/reminders' }
       ]
     }
     // Remove phases dropdown since it has no valid routes
@@ -157,7 +157,7 @@ const NavBar = () => {
     // Public links available to all users
     const publicLinks = [
       { path: '/', label: 'Home' },
-      { path: '/blog', label: 'Articles' }
+      // { path: '/blog', label: 'Articles' }
       // { path: '/about', label: 'About' },
       // { path: '/contact', label: 'Contact' }
     ];
