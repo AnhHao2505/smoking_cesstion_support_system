@@ -164,30 +164,52 @@ const AdminDashboard = () => {
     try {
       setReminderLoading(true);
       const response = await reminderService.getAllReminders(page, size);
-      if (response.success) {
-        // Handle both paginated and non-paginated responses
-        if (Array.isArray(response.data)) {
+      console.log('Reminder response:', response); // Debug log
+      
+      if (response) {
+        // Check if response has success property (from catch block with mock data)
+        if (response.success === true && Array.isArray(response.data)) {
+          // Mock data format
           setReminderData(response.data);
           setReminderPagination({
             current: page + 1,
             pageSize: size,
             total: response.data.length
           });
-        } else {
-          setReminderData(response.data.content || []);
+        } else if (response.content) {
+          // Real API data format (after handleApiResponse)
+          setReminderData(response.content || []);
           setReminderPagination({
-            current: (response.data.pageNo || 0) + 1,
-            pageSize: response.data.pageSize || size,
-            total: response.data.totalElements || 0
+            current: (response.pageNo || 0) + 1,
+            pageSize: response.pageSize || size,
+            total: response.totalElements || 0
+          });
+        } else {
+          // Fallback
+          setReminderData([]);
+          setReminderPagination({
+            current: 1,
+            pageSize: size,
+            total: 0
           });
         }
       } else {
         setReminderData([]);
+        setReminderPagination({
+          current: 1,
+          pageSize: size,
+          total: 0
+        });
       }
     } catch (error) {
       console.error("Error fetching reminder data:", error);
       message.error("Failed to load reminder data");
       setReminderData([]);
+      setReminderPagination({
+        current: 1,
+        pageSize: size,
+        total: 0
+      });
     } finally {
       setReminderLoading(false);
     }
@@ -351,7 +373,7 @@ const AdminDashboard = () => {
   const handleEditReminder = (record) => {
     setEditingReminder(record);
     reminderForm.setFieldsValue({
-      description: record.description,
+      content: record.content,
       category: record.category
     });
     setReminderModalVisible(true);
@@ -364,10 +386,10 @@ const AdminDashboard = () => {
       
       if (editingReminder) {
         // Update existing reminder
-        await handleUpdateReminder(editingReminder.id, values.description, values.category);
+        await handleUpdateReminder(editingReminder.id, values.content, values.category);
       } else {
         // Create new reminder
-        await handleCreateReminder(values.description, values.category);
+        await handleCreateReminder(values.content, values.category);
       }
       
       setReminderModalVisible(false);
@@ -571,19 +593,13 @@ const AdminDashboard = () => {
       width: 80,
     },
     {
-      title: 'Title',
-      dataIndex: 'title',
-      key: 'title',
-      render: (title, record) => title || record.description?.slice(0, 50) + '...' || 'No Title'
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
+      title: 'Content',
+      dataIndex: 'content',
+      key: 'content',
       ellipsis: true,
-      render: (description) => (
-        <Tooltip title={description}>
-          <span>{description}</span>
+      render: (content) => (
+        <Tooltip title={content}>
+          <span>{content}</span>
         </Tooltip>
       )
     },
@@ -607,32 +623,27 @@ const AdminDashboard = () => {
       }
     },
     {
-      title: 'Frequency',
-      dataIndex: 'frequency',
-      key: 'frequency',
-      render: (frequency) => frequency || 'Daily'
-    },
-    {
-      title: 'Time',
-      dataIndex: 'scheduledTime',
-      key: 'scheduledTime',
-      render: (time) => time || 'N/A'
-    },
-    {
       title: 'Status',
-      dataIndex: 'enabled',
-      key: 'enabled',
-      render: (enabled) => (
+      dataIndex: 'active',
+      key: 'active',
+      render: (active) => (
         <Badge 
-          status={enabled ? 'success' : 'error'} 
-          text={enabled ? 'Active' : 'Disabled'} 
+          status={active ? 'success' : 'error'} 
+          text={active ? 'Active' : 'Inactive'} 
         />
       )
     },
     {
       title: 'Created Date',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
+      dataIndex: 'createAt',
+      key: 'createAt',
+      width: 120,
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+    },
+    {
+      title: 'Updated Date',
+      dataIndex: 'updateAt',
+      key: 'updateAt',
       width: 120,
       render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
     },
@@ -652,10 +663,10 @@ const AdminDashboard = () => {
           <Button 
             type="link" 
             size="small"
-            danger={record.enabled}
+            danger={record.active}
             onClick={() => handleDisableReminder(record.id)}
           >
-            {record.enabled ? 'Disable' : 'Enable'}
+            {record.active ? 'Disable' : 'Enable'}
           </Button>
         </Space>
       )
@@ -1203,13 +1214,13 @@ const AdminDashboard = () => {
             onFinish={handleReminderModalSubmit}
           >
             <Form.Item
-              name="description"
-              label="Description"
+              name="content"
+              label="Content"
               rules={[
-                { required: true, message: 'Please enter reminder description' }
+                { required: true, message: 'Please enter reminder content' }
               ]}
             >
-              <Input.TextArea rows={4} />
+              <Input.TextArea rows={4} placeholder="Enter reminder content..." />
             </Form.Item>
             
             <Form.Item
@@ -1219,7 +1230,7 @@ const AdminDashboard = () => {
                 { required: true, message: 'Please select reminder category' }
               ]}
             >
-              <Select>
+              <Select placeholder="Select category">
                 <Select.Option value="HEALTH_BENEFITS">Health Benefits</Select.Option>
                 <Select.Option value="MOTIVATIONAL_QUOTES">Motivational Quotes</Select.Option>
                 <Select.Option value="TIPS_AND_TRICKS">Tips and Tricks</Select.Option>
@@ -1229,9 +1240,14 @@ const AdminDashboard = () => {
             </Form.Item>
             
             <Form.Item>
-              <Button type="primary" htmlType="submit" loading={reminderLoading}>
-                {editingReminder ? 'Update Reminder' : 'Create Reminder'}
-              </Button>
+              <Space>
+                <Button type="primary" htmlType="submit" loading={reminderLoading}>
+                  {editingReminder ? 'Update Reminder' : 'Create Reminder'}
+                </Button>
+                <Button onClick={handleReminderModalCancel}>
+                  Cancel
+                </Button>
+              </Space>
             </Form.Item>
           </Form>
         </Modal>

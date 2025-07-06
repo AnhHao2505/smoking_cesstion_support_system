@@ -140,7 +140,13 @@ export const buildUrlWithParams = (baseUrl, params = {}) => {
 
 // Helper function to handle API responses
 export const handleApiResponse = (response) => {
-  if (response.data) {
+  if (response === "") {
+    return null;
+  }
+  if (typeof response === 'string') {
+    return response;
+  }
+  if (response && response.data !== undefined) {
     return response.data;
   }
   return response;
@@ -148,6 +154,7 @@ export const handleApiResponse = (response) => {
 
 // Helper function to handle API errors
 export const handleApiError = (error) => {
+  console.log(error)
   if (error.response?.data?.message) {
     throw new Error(error.response.data.message);
   }
