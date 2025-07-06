@@ -30,6 +30,25 @@ const NavBar = () => {
     navigate('/');
   };
 
+  // Check if current user is premium member
+  const checkIfPremiumMember = () => {
+    if (!user) return false;
+    
+    // Check localStorage user data for isPremium flag
+    try {
+      const userFromStorage = localStorage.getItem('user');
+      if (userFromStorage) {
+        const userData = JSON.parse(userFromStorage);
+        return userData.isPremiumMembership === true;
+      }
+    } catch (error) {
+      console.error('Error parsing user data from localStorage:', error);
+    }
+    
+    // Fallback to user object
+    return user.isPremiumMembership === true;
+  };
+
   // Member-specific dropdown menus
   const memberDropdownMenus = {
     dashboard: {
@@ -264,7 +283,7 @@ const NavBar = () => {
         <div className={`collapse navbar-collapse ${isOpen ? 'show' : ''}`} id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             {renderNavLinks()}
-            {user && user.role?.toLowerCase() === 'member' && renderMemberDropdowns()}
+            {user && user.role?.toLowerCase() === 'member' && checkIfPremiumMember() && renderMemberDropdowns()}
             {user && user.role?.toLowerCase() === 'coach' && renderCoachDropdowns()}
           </ul>
           {renderAuthSection()}

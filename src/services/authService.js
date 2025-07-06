@@ -57,7 +57,7 @@ export const login = async (email, password) => {
         email: tokenPayload.sub || email, // Use 'sub' from token or fallback to login email
         userId: tokenPayload.userId || null,
         role: tokenPayload.role || 'MEMBER',
-        isPremiumMembership: tokenPayload.isPremiumMembership || false,
+        isPremiumMembership: tokenPayload.isPremiumMember || false,
       };
       
       // Store auth token and user data

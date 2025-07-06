@@ -5,6 +5,7 @@ import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEn
 export const getMyProfile = async () => {
   try {
     const response = await axiosInstance.get(API_ENDPOINTS.PROFILE.ME);
+    // Store user profile in localStorage
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);

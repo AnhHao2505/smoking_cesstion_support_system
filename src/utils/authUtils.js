@@ -65,7 +65,7 @@ export const hasRole = (requiredRole) => {
 // Check if user is premium member
 export const isPremiumMember = () => {
   const user = getCurrentAuthUser();
-  return user?.isPremiumMembership === true;
+  return user?.isPremium === true;
 };
 
 // Get user ID from current auth user
