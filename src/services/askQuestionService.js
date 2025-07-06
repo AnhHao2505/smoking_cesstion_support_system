@@ -54,20 +54,17 @@ export const getQnaOfMember = getMyQna;
 
 // Get questions by coach - Using getUnansweredQna as alias
 export const getQnaByCoach = async (coachId) => {
-  console.warn('Coach-specific QnA endpoint not available, using unanswered questions');
-  return getUnansweredQna();
+  throw new Error('Coach-specific QnA endpoint not available, use unanswered questions');
 };
 
 // Get all QnA - Using getUnansweredQna as alias (since only unanswered endpoint is available)
 export const getAllQna = async () => {
-  console.warn('Admin all QnA endpoint not available, using unanswered questions');
-  return getUnansweredQna();
+  throw new Error('Admin all QnA endpoint not available, use unanswered questions');
 };
 
 // Helper function for backward compatibility
 const getAnsweredQuestions = () => {
-  console.warn('getAnsweredQuestions is not available in API');
-  return Promise.resolve([]);
+  throw new Error('getAnsweredQuestions is not available in API');
 };
 
 // Helper function for backward compatibility  
