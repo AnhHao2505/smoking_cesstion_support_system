@@ -80,50 +80,86 @@ const QuitPlanApproval = () => {
       
       // Get assigned members
       const membersResponse = await getAssignedMembers(coachId);
+      console.log('Assigned members response:', membersResponse);
       
-      if (!membersResponse.success) {
-        message.error('Failed to load assigned members');
-        setLoading(false);
-        return;
-      }
-
-      const assignedMembers = membersResponse.data || [];
+      const assignedMembers = membersResponse || [];
+      console.log('Processing', assignedMembers.length, 'assigned members');
       const plansData = [];
 
       // For each member, get their quit plan and smoking status
       for (const member of assignedMembers) {
+        console.log('Processing member:', member);
         if (member.planId) {
+          console.log(`Fetching plan ${member.planId} for member ${member.memberId} (${member.name})`);
           try {
             // Get quit plan details
             const planResponse = await getNewestQuitPlan(member.memberId);
+            console.log(`Plan response for member ${member.memberId}:`, planResponse);
             
             // Get smoking status
             let statusResponse = null;
             if (member.initialStatusId) {
+              console.log(`Fetching smoking status for member ${member.memberId} with initialStatusId ${member.initialStatusId}`);
               statusResponse = await getLatestMemberSmokingStatus(member.memberId);
+              console.log(`Smoking status response for member ${member.memberId}:`, statusResponse);
+            } else {
+              console.log(`Member ${member.memberId} has no initialStatusId - skipping smoking status fetch`);
             }
 
-            if (planResponse.success && planResponse.data) {
+            if (planResponse) {
+              const plan = planResponse;
               const planData = {
-                ...planResponse.data,
+                // Map API response fields to component expected fields
+                quit_plan_id: plan.id,
                 member_id: member.memberId,
                 member_name: member.name,
                 member_email: member.email,
-                initial_status: statusResponse?.success ? statusResponse.data : null,
+                start_date: plan.startDate,
+                end_date: plan.endDate,
+                status: plan.quitPlanStatus,
+                created_at: plan.startDate, // Use startDate as fallback for created_at
+                
+                // Map quit plan content fields
+                quit_reason: plan.motivation,
+                circumstances: plan.smokingTriggersToAvoid,
+                urgency_level: 'medium', // Default since not provided in API
+                strategies_to_use: plan.copingStrategies,
+                medications_to_use: plan.medicationsToUse,
+                medication_instructions: plan.medicationInstructions,
+                preparation_steps: plan.relapsePreventionStrategies,
+                note: plan.additionalNotes,
+                
+                // Additional fields from API
+                current_smoking_status: plan.currentSmokingStatus,
+                support_resources: plan.supportResources,
+                reward_plan: plan.rewardPlan,
+                coach_id: plan.coachId,
+                coach_name: plan.coachName,
+                is_newest: plan.isNewest,
+                
+                initial_status: statusResponse,
+                
                 // Map status for approval display
-                approval_status: planResponse.data.status === 'PENDING_APPROVAL' ? 'pending' 
-                               : planResponse.data.status === 'ACTIVE' ? 'approved'
-                               : planResponse.data.status === 'DENIED' ? 'denied'
+                approval_status: plan.quitPlanStatus === 'PENDING_APPROVAL' ? 'pending' 
+                               : plan.quitPlanStatus === 'ACTIVE' ? 'approved'
+                               : plan.quitPlanStatus === 'DENIED' ? 'denied'
+                               : plan.quitPlanStatus === 'COMPLETED' ? 'approved'
                                : 'pending'
               };
+              
+              console.log('Transformed plan data:', planData);
               plansData.push(planData);
             }
           } catch (error) {
             console.error(`Error fetching plan for member ${member.memberId}:`, error);
           }
+        } else {
+          console.log(`Member ${member.memberId} (${member.name}) has no planId - skipping`);
         }
       }
 
+      console.log('Final plans data:', plansData);
+      console.log(`Loaded ${plansData.length} plans for approval`);
       setPlans(plansData);
       setLoading(false);
     } catch (error) {
@@ -192,7 +228,7 @@ const QuitPlanApproval = () => {
       const values = await form.validateFields();
       
       const approvalData = {
-        planId: selectedPlan.quit_plan_id,
+        planId: selectedPlan.quit_plan_id || selectedPlan.id,
         coachId: coachId,
         feedback: values.feedback || '',
         action: actionType
@@ -200,11 +236,11 @@ const QuitPlanApproval = () => {
 
       let response;
       if (actionType === 'approve') {
-        response = await acceptQuitPlan(selectedPlan.quit_plan_id, approvalData);
+        response = await acceptQuitPlan(selectedPlan.quit_plan_id || selectedPlan.id, approvalData);
         if (response.success) {
           message.success('Plan approved successfully! Member will be notified.');
           setPlans(plans.map(plan => 
-            plan.quit_plan_id === selectedPlan.quit_plan_id 
+            (plan.quit_plan_id || plan.id) === (selectedPlan.quit_plan_id || selectedPlan.id)
               ? { 
                   ...plan, 
                   status: 'ACTIVE', 
@@ -216,11 +252,11 @@ const QuitPlanApproval = () => {
           ));
         }
       } else if (actionType === 'deny') {
-        response = await denyQuitPlan(selectedPlan.quit_plan_id, approvalData);
+        response = await denyQuitPlan(selectedPlan.quit_plan_id || selectedPlan.id, approvalData);
         if (response.success) {
           message.success('Plan denied. Member will be notified.');
           setPlans(plans.map(plan => 
-            plan.quit_plan_id === selectedPlan.quit_plan_id 
+            (plan.quit_plan_id || plan.id) === (selectedPlan.quit_plan_id || selectedPlan.id)
               ? { 
                   ...plan, 
                   status: 'DENIED', 
@@ -303,7 +339,9 @@ const QuitPlanApproval = () => {
         <div className="text-center">
           <Tag color={
             record.initial_status?.addiction === 'SEVERE' ? 'red' :
-            record.initial_status?.addiction === 'MODERATE' ? 'orange' : 'green'
+            record.initial_status?.addiction === 'MODERATE' ? 'orange' : 
+            record.initial_status?.addiction === 'MILD' ? 'yellow' :
+            record.initial_status?.addiction === 'NONE' ? 'green' : 'default'
           } size="small">
             {record.initial_status?.addiction || 'Unknown'}
           </Tag>
@@ -459,7 +497,7 @@ const QuitPlanApproval = () => {
           <Table
             dataSource={plans}
             columns={columns}
-            rowKey="quit_plan_id"
+            rowKey={(record) => record.quit_plan_id || record.id}
             loading={loading}
             pagination={{
               pageSize: 8,
@@ -536,6 +574,16 @@ const QuitPlanApproval = () => {
                       <Descriptions.Item label="Phone">
                         {selectedPlan.member_phone || 'Not provided'}
                       </Descriptions.Item>
+                      {selectedPlan.initial_status?.reasonToQuit && (
+                        <Descriptions.Item label="Reason to Quit">
+                          {selectedPlan.initial_status.reasonToQuit}
+                        </Descriptions.Item>
+                      )}
+                      {selectedPlan.initial_status?.goal && (
+                        <Descriptions.Item label="Goal">
+                          {selectedPlan.initial_status.goal}
+                        </Descriptions.Item>
+                      )}
                     </Descriptions>
                   </Col>
                   <Col xs={24} md={12}>
@@ -546,7 +594,9 @@ const QuitPlanApproval = () => {
                       <Descriptions.Item label="Addiction Level">
                         <Tag color={
                           selectedPlan.initial_status?.addiction === 'SEVERE' ? 'red' :
-                          selectedPlan.initial_status?.addiction === 'MODERATE' ? 'orange' : 'green'
+                          selectedPlan.initial_status?.addiction === 'MODERATE' ? 'orange' :
+                          selectedPlan.initial_status?.addiction === 'MILD' ? 'yellow' :
+                          selectedPlan.initial_status?.addiction === 'NONE' ? 'green' : 'default'
                         }>
                           {selectedPlan.initial_status?.addiction || 'Unknown'}
                         </Tag>
@@ -554,6 +604,16 @@ const QuitPlanApproval = () => {
                       <Descriptions.Item label="Previous Attempts">
                         {selectedPlan.initial_status?.previousAttempts || 0}
                       </Descriptions.Item>
+                      {selectedPlan.initial_status?.yearsSmoking > 0 && (
+                        <Descriptions.Item label="Years Smoking">
+                          {selectedPlan.initial_status.yearsSmoking} years
+                        </Descriptions.Item>
+                      )}
+                      {selectedPlan.initial_status?.startSmokingAge > 0 && (
+                        <Descriptions.Item label="Started Smoking Age">
+                          {selectedPlan.initial_status.startSmokingAge} years old
+                        </Descriptions.Item>
+                      )}
                     </Descriptions>
                   </Col>
                 </Row>
@@ -581,15 +641,15 @@ const QuitPlanApproval = () => {
                 <Divider />
                 <Row gutter={[16, 16]}>
                   <Col xs={24} md={12}>
-                    <Text strong>Main Trigger:</Text>
+                    <Text strong>Main Triggers to Avoid:</Text>
                     <br />
-                    <Tag color="blue">{selectedPlan.circumstances}</Tag>
+                    <Tag color="red">{selectedPlan.circumstances || selectedPlan.smokingTriggersToAvoid}</Tag>
                   </Col>
                   <Col xs={24} md={12}>
-                    <Text strong>Urgency Level:</Text>
+                    <Text strong>Current Status:</Text>
                     <br />
-                    <Tag color={getUrgencyColor(selectedPlan.urgency_level)}>
-                      {selectedPlan.urgency_level.toUpperCase()}
+                    <Tag color="green">
+                      {selectedPlan.current_smoking_status || 'Unknown'}
                     </Tag>
                   </Col>
                 </Row>
@@ -618,37 +678,65 @@ const QuitPlanApproval = () => {
               {/* Strategies & Support */}
               <Row gutter={[16, 16]} className="mb-3">
                 <Col xs={24} md={12}>
-                  <Card title={<><BulbOutlined /> Strategies</>} size="small">
-                    <Paragraph>{selectedPlan.strategies_to_use || 'No strategies specified'}</Paragraph>
+                  <Card title={<><BulbOutlined /> Coping Strategies</>} size="small">
+                    <Paragraph>{selectedPlan.strategies_to_use || selectedPlan.copingStrategies || 'No strategies specified'}</Paragraph>
                   </Card>
                 </Col>
                 <Col xs={24} md={12}>
                   <Card title={<><MedicineBoxOutlined /> Medications</>} size="small">
                     <Paragraph>
-                      {selectedPlan.medications_to_use || 'No medications specified'}
+                      {selectedPlan.medications_to_use || selectedPlan.medicationsToUse || 'No medications specified'}
                     </Paragraph>
-                    {selectedPlan.medication_instructions && (
+                    {(selectedPlan.medication_instructions || selectedPlan.medicationInstructions) && (
                       <div>
                         <Text strong>Instructions:</Text>
                         <br />
-                        <Text>{selectedPlan.medication_instructions}</Text>
+                        <Text>{selectedPlan.medication_instructions || selectedPlan.medicationInstructions}</Text>
                       </div>
                     )}
                   </Card>
                 </Col>
               </Row>
 
+              {/* Support & Rewards */}
+              <Row gutter={[16, 16]} className="mb-3">
+                <Col xs={24} md={12}>
+                  <Card title="Support Resources" size="small">
+                    <Paragraph>{selectedPlan.support_resources || selectedPlan.supportResources || 'No support resources specified'}</Paragraph>
+                  </Card>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Card title="Reward Plan" size="small">
+                    <Paragraph>{selectedPlan.reward_plan || selectedPlan.rewardPlan || 'No reward plan specified'}</Paragraph>
+                  </Card>
+                </Col>
+              </Row>
+
               {/* Preparation Steps */}
-              {selectedPlan.preparation_steps && (
-                <Card title="Preparation Steps" size="small" className="mb-3">
-                  <Paragraph>{selectedPlan.preparation_steps}</Paragraph>
+              {(selectedPlan.preparation_steps || selectedPlan.relapsePreventionStrategies) && (
+                <Card title="Relapse Prevention Strategies" size="small" className="mb-3">
+                  <Paragraph>{selectedPlan.preparation_steps || selectedPlan.relapsePreventionStrategies}</Paragraph>
                 </Card>
               )}
 
               {/* Coach Notes */}
-              {selectedPlan.note && (
-                <Card title="Coach Notes" size="small" className="mb-3">
-                  <Paragraph>{selectedPlan.note}</Paragraph>
+              {(selectedPlan.note || selectedPlan.additionalNotes) && (
+                <Card title="Additional Notes" size="small" className="mb-3">
+                  <Paragraph>{selectedPlan.note || selectedPlan.additionalNotes}</Paragraph>
+                </Card>
+              )}
+
+              {/* Coach Assignment */}
+              {selectedPlan.coach_name && (
+                <Card title="Assigned Coach" size="small" className="mb-3">
+                  <Descriptions size="small" column={1}>
+                    <Descriptions.Item label="Coach Name">
+                      <Text strong>{selectedPlan.coach_name}</Text>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Coach ID">
+                      {selectedPlan.coach_id}
+                    </Descriptions.Item>
+                  </Descriptions>
                 </Card>
               )}
 
