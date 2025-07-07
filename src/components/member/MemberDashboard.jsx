@@ -32,9 +32,12 @@ import {
   QuestionOutlined,
   CheckCircleOutlined
 } from '@ant-design/icons';
-import * as memberDashboardService from '../../services/memberDashboardService';
 import { getMyProfile } from '../../services/memberProfileService';
+import { getMemberDailyLogs } from '../../services/dailylogService';
+import { getMyQna } from '../../services/askQuestionService';
 import { useAuth } from '../../contexts/AuthContext';
+import axiosInstance from '../../utils/axiosConfig';
+import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../../utils/apiEndpoints';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -45,13 +48,39 @@ const MemberDashboard = () => {
   const [memberProfile, setMemberProfile] = useState(null);
   const [quitPlan, setQuitPlan] = useState(null);
   const [dailyRecords, setDailyRecords] = useState([]);
-  const [badges, setBadges] = useState([]);
-  const [healthImprovements, setHealthImprovements] = useState([]);
-  const [reminders, setReminders] = useState([]);
   const [questionsAnswers, setQuestionsAnswers] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const userId = currentUser?.userId;
+
+  // Helper function to get newest quit plan
+  const getNewestQuitPlan = async (memberId) => {
+    try {
+      const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.NEWEST, {
+        params: { memberId }
+      });
+      return handleApiResponse(response);
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  };
+
+  // Helper function to get phases for a quit plan
+  const getQuitPlanPhases = async (quitPlanId) => {
+    try {
+      if (!quitPlanId) {
+        throw new Error('Quit plan ID is required');
+      }
+      
+      const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PHASES.FROM_PLAN, {
+        params: { quitPlanId }
+      });
+      return handleApiResponse(response);
+    } catch (error) {
+      console.error('Error fetching phases:', error);
+      throw handleApiError(error);
+    }
+  };
 
   useEffect(() => {
     const fetchMemberDashboardData = async () => {
@@ -63,22 +92,83 @@ const MemberDashboard = () => {
       try {
         setLoading(true);
         
-        // Use the new profile service
+        // Fetch member profile
         const profile = await getMyProfile();
-        const quitPlan = await memberDashboardService.getQuitPlanData(userId);
-        const records = await memberDashboardService.getDailyStateRecords(userId);
-        const earnedBadges = await memberDashboardService.getEarnedBadges(userId);
-        const improvements = await memberDashboardService.getHealthImprovements(userId);
-        const upcomingReminders = await memberDashboardService.getUpcomingReminders(userId);
-        const recentQA = await memberDashboardService.getRecentQuestionsAnswers(userId);
-
         setMemberProfile(profile);
-        setQuitPlan(quitPlan);
-        setDailyRecords(records);
-        setBadges(earnedBadges);
-        setHealthImprovements(improvements);
-        setReminders(upcomingReminders);
-        setQuestionsAnswers(recentQA);
+
+        // Fetch newest quit plan
+        const quitPlanData = await getNewestQuitPlan(userId);
+        console.log('Quit plan data:', quitPlanData); // Debug log
+        
+        if (quitPlanData) {
+          try {
+            // Check for quit plan ID field - it might be named differently
+            const quitPlanId = quitPlanData.quit_plan_id || quitPlanData.id || quitPlanData.quitPlanId;
+            console.log('Quit plan ID:', quitPlanId); // Debug log
+            
+            if (quitPlanId) {
+              // Fetch phases for the quit plan
+              const phases = await getQuitPlanPhases(quitPlanId);
+              setQuitPlan({
+                ...quitPlanData,
+                phases: phases || []
+              });
+            } else {
+              console.warn("No quit plan ID found in data");
+              // Use mock phases if we can't fetch real ones
+              const mockPhases = [
+                {
+                  phase_name: "Preparation",
+                  objective: "Prepare mentally and physically for quitting",
+                  start_date: quitPlanData.start_date,
+                  end_date: quitPlanData.end_date,
+                  is_completed: false,
+                  completion_percentage: 30
+                }
+              ];
+              setQuitPlan({
+                ...quitPlanData,
+                phases: mockPhases
+              });
+            }
+          } catch (phaseError) {
+            console.warn("Could not fetch phases:", phaseError);
+            // Use mock phases as fallback
+            const mockPhases = [
+              {
+                phase_name: "Active Phase",
+                objective: "Maintain smoke-free lifestyle",
+                start_date: quitPlanData.start_date,
+                end_date: quitPlanData.end_date,
+                is_completed: false,
+                completion_percentage: 50
+              }
+            ];
+            setQuitPlan({
+              ...quitPlanData,
+              phases: mockPhases
+            });
+          }
+        }
+
+        // Fetch daily logs
+        try {
+          const records = await getMemberDailyLogs(userId);
+          setDailyRecords(records || []);
+        } catch (logError) {
+          console.warn("Could not fetch daily logs:", logError);
+          setDailyRecords([]);
+        }
+
+        // Fetch Q&A data
+        try {
+          const qaData = await getMyQna(0, 5);
+          setQuestionsAnswers(qaData?.content || []);
+        } catch (qaError) {
+          console.warn("Could not fetch Q&A data:", qaError);
+          setQuestionsAnswers([]);
+        }
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching member dashboard data:", error);
@@ -103,8 +193,34 @@ const MemberDashboard = () => {
 
   if (!quitPlan) {
     return (
-      <div className="dashboard loading-container" style={{ textAlign: 'center', padding: '50px' }}>
-        <div>No quit plan found. Please create a quit plan first.</div>
+      <div className="dashboard member-dashboard">
+        <div className="container py-4">
+          <Card className="mb-4 profile-card">
+            <Row gutter={[24, 24]} align="middle" justify="center">
+              <Col xs={24} md={12} style={{ textAlign: 'center' }}>
+                <Avatar size={120} icon={<UserOutlined />} />
+                <div className="mt-3">
+                  <Title level={2}>{memberProfile?.name || 'Member'}</Title>
+                  <Paragraph>
+                    <Text type="secondary">
+                      <strong>Email:</strong> {memberProfile?.email || 'N/A'}
+                    </Text>
+                  </Paragraph>
+                  <div style={{ marginTop: '20px' }}>
+                    <Text type="secondary" style={{ fontSize: '16px' }}>
+                      No quit plan found. Please create a quit plan to get started with your smoking cessation journey.
+                    </Text>
+                  </div>
+                  <div style={{ marginTop: '20px' }}>
+                    <Button type="primary" size="large">
+                      Create Quit Plan
+                    </Button>
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -118,14 +234,50 @@ const MemberDashboard = () => {
 
   // Get current phase index for the Steps component
   const getCurrentPhaseIndex = () => {
-    if (!quitPlan || !quitPlan.phases || !quitPlan.current_phase) {
+    if (!quitPlan || !quitPlan.phases || quitPlan.phases.length === 0) {
       return 0;
     }
-    const index = quitPlan.phases.findIndex(phase => 
-      phase.phase_name === quitPlan.current_phase.phase_name
-    );
-    return index >= 0 ? index : 0;
+    
+    // Find the first incomplete phase or return the last phase if all are complete
+    const incompletePhaseIndex = quitPlan.phases.findIndex(phase => !phase.is_completed);
+    return incompletePhaseIndex >= 0 ? incompletePhaseIndex : quitPlan.phases.length - 1;
   };
+
+  // Calculate statistics from quit plan and daily logs
+  const calculateStatistics = () => {
+    const stats = {
+      daysSmokeeFree: 0,
+      overallProgress: 0,
+      moneySaved: 0,
+      cigarettesAvoided: 0
+    };
+
+    if (quitPlan) {
+      // Calculate days smoke-free from start date
+      const startDate = new Date(quitPlan.start_date);
+      const today = new Date();
+      const timeDiff = today.getTime() - startDate.getTime();
+      stats.daysSmokeeFree = Math.max(0, Math.floor(timeDiff / (1000 * 3600 * 24)));
+
+      // Calculate overall progress based on phases
+      if (quitPlan.phases && quitPlan.phases.length > 0) {
+        const completedPhases = quitPlan.phases.filter(phase => phase.is_completed).length;
+        stats.overallProgress = Math.round((completedPhases / quitPlan.phases.length) * 100);
+      }
+
+      // Calculate money saved (assuming $10 per pack, 20 cigarettes per pack)
+      const cigarettesPerDay = quitPlan.cigarettes_per_day || 20;
+      const costPerCigarette = 0.5; // $0.5 per cigarette
+      stats.moneySaved = Math.round(stats.daysSmokeeFree * cigarettesPerDay * costPerCigarette);
+      
+      // Calculate cigarettes avoided
+      stats.cigarettesAvoided = stats.daysSmokeeFree * cigarettesPerDay;
+    }
+
+    return stats;
+  };
+
+  const statistics = calculateStatistics();
 
   return (
     <div className="dashboard member-dashboard">
@@ -140,8 +292,8 @@ const MemberDashboard = () => {
                   icon={<UserOutlined />} 
                 />
                 <div className="mt-3">
-                  <Tag color={memberProfile?.premiumMembership ? "gold" : "blue"}>
-                    {memberProfile?.premiumMembership ? 'Premium' : 'Basic'} Member
+                  <Tag color={memberProfile?.premium_membership || memberProfile?.premiumMembership ? "gold" : "blue"}>
+                    {memberProfile?.premium_membership || memberProfile?.premiumMembership ? 'Premium' : 'Basic'} Member
                   </Tag>
                 </div>
               </div>
@@ -154,7 +306,7 @@ const MemberDashboard = () => {
                 </Text>
                 <br />
                 <Text type="secondary">
-                  <strong>Plan:</strong> {quitPlan?.plan_name || 'N/A'}
+                  <strong>Plan:</strong> {quitPlan?.plan_name || quitPlan?.name || 'N/A'}
                 </Text>
                 <br />
                 <Text type="secondary">
@@ -175,7 +327,7 @@ const MemberDashboard = () => {
             <Card>
               <Statistic
                 title="Days Smoke-Free"
-                value={quitPlan?.days_smoke_free || 0}
+                value={statistics.daysSmokeeFree}
                 prefix={<ClockCircleOutlined />}
                 valueStyle={{ color: '#3f8600' }}
               />
@@ -185,19 +337,19 @@ const MemberDashboard = () => {
             <Card>
               <Statistic
                 title="Progress"
-                value={quitPlan?.overall_progress || 0}
+                value={statistics.overallProgress}
                 suffix="%"
                 prefix={<RiseOutlined />}
                 valueStyle={{ color: '#1890ff' }}
               />
-              <Progress percent={quitPlan?.overall_progress || 0} showInfo={false} />
+              <Progress percent={statistics.overallProgress} showInfo={false} />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
                 title="Money Saved"
-                value={quitPlan?.money_saved || 0}
+                value={statistics.moneySaved}
                 prefix={<DollarOutlined />}
                 suffix="$"
                 valueStyle={{ color: '#faad14' }}
@@ -208,7 +360,7 @@ const MemberDashboard = () => {
             <Card>
               <Statistic
                 title="Cigarettes Avoided"
-                value={quitPlan?.cigarettes_avoided || 0}
+                value={statistics.cigarettesAvoided}
                 prefix={<FireOutlined />}
                 valueStyle={{ color: '#cf1322' }}
               />
@@ -235,7 +387,7 @@ const MemberDashboard = () => {
                           <Text type="secondary">
                             {formatDate(phase.start_date)} - {formatDate(phase.end_date)}
                           </Text>
-                          {quitPlan.current_phase && phase.phase_name === quitPlan.current_phase.phase_name && (
+                          {index === getCurrentPhaseIndex() && !phase.is_completed && (
                             <Progress 
                               percent={phase.completion_percentage || 0} 
                               size="small" 
@@ -247,7 +399,7 @@ const MemberDashboard = () => {
                       status={
                         phase.is_completed 
                           ? 'finish' 
-                          : quitPlan.current_phase && phase.phase_name === quitPlan.current_phase.phase_name 
+                          : index === getCurrentPhaseIndex()
                             ? 'process' 
                             : 'wait'
                       }
@@ -261,33 +413,40 @@ const MemberDashboard = () => {
               )}
             </Card>
 
-            {/* Health Improvements */}
+            {/* Health Improvements - Mock data since API not available */}
             <Card title="Health Improvements" className="mb-4">
-              {healthImprovements && healthImprovements.length > 0 ? (
-                <Timeline>
-                  {healthImprovements.slice(0, 3).map((improvement, index) => (
-                    <Timeline.Item 
-                      key={index}
-                      color={improvement.achieved ? 'green' : 'blue'}
-                    >
-                      <Text strong>{improvement.title}</Text>
-                      <br />
-                      <Text type="secondary">{improvement.description}</Text>
-                      {improvement.achieved && (
-                        <div>
-                          <Tag color="success" style={{ marginTop: 4 }}>
-                            Achieved on {formatDate(improvement.achieved_date)}
-                          </Tag>
-                        </div>
-                      )}
-                    </Timeline.Item>
-                  ))}
-                </Timeline>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                  <Text type="secondary">No health improvements data available</Text>
-                </div>
-              )}
+              <Timeline>
+                <Timeline.Item color="green">
+                  <Text strong>Improved Blood Circulation</Text>
+                  <br />
+                  <Text type="secondary">Your circulation improves, making physical activities easier</Text>
+                  <div>
+                    <Tag color="success" style={{ marginTop: 4 }}>
+                      Achieved after 2 weeks
+                    </Tag>
+                  </div>
+                </Timeline.Item>
+                <Timeline.Item color="green">
+                  <Text strong>Better Lung Function</Text>
+                  <br />
+                  <Text type="secondary">Your lung capacity increases and breathing becomes easier</Text>
+                  <div>
+                    <Tag color="success" style={{ marginTop: 4 }}>
+                      Achieved after 1 month
+                    </Tag>
+                  </div>
+                </Timeline.Item>
+                <Timeline.Item color="blue">
+                  <Text strong>Reduced Heart Disease Risk</Text>
+                  <br />
+                  <Text type="secondary">Your risk of heart disease drops significantly</Text>
+                  <div>
+                    <Tag color="processing" style={{ marginTop: 4 }}>
+                      Expected after 1 year
+                    </Tag>
+                  </div>
+                </Timeline.Item>
+              </Timeline>
             </Card>
 
             {/* Recent Daily Records */}
@@ -307,7 +466,7 @@ const MemberDashboard = () => {
                             }}
                           />
                         }
-                        title={formatDate(record.record_date)}
+                        title={formatDate(record.log_date || record.record_date)}
                         description={
                           <div>
                             <Text>Mood: {record.mood_level}/10</Text>
@@ -316,7 +475,7 @@ const MemberDashboard = () => {
                             <Divider type="vertical" />
                             <Text>
                               {record.smoked_today 
-                                ? `Smoked ${record.cigarettes_smoked} cigarettes` 
+                                ? `Smoked ${record.cigarettes_smoked || 0} cigarettes` 
                                 : 'Smoke-free day!'}
                             </Text>
                           </div>
@@ -335,58 +494,12 @@ const MemberDashboard = () => {
 
           {/* Right Column */}
           <Col xs={24} lg={8}>
-            {/* Achievements */}
-            <Card title="Recent Achievements" className="mb-4">
-              {badges && badges.length > 0 ? (
-                <List
-                  itemLayout="horizontal"
-                  dataSource={badges.slice(0, 3)}
-                  renderItem={badge => (
-                    <List.Item>
-                      <List.Item.Meta
-                        avatar={<Avatar icon={<TrophyOutlined />} style={{ backgroundColor: '#faad14' }} />}
-                        title={badge.badge_name}
-                        description={formatDate(badge.earned_date)}
-                      />
-                    </List.Item>
-                  )}
-                />
-              ) : (
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                  <Text type="secondary">No achievements yet</Text>
-                </div>
-              )}
-            </Card>
-
-            {/* Upcoming Reminders */}
-            <Card title="Upcoming Reminders" className="mb-4">
-              {reminders && reminders.length > 0 ? (
-                <List
-                  itemLayout="horizontal"
-                  dataSource={reminders.slice(0, 3)}
-                  renderItem={reminder => (
-                    <List.Item>
-                      <List.Item.Meta
-                        avatar={<Avatar icon={<BellOutlined />} style={{ backgroundColor: '#1890ff' }} />}
-                        title={reminder.message}
-                        description={formatDate(reminder.nextDate)}
-                      />
-                    </List.Item>
-                  )}
-                />
-              ) : (
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                  <Text type="secondary">No upcoming reminders</Text>
-                </div>
-              )}
-            </Card>
-
             {/* Recent Q&A */}
             <Card title="Recent Questions & Answers" className="mb-4">
               {questionsAnswers && questionsAnswers.length > 0 ? (
                 <List
                   itemLayout="horizontal"
-                  dataSource={questionsAnswers.slice(0, 2)}
+                  dataSource={questionsAnswers.slice(0, 3)}
                   renderItem={qa => (
                     <List.Item>
                       <List.Item.Meta
