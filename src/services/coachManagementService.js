@@ -1,10 +1,10 @@
 import axiosInstance from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Get all coaches with pagination
+// Get all coaches with pagination - Updated to match new API
 export const getAllCoaches = async (pageNo = 0, pageSize = 10) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.COACHES.GET_ALL, {
+    const response = await axiosInstance.get('/coach/all', {
       params: { pageNo, pageSize }
     });
     return handleApiResponse(response);
@@ -13,20 +13,20 @@ export const getAllCoaches = async (pageNo = 0, pageSize = 10) => {
   }
 };
 
-// Create a new coach (admin only)
+// Create a new coach (admin only) - Updated to match new API
 export const createCoach = async (coachData) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.COACHES.CREATE, coachData);
+    const response = await axiosInstance.post('/coach/create', coachData);
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
-// Member chooses a coach
+// Member chooses a coach - Updated to match new API
 export const chooseCoach = async (coachId) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.COACHES.CHOOSE, null, {
+    const response = await axiosInstance.post('/coach/choose', null, {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -35,10 +35,10 @@ export const chooseCoach = async (coachId) => {
   }
 };
 
-// Get assigned members for a coach
+// Get assigned members for a coach - Updated to match new API
 export const getAssignedMembers = async (coachId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.COACHES.ASSIGNED_MEMBERS, {
+    const response = await axiosInstance.get('/coach/assigned-members', {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -47,10 +47,10 @@ export const getAssignedMembers = async (coachId) => {
   }
 };
 
-// Member cancels their coach
+// Member cancels their coach - Updated to match new API
 export const cancelCoach = async (coachId) => {
   try {
-    const response = await axiosInstance.put(API_ENDPOINTS.COACHES.CANCEL_BY_MEMBER, null, {
+    const response = await axiosInstance.put('/coach/member/cancel', null, {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -59,10 +59,10 @@ export const cancelCoach = async (coachId) => {
   }
 };
 
-// Get coach profile
+// Get coach profile - Updated to match new API
 export const getCoachProfile = async (coachId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.PROFILE.COACH, {
+    const response = await axiosInstance.get('/profile/coach', {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -71,10 +71,10 @@ export const getCoachProfile = async (coachId) => {
   }
 };
 
-// Update coach profile (admin only)
+// Update coach profile (admin only) - Updated to match new API
 export const updateCoachProfile = async (coachId, profileData) => {
   try {
-    const response = await axiosInstance.put(API_ENDPOINTS.PROFILE.COACH, profileData, {
+    const response = await axiosInstance.put('/profile/coach', profileData, {
       params: { coachId }
     });
     return handleApiResponse(response);

@@ -1,10 +1,10 @@
 import axiosInstance from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Create VNPay payment
+// Create VNPay payment - Updated to match new API
 export const createVNPayPayment = async (amount, language = 'vn') => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.PAYMENT.CREATE_PAYMENT, null, {
+    const response = await axiosInstance.post('/vn-pay/create-payment', null, {
       params: { amount, language }
     });
     return handleApiResponse(response);
@@ -13,10 +13,10 @@ export const createVNPayPayment = async (amount, language = 'vn') => {
   }
 };
 
-// Handle VNPay return callback
+// Handle VNPay return callback - Updated to match new API
 export const handleVNPayReturn = async (params) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.PAYMENT.VNPAY_RETURN, {
+    const response = await axiosInstance.get('/vn-pay/return', {
       params
     });
     return handleApiResponse(response);

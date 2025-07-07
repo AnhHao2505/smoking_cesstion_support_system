@@ -1,10 +1,10 @@
 import axiosInstance from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Ask a question (member)
+// Ask a question (member) - Updated to match new API
 export const askQuestion = async (question) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.QNA.ASK, null, {
+    const response = await axiosInstance.post('/api/qna/ask', null, {
       params: { question }
     });
     return handleApiResponse(response);
@@ -13,10 +13,10 @@ export const askQuestion = async (question) => {
   }
 };
 
-// Answer a question (coach)
+// Answer a question (coach) - Updated to match new API
 export const answerQuestion = async (qnaId, answer) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.QNA.ANSWER, null, {
+    const response = await axiosInstance.post('/api/qna/answer', null, {
       params: { qnaId, answer }
     });
     return handleApiResponse(response);
@@ -25,10 +25,10 @@ export const answerQuestion = async (qnaId, answer) => {
   }
 };
 
-// Get unanswered questions (coach)
+// Get unanswered questions (coach) - Updated to match new API
 export const getUnansweredQna = async (pageNo = 0, pageSize = 10) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QNA.UNANSWERED, {
+    const response = await axiosInstance.get('/api/qna/unanswered', {
       params: { pageNo, pageSize }
     });
     return handleApiResponse(response);
@@ -37,10 +37,10 @@ export const getUnansweredQna = async (pageNo = 0, pageSize = 10) => {
   }
 };
 
-// Get my questions (member)
+// Get my questions (member) - Updated to match new API
 export const getMyQna = async (pageNo = 0, pageSize = 10) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QNA.MINE, {
+    const response = await axiosInstance.get('/api/qna/mine', {
       params: { pageNo, pageSize }
     });
     return handleApiResponse(response);

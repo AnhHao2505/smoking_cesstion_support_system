@@ -108,10 +108,10 @@ export const getSuggestedMedications = () => {
 
 // Real API functions for quit plan operations
 
-// Create a new quit plan
+// Create a new quit plan - Updated to match new API
 export const createQuitPlan = async (memberId, quitPlanData) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.QUIT_PLANS.CREATE, quitPlanData, {
+    const response = await axiosInstance.post('/api/quit-plans/create', quitPlanData, {
       params: { memberId }
     });
     return handleApiResponse(response);
@@ -120,10 +120,10 @@ export const createQuitPlan = async (memberId, quitPlanData) => {
   }
 };
 
-// Update quit plan by coach
+// Update quit plan by coach - Updated to match new API
 export const updateQuitPlanByCoach = async (planId, quitPlanData) => {
   try {
-    const response = await axiosInstance.put(API_ENDPOINTS.QUIT_PLANS.UPDATE, quitPlanData, {
+    const response = await axiosInstance.put('/api/quit-plans/update', quitPlanData, {
       params: { planId }
     });
     return handleApiResponse(response);
@@ -132,10 +132,10 @@ export const updateQuitPlanByCoach = async (planId, quitPlanData) => {
   }
 };
 
-// Get newest quit plan of member
+// Get newest quit plan of member - Updated to match new API
 export const getNewestQuitPlan = async (memberId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.NEWEST, {
+    const response = await axiosInstance.get('/api/quit-plans/newest', {
       params: { memberId }
     });
     return handleApiResponse(response);
@@ -144,10 +144,10 @@ export const getNewestQuitPlan = async (memberId) => {
   }
 };
 
-// Get old plans of member with pagination
+// Get old plans of member with pagination - Updated to match new API
 export const getOldPlansOfMember = async (memberId, page = 0, size = 10) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.OLDS, {
+    const response = await axiosInstance.get('/api/quit-plans/olds', {
       params: { memberId, page, size }
     });
     return handleApiResponse(response);
@@ -156,10 +156,10 @@ export const getOldPlansOfMember = async (memberId, page = 0, size = 10) => {
   }
 };
 
-// Coach finish a quit plan
+// Coach finish a quit plan - Updated to match new API
 export const finishQuitPlan = async (planId, note = '') => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.QUIT_PLANS.FINISH, null, {
+    const response = await axiosInstance.patch('/api/quit-plans/finish', null, {
       params: { planId, note }
     });
     return handleApiResponse(response);
@@ -244,10 +244,10 @@ const getQuitPlanDetailMock = (planId) => {
   };
 };
 
-// Coach disables a quit plan
+// Coach disables a quit plan - Updated to match new API
 export const disableQuitPlan = async (planId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.QUIT_PLANS.DISABLE, null, {
+    const response = await axiosInstance.patch('/api/quit-plans/disable', null, {
       params: { planId }
     });
     return handleApiResponse(response);
@@ -256,10 +256,10 @@ export const disableQuitPlan = async (planId) => {
   }
 };
 
-// Member accepts a quit plan
+// Member accepts a quit plan - Updated to match new API
 export const acceptQuitPlan = async (planId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.QUIT_PLANS.ACCEPT, null, {
+    const response = await axiosInstance.patch('/api/quit-plans/accept', null, {
       params: { planId }
     });
     return handleApiResponse(response);
@@ -268,10 +268,10 @@ export const acceptQuitPlan = async (planId) => {
   }
 };
 
-// Member denies a quit plan
+// Member denies a quit plan - Updated to match new API
 export const denyQuitPlan = async (planId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.QUIT_PLANS.DENY, null, {
+    const response = await axiosInstance.patch('/api/quit-plans/deny', null, {
       params: { planId }
     });
     return handleApiResponse(response);

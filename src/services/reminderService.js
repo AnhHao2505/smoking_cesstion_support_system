@@ -1,10 +1,10 @@
 import axiosInstance from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Create a new reminder
+// Create a new reminder - Updated to match new API
 export const createReminder = async (content, category) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.REMINDERS.CREATE, null, {
+    const response = await axiosInstance.post('/api/reminders', null, {
       params: { content, category }
     });
     return handleApiResponse(response);
@@ -13,10 +13,10 @@ export const createReminder = async (content, category) => {
   }
 };
 
-// Update an existing reminder
+// Update an existing reminder - Updated to match new API
 export const updateReminder = async (reminderId, content, category) => {
   try {
-    const response = await axiosInstance.put(API_ENDPOINTS.REMINDERS.UPDATE, null, {
+    const response = await axiosInstance.put('/api/reminders/update', null, {
       params: { reminderId, content, category }
     });
     return handleApiResponse(response);
@@ -25,10 +25,10 @@ export const updateReminder = async (reminderId, content, category) => {
   }
 };
 
-// Disable a reminder
+// Disable a reminder - Updated to match new API
 export const disableReminder = async (reminderId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.REMINDERS.DISABLE, null, {
+    const response = await axiosInstance.patch('/api/reminders/disable', null, {
       params: { reminderId }
     });
     return handleApiResponse(response);
@@ -37,10 +37,10 @@ export const disableReminder = async (reminderId) => {
   }
 };
 
-// Get all reminders with pagination
+// Get all reminders with pagination - Updated to match new API
 export const getAllReminders = async (pageNo = 0, pageSize = 10) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.REMINDERS.GET_ALL, {
+    const response = await axiosInstance.get('/api/reminders', {
       params: { pageNo, pageSize }
     });
     return handleApiResponse(response);

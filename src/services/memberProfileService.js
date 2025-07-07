@@ -1,10 +1,10 @@
 import axiosInstance from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Get current user's profile
+// Get current user's profile - Updated to match new API
 export const getMyProfile = async () => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.PROFILE.ME);
+    const response = await axiosInstance.get('/profile/me');
     // Store user profile in localStorage
     return handleApiResponse(response);
   } catch (error) {
@@ -12,10 +12,10 @@ export const getMyProfile = async () => {
   }
 };
 
-// Get member profile by ID
+// Get member profile by ID - Updated to match new API
 export const getMemberProfile = async (memberId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.PROFILE.MEMBER, {
+    const response = await axiosInstance.get('/profile/member', {
       params: { memberId }
     });
     return handleApiResponse(response);
@@ -24,10 +24,10 @@ export const getMemberProfile = async (memberId) => {
   }
 };
 
-// Update member profile (member only) - Updated to use correct function name
+// Update member profile (member only) - Updated to match new API
 export const updateMemberProfile = async (name) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.PROFILE.ME, null, {
+    const response = await axiosInstance.patch('/profile/me', null, {
       params: { name }
     });
     return handleApiResponse(response);
@@ -36,10 +36,10 @@ export const updateMemberProfile = async (name) => {
   }
 };
 
-// Get coach profile by ID
+// Get coach profile by ID - Updated to match new API
 export const getCoachProfile = async (coachId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.PROFILE.COACH, {
+    const response = await axiosInstance.get('/profile/coach', {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -48,10 +48,10 @@ export const getCoachProfile = async (coachId) => {
   }
 };
 
-// Update coach profile (admin only)
+// Update coach profile (admin only) - Updated to match new API
 export const updateCoachProfile = async (coachId, profileData) => {
   try {
-    const response = await axiosInstance.put(API_ENDPOINTS.PROFILE.COACH, profileData, {
+    const response = await axiosInstance.put('/profile/coach', profileData, {
       params: { coachId }
     });
     return handleApiResponse(response);

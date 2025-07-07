@@ -1,20 +1,20 @@
 import axiosInstance from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Create a daily log
+// Create a daily log - Updated to match new API
 export const createDailyLog = async (logData) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.DAILY_LOGS.CREATE, logData);
+    const response = await axiosInstance.post('/api/daily-logs', logData);
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
-// Get daily logs by phase
+// Get daily logs by phase - Updated to match new API
 export const getLogsByPhase = async (phaseId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.DAILY_LOGS.GET_BY_PHASE, {
+    const response = await axiosInstance.get('/api/daily-logs/byPhase', {
       params: { phaseId }
     });
     return handleApiResponse(response);
@@ -23,10 +23,10 @@ export const getLogsByPhase = async (phaseId) => {
   }
 };
 
-// Get all daily logs of a member
+// Get all daily logs of a member - Updated to match new API
 export const getMemberDailyLogs = async (memberId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.DAILY_LOGS.GET_BY_MEMBER, {
+    const response = await axiosInstance.get('/api/daily-logs/member', {
       params: { memberId }
     });
     return handleApiResponse(response);
@@ -35,10 +35,10 @@ export const getMemberDailyLogs = async (memberId) => {
   }
 };
 
-// Get member's daily log by date
+// Get member's daily log by date - Updated to match new API
 export const getMemberDailyLogByDate = async (memberId, date) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.DAILY_LOGS.GET_BY_MEMBER_DATE, {
+    const response = await axiosInstance.get('/api/daily-logs/member/date', {
       params: { memberId, date }
     });
     return handleApiResponse(response);

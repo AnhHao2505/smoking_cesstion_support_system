@@ -259,10 +259,10 @@ export const sendVerifyOtp = async (email) => {
   }
 };
 
-// Send reset password OTP
+// Send reset password OTP - Updated to match new API
 export const sendResetOtp = async (email) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.AUTH.SEND_RESET_OTP, {
+    const response = await axiosInstance.get('/auth/send-reset-otp', {
       params: { email }
     });
     return handleApiResponse(response);
@@ -278,7 +278,7 @@ export const sendResetOtp = async (email) => {
 // Reset password with OTP - Updated to match new API
 export const resetPassword = async (email, otpInput, newPassword) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.AUTH.RESET_PASSWORD, null, {
+    const response = await axiosInstance.patch('/auth/reset-password', null, {
       params: { email, otpInput, newPassword }
     });
     return handleApiResponse(response);
@@ -296,10 +296,10 @@ export const getToken = () => {
   return getCurrentAuthToken();
 };
 
-// Get tester accounts
+// Get tester accounts - Updated to match new API
 export const getTesters = async () => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.AUTH.GET_TESTERS);
+    const response = await axiosInstance.get('/auth/get-testers');
     return handleApiResponse(response);
   } catch (error) {
     console.error('Error fetching testers:', error);

@@ -1,32 +1,43 @@
 import axiosInstance from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Submit feedback for coach
-export const submitFeedback = async (coachId, content, star) => {
+// Submit feedback for coach - Updated to match new API
+export const submitFeedbackToCoach = async (feedbackData) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.FEEDBACKS.CREATE, null, {
-      params: { coachId, content, star }
-    });
+    const response = await axiosInstance.post('/api/feedbacks/submit/my-coach', feedbackData);
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
-// Get published feedbacks
+// Submit feedback for platform - New API endpoint
+export const submitFeedbackToPlatform = async (feedbackData) => {
+  try {
+    const response = await axiosInstance.post('/api/feedbacks/submit/platform', feedbackData);
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Legacy function for backward compatibility
+export const submitFeedback = submitFeedbackToCoach;
+
+// Get published feedbacks - Updated to match new API
 export const getPublishedFeedbacks = async () => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.FEEDBACKS.PUBLISHED);
+    const response = await axiosInstance.get('/api/feedbacks/published');
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
-// Get feedbacks for a coach
+// Get feedbacks for a coach - Updated to match new API
 export const getFeedbacksForCoach = async (coachId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.FEEDBACKS.COACH, {
+    const response = await axiosInstance.get('/api/feedbacks/of-a-coach', {
       params: { coachId }
     });
     return handleApiResponse(response);
@@ -35,20 +46,20 @@ export const getFeedbacksForCoach = async (coachId) => {
   }
 };
 
-// Get all feedbacks (admin only)
+// Get all unreviewed feedbacks (admin only) - Updated to match new API
 export const getAllFeedbacks = async () => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.FEEDBACKS.ADMIN_ALL);
+    const response = await axiosInstance.get('/api/feedbacks/all/unreviewed');
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
-// Approve feedback for publishing (admin only)
+// Approve feedback for publishing (admin only) - Updated to match new API
 export const approveFeedback = async (feedbackId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.FEEDBACKS.APPROVE_PUBLISH, null, {
+    const response = await axiosInstance.patch('/api/feedbacks/approve-publish', null, {
       params: { feedbackId }
     });
     return handleApiResponse(response);
@@ -57,10 +68,10 @@ export const approveFeedback = async (feedbackId) => {
   }
 };
 
-// Hide feedback (admin only)
+// Hide feedback (admin only) - Updated to match new API
 export const hideFeedback = async (feedbackId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.FEEDBACKS.HIDE, null, {
+    const response = await axiosInstance.patch('/api/feedbacks/hide', null, {
       params: { feedbackId }
     });
     return handleApiResponse(response);
@@ -69,10 +80,10 @@ export const hideFeedback = async (feedbackId) => {
   }
 };
 
-// Mark feedback as reviewed (admin only)
+// Mark feedback as reviewed (admin only) - Updated to match new API
 export const markFeedbackReviewed = async (feedbackId) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.FEEDBACKS.REVIEWED, null, {
+    const response = await axiosInstance.patch('/api/feedbacks/reviewed', null, {
       params: { feedbackId }
     });
     return handleApiResponse(response);
