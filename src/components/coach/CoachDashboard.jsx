@@ -32,9 +32,9 @@ import {
   CalendarOutlined,
   FireOutlined
 } from '@ant-design/icons';
-import * as coachDashboardService from '../../services/coachDashboardService';
 import { useAuth } from '../../contexts/AuthContext';
 import { getCurrentUser } from '../../services/authService';
+import { getCoachDashboardData } from '../../services/coachDashboardServiceReal';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -46,7 +46,13 @@ const CoachDashboard = () => {
   const [assignedMembers, setAssignedMembers] = useState([]);
   const [unansweredQuestions, setUnansweredQuestions] = useState([]);
   const [recentFeedback, setRecentFeedback] = useState([]);
-  const [performanceMetrics, setPerformanceMetrics] = useState(null);
+  const [performanceMetrics, setPerformanceMetrics] = useState({
+    total_members: 0,
+    active_members: 0,
+    completed_successfully: 0,
+    average_rating: 0,
+    success_rate: 0
+  });
   const [loading, setLoading] = useState(true);
   
   const coachId = currentUser?.userId;
@@ -60,21 +66,29 @@ const CoachDashboard = () => {
       }
 
       try {
-        // Fetch all data in parallel
-        const profile = coachDashboardService.getCoachProfile(coachId);
-        const members = coachDashboardService.getAssignedMembers(coachId);
-        const questions = coachDashboardService.getUnansweredQuestions(coachId);
-        const feedback = coachDashboardService.getRecentFeedback(coachId);
-        const metrics = coachDashboardService.getCoachPerformanceMetrics(coachId);
+        setLoading(true);
         
-        setCoachProfile(profile);
-        setAssignedMembers(members);
-        setUnansweredQuestions(questions);
-        setRecentFeedback(feedback);
-        setPerformanceMetrics(metrics);
-        setLoading(false);
+        const dashboardResponse = await getCoachDashboardData(coachId);
+        
+        if (dashboardResponse.success) {
+          const { profile, members, questions, feedback, metrics } = dashboardResponse.data;
+          
+          setCoachProfile(profile);
+          setAssignedMembers(members);
+          setUnansweredQuestions(questions);
+          setRecentFeedback(feedback);
+          setPerformanceMetrics({
+            ...metrics,
+            average_rating: profile?.rating || 0
+          });
+        } else {
+          message.error('Failed to load dashboard data');
+        }
+
       } catch (error) {
         console.error("Error fetching coach dashboard data:", error);
+        message.error('Failed to load dashboard data');
+      } finally {
         setLoading(false);
       }
     };
@@ -89,6 +103,15 @@ const CoachDashboard = () => {
       </div>
     );
   }
+
+  // Fallback for missing coach profile data
+  const profileData = coachProfile || {
+    full_name: currentUser?.name || 'Coach',
+    specialty: 'Smoking Cessation Specialist',
+    bio: 'Dedicated to helping people quit smoking successfully',
+    rating: 0,
+    photo_url: null
+  };
 
   // Column configuration for member table
   const memberColumns = [
@@ -109,10 +132,11 @@ const CoachDashboard = () => {
       key: 'current_phase',
       render: (phase) => {
         let color = 'blue';
-        if (phase === 'Preparation') color = 'orange';
-        if (phase === 'Action') color = 'green';
-        if (phase === 'Maintenance') color = 'purple';
-        if (phase === 'Completed') color = 'gold';
+        if (phase === 'PENDING_APPROVAL') color = 'orange';
+        if (phase === 'ACTIVE') color = 'green';
+        if (phase === 'COMPLETED') color = 'purple';
+        if (phase === 'DENIED') color = 'red';
+        if (phase === 'No Plan') color = 'default';
         
         return <Tag color={color}>{phase}</Tag>;
       }
@@ -140,7 +164,7 @@ const CoachDashboard = () => {
       render: (status) => (
         status ? 
           <Badge status="success" text="Active" /> : 
-          <Badge status="default" text="Completed" />
+          <Badge status="default" text="Inactive" />
       )
     },
     {
@@ -165,19 +189,19 @@ const CoachDashboard = () => {
               <div className="text-center">
                 <Avatar 
                   size={120} 
-                  src={coachProfile.photo_url} 
+                  src={profileData.photo_url} 
                   icon={<UserOutlined />} 
                 />
                 <div className="mt-3">
-                  <Rate disabled defaultValue={coachProfile.rating} allowHalf />
-                  <div><Text strong>{coachProfile.rating}</Text> / 5.0</div>
+                  <Rate disabled defaultValue={profileData.rating} allowHalf />
+                  <div><Text strong>{profileData.rating}</Text> / 5.0</div>
                 </div>
               </div>
             </Col>
             <Col xs={24} md={18}>
-              <Title level={2}>{coachProfile.full_name}</Title>
-              <Text type="secondary">{coachProfile.specialty}</Text>
-              <Paragraph>{coachProfile.bio}</Paragraph>
+              <Title level={2}>{profileData.full_name}</Title>
+              <Text type="secondary">{profileData.specialty}</Text>
+              <Paragraph>{profileData.bio}</Paragraph>
               <Row gutter={[16, 16]}>
                 <Col xs={24} sm={8}>
                   <Statistic 
@@ -225,59 +249,71 @@ const CoachDashboard = () => {
           <TabPane tab={<span><MessageOutlined /> Questions ({unansweredQuestions.length})</span>} key="2">
             <Card>
               <Title level={4}>Unanswered Questions</Title>
-              <List
-                itemLayout="vertical"
-                dataSource={unansweredQuestions}
-                pagination={{ pageSize: 5 }}
-                renderItem={item => (
-                  <List.Item
-                    key={item.question_id}
-                    extra={
-                      <Space>
-                        <Button type="primary">Answer</Button>
-                      </Space>
-                    }
-                  >
-                    <List.Item.Meta
-                      avatar={<Avatar icon={<UserOutlined />} />}
-                      title={<Text strong>{item.member_name}</Text>}
-                      description={
+              {unansweredQuestions.length > 0 ? (
+                <List
+                  itemLayout="vertical"
+                  dataSource={unansweredQuestions}
+                  pagination={{ pageSize: 5 }}
+                  renderItem={item => (
+                    <List.Item
+                      key={item.id}
+                      extra={
                         <Space>
-                          <CalendarOutlined />
-                          <Text type="secondary">{item.date_asked}</Text>
+                          <Button type="primary">Answer</Button>
                         </Space>
                       }
-                    />
-                    <Paragraph>{item.question}</Paragraph>
-                  </List.Item>
-                )}
-              />
+                    >
+                      <List.Item.Meta
+                        avatar={<Avatar icon={<UserOutlined />} />}
+                        title={<Text strong>{item.askerName || 'Member'}</Text>}
+                        description={
+                          <Space>
+                            <CalendarOutlined />
+                            <Text type="secondary">{new Date(item.createdAt).toLocaleDateString()}</Text>
+                          </Space>
+                        }
+                      />
+                      <Paragraph>{item.question}</Paragraph>
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <div className="text-center py-4">
+                  <Text type="secondary">No unanswered questions at the moment</Text>
+                </div>
+              )}
             </Card>
           </TabPane>
           
           <TabPane tab={<span><StarOutlined /> Feedback</span>} key="3">
             <Card>
               <Title level={4}>Recent Feedback</Title>
-              <List
-                itemLayout="vertical"
-                dataSource={recentFeedback}
-                pagination={{ pageSize: 5 }}
-                renderItem={item => (
-                  <List.Item key={item.feedback_id}>
-                    <List.Item.Meta
-                      avatar={<Avatar icon={<UserOutlined />} />}
-                      title={<Text strong>{item.user_name}</Text>}
-                      description={
-                        <Space>
-                          <Rate disabled defaultValue={item.rating} allowHalf />
-                          <Text type="secondary">{item.date}</Text>
-                        </Space>
-                      }
-                    />
-                    <Paragraph>"{item.feedback_content}"</Paragraph>
-                  </List.Item>
-                )}
-              />
+              {recentFeedback.length > 0 ? (
+                <List
+                  itemLayout="vertical"
+                  dataSource={recentFeedback}
+                  pagination={{ pageSize: 5 }}
+                  renderItem={item => (
+                    <List.Item key={item.id}>
+                      <List.Item.Meta
+                        avatar={<Avatar icon={<UserOutlined />} />}
+                        title={<Text strong>{item.memberName || 'Member'}</Text>}
+                        description={
+                          <Space>
+                            <Rate disabled defaultValue={item.rating} allowHalf />
+                            <Text type="secondary">{new Date(item.createdAt).toLocaleDateString()}</Text>
+                          </Space>
+                        }
+                      />
+                      <Paragraph>"{item.content}"</Paragraph>
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <div className="text-center py-4">
+                  <Text type="secondary">No feedback received yet</Text>
+                </div>
+              )}
             </Card>
           </TabPane>
           
@@ -285,38 +321,85 @@ const CoachDashboard = () => {
             <Row gutter={[16, 16]}>
               <Col xs={24} md={12}>
                 <Card>
-                  <Title level={4}>Monthly Performance</Title>
-                  <div className="bar-chart">
-                    {performanceMetrics.monthly_stats.map((stat, index) => (
-                      <div className="bar-container" key={index}>
-                        <Text type="secondary">{stat.success_rate}%</Text>
-                        <div 
-                          className="bar" 
-                          style={{ height: `${stat.success_rate * 1.5}px` }}
-                        ></div>
-                        <Text className="bar-label">{stat.month}</Text>
-                        <Text type="secondary">{stat.members} members</Text>
-                      </div>
-                    ))}
+                  <Title level={4}>Performance Overview</Title>
+                  <Row gutter={[16, 16]}>
+                    <Col xs={12}>
+                      <Statistic
+                        title="Active Members"
+                        value={performanceMetrics.active_members}
+                        prefix={<UserOutlined />}
+                        valueStyle={{ color: '#52c41a' }}
+                      />
+                    </Col>
+                    <Col xs={12}>
+                      <Statistic
+                        title="Completed Plans"
+                        value={performanceMetrics.completed_successfully}
+                        prefix={<CheckCircleOutlined />}
+                        valueStyle={{ color: '#1890ff' }}
+                      />
+                    </Col>
+                  </Row>
+                  <Divider />
+                  <div className="text-center">
+                    <Progress
+                      type="circle"
+                      percent={performanceMetrics.success_rate}
+                      format={percent => `${percent}% Success Rate`}
+                    />
                   </div>
                 </Card>
               </Col>
               
               <Col xs={24} md={12}>
                 <Card>
-                  <Title level={4}>Top Effective Strategies</Title>
-                  <List
-                    dataSource={performanceMetrics.top_strategies}
-                    renderItem={item => (
-                      <List.Item>
-                        <List.Item.Meta
-                          avatar={<Avatar icon={<FireOutlined />} style={{ backgroundColor: '#722ed1' }} />}
-                          title={item.strategy}
-                          description={<Progress percent={item.success_rate} />}
-                        />
-                      </List.Item>
+                  <Title level={4}>Member Status Distribution</Title>
+                  <div className="member-status-chart">
+                    {assignedMembers.length > 0 ? (
+                      <List
+                        dataSource={[
+                          { 
+                            status: 'Active Plans', 
+                            count: assignedMembers.filter(m => m.status).length,
+                            color: '#52c41a' 
+                          },
+                          { 
+                            status: 'Completed Plans', 
+                            count: assignedMembers.filter(m => m.current_phase === 'COMPLETED').length,
+                            color: '#1890ff' 
+                          },
+                          { 
+                            status: 'No Plans', 
+                            count: assignedMembers.filter(m => m.current_phase === 'No Plan').length,
+                            color: '#faad14' 
+                          }
+                        ]}
+                        renderItem={item => (
+                          <List.Item>
+                            <List.Item.Meta
+                              avatar={
+                                <Avatar 
+                                  style={{ backgroundColor: item.color }} 
+                                  icon={<FireOutlined />} 
+                                />
+                              }
+                              title={item.status}
+                              description={`${item.count} members`}
+                            />
+                            <Progress 
+                              percent={assignedMembers.length > 0 ? Math.round((item.count / assignedMembers.length) * 100) : 0} 
+                              strokeColor={item.color}
+                              size="small"
+                            />
+                          </List.Item>
+                        )}
+                      />
+                    ) : (
+                      <div className="text-center py-4">
+                        <Text type="secondary">No member data available</Text>
+                      </div>
                     )}
-                  />
+                  </div>
                 </Card>
               </Col>
             </Row>

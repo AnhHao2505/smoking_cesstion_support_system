@@ -1,3 +1,9 @@
+// ⚠️ DEPRECATED: This file contains MOCK data for development purposes only
+// ✅ USE: coachDashboardServiceReal.js for real API integration
+// 
+// This mock service should be replaced with real API calls in production.
+// The new CoachDashboard component now uses real APIs through coachDashboardServiceReal.js
+
 // Mock data for coach dashboard
 
 // Get coach profile data
