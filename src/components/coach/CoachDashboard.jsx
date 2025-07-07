@@ -35,6 +35,9 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { getCurrentUser } from '../../services/authService';
 import { getCoachDashboardData } from '../../services/coachDashboardServiceReal';
+import { getAssignedMembers, getCoachProfile } from '../../services/coachManagementService';
+import { getFeedbacksForCoach } from '../../services/feebackService';
+import { getUnansweredQna } from '../../services/askQuestionService';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -54,6 +57,9 @@ const CoachDashboard = () => {
     success_rate: 0
   });
   const [loading, setLoading] = useState(true);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [questionsLoading, setQuestionsLoading] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
   
   const coachId = currentUser?.userId;
 
@@ -68,21 +74,60 @@ const CoachDashboard = () => {
       try {
         setLoading(true);
         
-        const dashboardResponse = await getCoachDashboardData(coachId);
-        
-        if (dashboardResponse.success) {
-          const { profile, members, questions, feedback, metrics } = dashboardResponse.data;
+        // Fetch coach profile using updated API
+        const profileResponse = await getCoachProfile(coachId);
+        if (profileResponse.success) {
+          setCoachProfile(profileResponse.data);
+        }
+
+        // Fetch assigned members using updated API
+        const membersResponse = await getAssignedMembers(coachId);
+        if (membersResponse.success) {
+          const members = membersResponse.data || [];
           
-          setCoachProfile(profile);
-          setAssignedMembers(members);
-          setUnansweredQuestions(questions);
-          setRecentFeedback(feedback);
+          // Transform member data to match table structure
+          const transformedMembers = members.map((member, index) => ({
+            user_id: member.memberId || index,
+            full_name: member.memberName || 'Unknown Member',
+            photo_url: member.photoUrl,
+            current_phase: member.planStatus || 'No Plan',
+            progress: Math.floor(Math.random() * 100), // Placeholder until real progress API
+            days_smoke_free: member.daysSmokeFree || 0,
+            last_checkin: member.lastCheckin ? new Date(member.lastCheckin).toLocaleDateString() : 'N/A',
+            status: member.isActive !== undefined ? member.isActive : true
+          }));
+          
+          setAssignedMembers(transformedMembers);
+          
+          // Calculate performance metrics
+          const totalMembers = members.length;
+          const activeMembers = members.filter(m => m.isActive).length;
+          const completedPlans = members.filter(m => m.planStatus === 'COMPLETED').length;
+          const successRate = totalMembers > 0 ? Math.round((completedPlans / totalMembers) * 100) : 0;
+          
           setPerformanceMetrics({
-            ...metrics,
-            average_rating: profile?.rating || 0
+            total_members: totalMembers,
+            active_members: activeMembers,
+            completed_successfully: completedPlans,
+            average_rating: profileResponse.data?.rating || 0,
+            success_rate: successRate
           });
-        } else {
-          message.error('Failed to load dashboard data');
+        }
+
+        // Fetch unanswered questions using updated API
+        const questionsResponse = await getUnansweredQna(0, 10);
+        if (questionsResponse.success) {
+          setUnansweredQuestions(questionsResponse.data.content || []);
+        }
+
+        // Fetch feedback using updated API
+        const feedbackResponse = await getFeedbacksForCoach(coachId);
+        if (feedbackResponse.success) {
+          // Handle both array and object response formats
+          const feedbacks = Array.isArray(feedbackResponse.data) 
+            ? feedbackResponse.data 
+            : feedbackResponse.data?.content || [];
+          setRecentFeedback(feedbacks.slice(0, 10)); // Show recent 10 feedbacks
         }
 
       } catch (error) {
@@ -95,6 +140,75 @@ const CoachDashboard = () => {
 
     fetchCoachDashboardData();
   }, [coachId]);
+
+  // Individual refresh functions
+  const refreshMembers = async () => {
+    if (!coachId) return;
+    
+    try {
+      setMembersLoading(true);
+      const membersResponse = await getAssignedMembers(coachId);
+      if (membersResponse.success) {
+        const members = membersResponse.data || [];
+        const transformedMembers = members.map((member, index) => ({
+          user_id: member.memberId || index,
+          full_name: member.memberName || 'Unknown Member',
+          photo_url: member.photoUrl,
+          current_phase: member.planStatus || 'No Plan',
+          progress: Math.floor(Math.random() * 100),
+          days_smoke_free: member.daysSmokeFree || 0,
+          last_checkin: member.lastCheckin ? new Date(member.lastCheckin).toLocaleDateString() : 'N/A',
+          status: member.isActive !== undefined ? member.isActive : true
+        }));
+        setAssignedMembers(transformedMembers);
+        message.success('Member list refreshed');
+      }
+    } catch (error) {
+      console.error('Error refreshing members:', error);
+      message.error('Failed to refresh member list');
+    } finally {
+      setMembersLoading(false);
+    }
+  };
+
+  const refreshQuestions = async () => {
+    if (!coachId) return;
+    
+    try {
+      setQuestionsLoading(true);
+      const questionsResponse = await getUnansweredQna(0, 10);
+      if (questionsResponse.success) {
+        setUnansweredQuestions(questionsResponse.data.content || []);
+        message.success('Questions refreshed');
+      }
+    } catch (error) {
+      console.error('Error refreshing questions:', error);
+      message.error('Failed to refresh questions');
+    } finally {
+      setQuestionsLoading(false);
+    }
+  };
+
+  const refreshFeedback = async () => {
+    if (!coachId) return;
+    
+    try {
+      setFeedbackLoading(true);
+      const feedbackResponse = await getFeedbacksForCoach(coachId);
+      if (feedbackResponse.success) {
+        const feedbacks = Array.isArray(feedbackResponse.data) 
+          ? feedbackResponse.data 
+          : feedbackResponse.data?.content || [];
+        setRecentFeedback(feedbacks.slice(0, 10));
+        message.success('Feedback refreshed');
+      }
+    } catch (error) {
+      console.error('Error refreshing feedback:', error);
+      message.error('Failed to refresh feedback');
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -110,7 +224,10 @@ const CoachDashboard = () => {
     specialty: 'Smoking Cessation Specialist',
     bio: 'Dedicated to helping people quit smoking successfully',
     rating: 0,
-    photo_url: null
+    photo_url: null,
+    certificates: [],
+    workingHours: 'Monday - Friday, 9:00 AM - 5:00 PM',
+    contactNumber: 'Not available'
   };
 
   // Column configuration for member table
@@ -172,8 +289,38 @@ const CoachDashboard = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small">View Details</Button>
-          <Button type="link" size="small">Contact</Button>
+          <Button 
+            type="link" 
+            size="small"
+            onClick={() => {
+              // Navigate to member details page
+              window.location.href = `/coach/member-details/${record.user_id}`;
+            }}
+          >
+            View Details
+          </Button>
+          <Button 
+            type="link" 
+            size="small"
+            onClick={() => {
+              // Navigate to chat with member
+              window.location.href = `/coach/chat?memberId=${record.user_id}`;
+            }}
+          >
+            Contact
+          </Button>
+          {record.current_phase === 'No Plan' && (
+            <Button 
+              type="link" 
+              size="small"
+              onClick={() => {
+                // Navigate to create quit plan
+                window.location.href = `/coach/create-plan?memberId=${record.user_id}`;
+              }}
+            >
+              Create Plan
+            </Button>
+          )}
         </Space>
       )
     }
@@ -202,6 +349,24 @@ const CoachDashboard = () => {
               <Title level={2}>{profileData.full_name}</Title>
               <Text type="secondary">{profileData.specialty}</Text>
               <Paragraph>{profileData.bio}</Paragraph>
+              
+              {/* Additional coach information */}
+              {profileData.certificates && profileData.certificates.length > 0 && (
+                <div className="mb-3">
+                  <Text strong>Certificates: </Text>
+                  {profileData.certificates.map((cert, index) => (
+                    <Tag key={index} color="blue">{cert}</Tag>
+                  ))}
+                </div>
+              )}
+              
+              {profileData.workingHours && (
+                <div className="mb-3">
+                  <Text strong>Working Hours: </Text>
+                  <Text>{profileData.workingHours}</Text>
+                </div>
+              )}
+              
               <Row gutter={[16, 16]}>
                 <Col xs={24} sm={8}>
                   <Statistic 
@@ -235,13 +400,24 @@ const CoachDashboard = () => {
         {/* Main Dashboard Content */}
         <Tabs defaultActiveKey="1" className="dashboard-tabs">
           <TabPane tab={<span><TeamOutlined /> Assigned Members</span>} key="1">
-            <Card>
-              <Title level={4}>Member Progress</Title>
+            <Card
+              title="Member Progress"
+              extra={
+                <Button 
+                  size="small"
+                  onClick={refreshMembers} 
+                  loading={membersLoading}
+                >
+                  Refresh
+                </Button>
+              }
+            >
               <Table 
                 dataSource={assignedMembers} 
                 columns={memberColumns} 
                 rowKey="user_id"
                 pagination={{ pageSize: 5 }}
+                loading={membersLoading}
               />
             </Card>
           </TabPane>
@@ -249,6 +425,14 @@ const CoachDashboard = () => {
           <TabPane tab={<span><MessageOutlined /> Questions ({unansweredQuestions.length})</span>} key="2">
             <Card>
               <Title level={4}>Unanswered Questions</Title>
+              <Button 
+                type="primary" 
+                onClick={refreshQuestions} 
+                loading={questionsLoading}
+                style={{ marginBottom: 16 }}
+              >
+                Refresh Questions
+              </Button>
               {unansweredQuestions.length > 0 ? (
                 <List
                   itemLayout="vertical"
@@ -256,24 +440,35 @@ const CoachDashboard = () => {
                   pagination={{ pageSize: 5 }}
                   renderItem={item => (
                     <List.Item
-                      key={item.id}
+                      key={item.qnaId || item.id}
                       extra={
                         <Space>
-                          <Button type="primary">Answer</Button>
+                          <Button 
+                            type="primary"
+                            onClick={() => {
+                              // Navigate to Q&A page to answer
+                              window.location.href = `/coach/qna?questionId=${item.qnaId || item.id}`;
+                            }}
+                          >
+                            Answer
+                          </Button>
                         </Space>
                       }
                     >
                       <List.Item.Meta
                         avatar={<Avatar icon={<UserOutlined />} />}
-                        title={<Text strong>{item.askerName || 'Member'}</Text>}
+                        title={<Text strong>{item.askerName || item.memberName || 'Anonymous Member'}</Text>}
                         description={
                           <Space>
                             <CalendarOutlined />
-                            <Text type="secondary">{new Date(item.createdAt).toLocaleDateString()}</Text>
+                            <Text type="secondary">
+                              {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recent'}
+                            </Text>
+                            {item.category && <Tag>{item.category}</Tag>}
                           </Space>
                         }
                       />
-                      <Paragraph>{item.question}</Paragraph>
+                      <Paragraph>{item.question || item.questionContent}</Paragraph>
                     </List.Item>
                   )}
                 />
@@ -288,24 +483,39 @@ const CoachDashboard = () => {
           <TabPane tab={<span><StarOutlined /> Feedback</span>} key="3">
             <Card>
               <Title level={4}>Recent Feedback</Title>
+              <Button 
+                type="primary" 
+                onClick={refreshFeedback} 
+                loading={feedbackLoading}
+                style={{ marginBottom: 16 }}
+              >
+                Refresh Feedback
+              </Button>
               {recentFeedback.length > 0 ? (
                 <List
                   itemLayout="vertical"
                   dataSource={recentFeedback}
                   pagination={{ pageSize: 5 }}
                   renderItem={item => (
-                    <List.Item key={item.id}>
+                    <List.Item key={item.feedbackId || item.id}>
                       <List.Item.Meta
                         avatar={<Avatar icon={<UserOutlined />} />}
-                        title={<Text strong>{item.memberName || 'Member'}</Text>}
+                        title={<Text strong>{item.memberName || 'Anonymous Member'}</Text>}
                         description={
                           <Space>
-                            <Rate disabled defaultValue={item.rating} allowHalf />
-                            <Text type="secondary">{new Date(item.createdAt).toLocaleDateString()}</Text>
+                            <Rate disabled defaultValue={item.rating || item.star} allowHalf />
+                            <Text type="secondary">
+                              {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recent'}
+                            </Text>
+                            {item.reviewStatus && (
+                              <Tag color={item.reviewStatus === 'REVIEWED' ? 'green' : 'orange'}>
+                                {item.reviewStatus}
+                              </Tag>
+                            )}
                           </Space>
                         }
                       />
-                      <Paragraph>"{item.content}"</Paragraph>
+                      <Paragraph>"{item.content || item.feedbackContent}"</Paragraph>
                     </List.Item>
                   )}
                 />
