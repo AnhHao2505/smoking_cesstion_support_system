@@ -386,7 +386,7 @@ const CoachDashboard = () => {
               size="small"
               onClick={() => {
                 // Navigate to create quit plan
-                window.location.href = `/coach/create-plan?memberId=${record.user_id}`;
+                window.location.href = `/coach/create-quit-plan?memberId=${record.user_id}`;
               }}
             >
               Create Plan

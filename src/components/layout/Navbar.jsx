@@ -139,6 +139,7 @@ const NavBar = () => {
       label: 'Plan Management',
       icon: <BarChartOutlined />,
       items: [
+        { key: '/coach/create-quit-plan', label: 'Create Quit Plan', path: '/coach/create-quit-plan' },
         { key: '/coach/quit-plan-approval', label: 'Plan Approvals', path: '/coach/quit-plan-approval' },
         { key: '/coach/member-management', label: 'Member Management', path: '/coach/member-management' }
       ]
