@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Layout, Typography, Button, Row, Col, Card, Divider, Space } from 'antd';
 import { Link } from 'react-router-dom';
 import { ArrowRightOutlined } from '@ant-design/icons';
@@ -9,6 +9,10 @@ const { Header, Content, Footer } = Layout;
 const { Title, Paragraph, Text } = Typography;
 
 const LandingPage = () => {
+  useEffect(() => {
+    console.log('LandingPage mounted successfully');
+  }, []);
+
   return (
     <Layout className="landing-page">
       <Content>

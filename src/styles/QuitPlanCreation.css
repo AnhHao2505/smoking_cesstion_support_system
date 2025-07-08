@@ -1,74 +1,120 @@
-.quit-plan-creation .form-card {
-  max-width: 900px;
-  margin: 0 auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+/* Quit Plan Creation - Ant Design System Consistent Styles */
+
+/* Main Container */
+.quit-plan-creation {
+  background-color: #f0f2f5;
+  min-height: calc(100vh - 64px);
 }
 
-.quit-plan-creation .steps-content {
-  min-height: 400px;
-  padding: 20px 0;
+/* Header Card */
+.quit-plan-creation .header-card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
 }
 
-.quit-plan-creation .step-content {
-  max-width: 700px;
-  margin: 0 auto;
+.quit-plan-creation .header-card:hover {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
 }
 
-.quit-plan-creation .selected-coach-card {
-  margin-top: 20px;
-  background-color: #f9f9f9;
-}
-
-.quit-plan-creation .coach-info {
-  display: flex;
-  align-items: flex-start;
-}
-
-.quit-plan-creation .coach-details {
-  margin-left: 20px;
-  flex: 1;
-}
-
-.quit-plan-creation .coach-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.quit-plan-creation .coach-name {
-  flex: 1;
-  margin: 0 10px;
-}
-
-.quit-plan-creation .phases-preview {
-  margin: 20px 0;
-  padding: 15px;
-  background-color: #f9f9f9;
+/* Custom styling for better visual hierarchy */
+.quit-plan-creation .ant-card-inner {
   border-radius: 8px;
+  margin-bottom: 16px;
 }
 
-.quit-plan-creation .steps-action {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 24px;
+.quit-plan-creation .ant-card-inner .ant-typography h4 {
+  margin-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 8px;
 }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+/* Form item spacing */
+.quit-plan-creation .ant-form-item {
+  margin-bottom: 16px;
 }
 
+/* Custom input styling for consistency */
+.quit-plan-creation .ant-input,
+.quit-plan-creation .ant-select-selector,
+.quit-plan-creation .ant-picker {
+  border-radius: 6px;
+}
+
+.quit-plan-creation .ant-input:focus,
+.quit-plan-creation .ant-select-selector:focus,
+.quit-plan-creation .ant-picker:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Button consistency */
+.quit-plan-creation .ant-btn {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.quit-plan-creation .ant-btn-primary {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.quit-plan-creation .ant-btn-primary:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .quit-plan-creation .coach-info {
-    flex-direction: column;
-    align-items: center;
+  .quit-plan-creation .ant-card {
+    margin: 0 8px;
   }
   
-  .quit-plan-creation .coach-details {
-    margin-left: 0;
-    margin-top: 15px;
-    text-align: center;
+  .quit-plan-creation .ant-form-item-label {
+    padding-bottom: 4px;
   }
+}
+
+@media (max-width: 480px) {
+  .quit-plan-creation .ant-typography h2 {
+    font-size: 24px;
+  }
+  
+  .quit-plan-creation .ant-typography h4 {
+    font-size: 16px;
+  }
+  
+  .quit-plan-creation .ant-btn-lg {
+    height: 48px;
+    padding: 0 24px;
+    font-size: 16px;
+  }
+}
+
+/* Loading state enhancements */
+.quit-plan-creation .ant-btn-loading {
+  pointer-events: none;
+}
+
+/* Form validation styling */
+.quit-plan-creation .ant-form-item-has-error .ant-input,
+.quit-plan-creation .ant-form-item-has-error .ant-select-selector {
+  border-color: #ff4d4f;
+}
+
+.quit-plan-creation .ant-form-item-has-error .ant-input:focus,
+.quit-plan-creation .ant-form-item-has-error .ant-select-selector:focus {
+  border-color: #ff4d4f;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+}
+
+/* Enhanced visual feedback */
+.quit-plan-creation .ant-card:hover {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
+}
+
+/* Smooth transitions */
+.quit-plan-creation * {
+  transition: all 0.2s ease-in-out;
 }

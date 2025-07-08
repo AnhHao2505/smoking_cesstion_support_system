@@ -1,92 +1,25 @@
-// Appointment Management Service
+import axiosInstance from '../utils/axiosConfig';
+import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Get member appointments
-export const getMemberAppointments = (userId) => {
-  return [
-    {
-      appointment_id: 1,
-      coach_id: 1,
-      coach_name: "Dr. Sarah Johnson",
-      photo_url: "https://randomuser.me/api/portraits/women/45.jpg",
-      date: "2025-06-18",
-      start_time: "14:00",
-      end_time: "15:00",
-      type: "Video Call",
-      status: "confirmed",
-      notes: "Monthly progress review"
-    },
-    {
-      appointment_id: 2,
-      coach_id: 1,
-      coach_name: "Dr. Sarah Johnson",
-      photo_url: "https://randomuser.me/api/portraits/women/45.jpg",
-      date: "2025-07-01",
-      start_time: "10:00",
-      end_time: "11:00",
-      type: "In-person",
-      status: "pending",
-      notes: "Discuss next steps and challenges"
-    },
-    {
-      appointment_id: 3,
-      coach_id: 1,
-      coach_name: "Dr. Sarah Johnson",
-      photo_url: "https://randomuser.me/api/portraits/women/45.jpg",
-      date: "2025-05-15",
-      start_time: "11:00",
-      end_time: "12:00",
-      type: "Video Call",
-      status: "completed",
-      notes: "Initial consultation"
-    }
-  ];
+// Note: Appointment endpoints are not available in the current API specification
+// The following functions are mock implementations and should be updated when API endpoints are available
+
+// Get member appointments - NOT AVAILABLE IN API
+export const getMemberAppointments = async (userId) => {
+  throw new Error('Appointment endpoints are not available in the current API specification');
 };
 
-// Get coach availability slots
-export const getCoachAvailability = (coachId, startDate, endDate) => {
-  return [
-    {
-      date: "2025-06-20",
-      slots: [
-        { start_time: "09:00", end_time: "10:00", is_available: true },
-        { start_time: "10:00", end_time: "11:00", is_available: true },
-        { start_time: "11:00", end_time: "12:00", is_available: false },
-        { start_time: "14:00", end_time: "15:00", is_available: true },
-        { start_time: "15:00", end_time: "16:00", is_available: true }
-      ]
-    },
-    {
-      date: "2025-06-21",
-      slots: [
-        { start_time: "09:00", end_time: "10:00", is_available: false },
-        { start_time: "10:00", end_time: "11:00", is_available: true },
-        { start_time: "11:00", end_time: "12:00", is_available: true },
-        { start_time: "14:00", end_time: "15:00", is_available: false },
-        { start_time: "15:00", end_time: "16:00", is_available: true }
-      ]
-    }
-  ];
+// Get coach availability slots - NOT AVAILABLE IN API
+export const getCoachAvailability = async (coachId, startDate, endDate) => {
+  throw new Error('Appointment endpoints are not available in the current API specification');
 };
 
-// Book a new appointment
-export const bookAppointment = (appointmentData) => {
-  console.log("Booking appointment with data:", appointmentData);
-  
-  // In a real app, this would call an API
-  return {
-    success: true,
-    message: "Appointment booked successfully",
-    appointment_id: Math.floor(Math.random() * 1000) + 10
-  };
+// Book a new appointment - NOT AVAILABLE IN API
+export const bookAppointment = async (appointmentData) => {
+  throw new Error('Appointment booking is not yet available - API endpoint missing');
 };
 
-// Cancel an appointment
-export const cancelAppointment = (appointmentId, reason) => {
-  console.log("Cancelling appointment", appointmentId, "with reason:", reason);
-  
-  // In a real app, this would call an API
-  return {
-    success: true,
-    message: "Appointment cancelled successfully"
-  };
+// Cancel an appointment - NOT AVAILABLE IN API
+export const cancelAppointment = async (appointmentId, reason) => {
+  throw new Error('Appointment cancellation is not yet available - API endpoint missing');
 };

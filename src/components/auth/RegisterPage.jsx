@@ -21,11 +21,10 @@ const RegisterPage = () => {
     setRegisterSuccess('');
     
     try {
-      // Remove confirmPassword and agreeTerms before sending to API
-      const { confirmPassword, agreeTerms, ...userData } = values;
+      // Extract only the required fields for the API
+      const { name, email, password, contact_number } = values;
       
-      const response = await authService.register(userData);
-      
+      const response = await authService.register(name, email, password, contact_number);
       setIsLoading(false);
       setRegisterSuccess(response.message || 'Registration successful! You can now log in.');
       
@@ -74,125 +73,89 @@ const RegisterPage = () => {
               onFinish={handleSubmit}
               scrollToFirstError
             >
-              <Row gutter={16}>
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    name="fullName"
-                    label="Full Name"
-                    rules={[
-                      { required: true, message: 'Please input your full name!' },
-                      { min: 2, message: 'Name must be at least 2 characters' }
-                    ]}
-                  >
-                    <Input 
-                      prefix={<UserOutlined />} 
-                      placeholder="Enter your full name"
-                      size="large" 
-                    />
-                  </Form.Item>
-                </Col>
-                
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    name="email"
-                    label="Email Address"
-                    rules={[
-                      { required: true, message: 'Please input your email!' },
-                      { type: 'email', message: 'Please enter a valid email address!' }
-                    ]}
-                  >
-                    <Input 
-                      prefix={<MailOutlined />} 
-                      placeholder="Enter your email"
-                      size="large" 
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
+              <Form.Item
+                name="name"
+                label="Full Name"
+                rules={[
+                  { required: true, message: 'Please input your full name!' },
+                  { min: 2, message: 'Name must be at least 2 characters' }
+                ]}
+              >
+                <Input 
+                  prefix={<UserOutlined />} 
+                  placeholder="Enter your full name"
+                  size="large" 
+                />
+              </Form.Item>
+              
+              <Form.Item
+                name="email"
+                label="Email Address"
+                rules={[
+                  { required: true, message: 'Please input your email!' },
+                  { type: 'email', message: 'Please enter a valid email address!' }
+                ]}
+              >
+                <Input 
+                  prefix={<MailOutlined />} 
+                  placeholder="Enter your email"
+                  size="large" 
+                />
+              </Form.Item>
 
-              <Row gutter={16}>
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    name="password"
-                    label="Password"
-                    rules={[
-                      { required: true, message: 'Please input your password!' },
-                      { min: 8, message: 'Password must be at least 8 characters' },
-                      { 
-                        pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-                        message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+              <Form.Item
+                name="password"
+                label="Password"
+                rules={[
+                  { required: true, message: 'Please input your password!' },
+                  { min: 8, message: 'Password must be at least 8 characters' }
+                ]}
+                hasFeedback
+              >
+                <Input.Password 
+                  prefix={<LockOutlined />} 
+                  placeholder="Create a password"
+                  size="large" 
+                />
+              </Form.Item>
+              
+              <Form.Item
+                name="confirmPassword"
+                label="Confirm Password"
+                dependencies={['password']}
+                hasFeedback
+                rules={[
+                  { required: true, message: 'Please confirm your password!' },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue('password') === value) {
+                        return Promise.resolve();
                       }
-                    ]}
-                    hasFeedback
-                  >
-                    <Input.Password 
-                      prefix={<LockOutlined />} 
-                      placeholder="Create a password"
-                      size="large" 
-                    />
-                  </Form.Item>
-                </Col>
-                
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    name="confirmPassword"
-                    label="Confirm Password"
-                    dependencies={['password']}
-                    hasFeedback
-                    rules={[
-                      { required: true, message: 'Please confirm your password!' },
-                      ({ getFieldValue }) => ({
-                        validator(_, value) {
-                          if (!value || getFieldValue('password') === value) {
-                            return Promise.resolve();
-                          }
-                          return Promise.reject(new Error('The two passwords do not match!'));
-                        },
-                      }),
-                    ]}
-                  >
-                    <Input.Password 
-                      prefix={<LockOutlined />} 
-                      placeholder="Confirm your password"
-                      size="large" 
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
+                      return Promise.reject(new Error('The two passwords do not match!'));
+                    },
+                  }),
+                ]}
+              >
+                <Input.Password 
+                  prefix={<LockOutlined />} 
+                  placeholder="Confirm your password"
+                  size="large" 
+                />
+              </Form.Item>
 
-              <Row gutter={16}>
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    name="contactNumber"
-                    label="Contact Number"
-                    rules={[
-                      { required: true, message: 'Please input your phone number!' }
-                    ]}
-                  >
-                    <Input 
-                      prefix={<PhoneOutlined />} 
-                      placeholder="Enter your phone number"
-                      size="large" 
-                    />
-                  </Form.Item>
-                </Col>
-                
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    name="role"
-                    label="I want to register as"
-                    initialValue="member"
-                    rules={[
-                      { required: true, message: 'Please select your role!' }
-                    ]}
-                  >
-                    <Select size="large">
-                      <Option value="member">Member (I want to quit smoking)</Option>
-                      <Option value="coach">Coach (I want to help others quit)</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
+              <Form.Item
+                name="contact_number"
+                label="Contact Number"
+                rules={[
+                  { required: true, message: 'Please input your phone number!' }
+                ]}
+              >
+                <Input 
+                  prefix={<PhoneOutlined />} 
+                  placeholder="Enter your phone number"
+                  size="large" 
+                />
+              </Form.Item>
 
               <Form.Item
                 name="agreeTerms"

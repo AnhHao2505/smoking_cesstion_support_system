@@ -7,16 +7,19 @@ import {
   Card, 
   Statistic, 
   Table, 
-  Avatar, 
   Tag, 
   Progress, 
-  List, 
   Button, 
   Space, 
-  Divider,
   Badge,
   Tabs,
-  Alert
+  Pagination,
+  message,
+  Tooltip,
+  Form,
+  Modal,
+  Input,
+  Select
 } from 'antd';
 import { 
   UserOutlined, 
@@ -25,10 +28,10 @@ import {
   StarOutlined,
   RiseOutlined,
   FileTextOutlined,
-  DollarOutlined,
-  BellOutlined,
+  TrophyOutlined,
   MedicineBoxOutlined,
-  TrophyOutlined
+  BellOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
 import {
   LineChart,
@@ -38,7 +41,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   PieChart,
   Pie,
@@ -46,78 +49,371 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import * as adminDashboardService from '../../services/adminDashboardService';
-import { getDetailedUserStats, getMembershipRevenue } from '../../services/adminDashboardService';
+import * as userService from '../../services/userService';
+import * as feedbackService from '../../services/feebackService';
+import * as reminderService from '../../services/reminderService';
 import '../../styles/Dashboard.css';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 const AdminDashboard = () => {
-  const [systemOverview, setSystemOverview] = useState({});
-  const [userStats, setUserStats] = useState({});
-  const [quitPlanStats, setQuitPlanStats] = useState({});
-  const [contentStats, setContentStats] = useState({});
-  const [recentUsers, setRecentUsers] = useState([]);
-  const [coachPerformance, setCoachPerformance] = useState([]);
-  const [systemAlerts, setSystemAlerts] = useState([]);
-  const [detailedUserStats, setDetailedUserStats] = useState(null);
-  const [membershipRevenue, setMembershipRevenue] = useState(null);
+  // Dashboard statistics state
+  const [dashboardStats, setDashboardStats] = useState({});
+  
+  // Users data state
+  const [usersData, setUsersData] = useState({
+    content: [],
+    pageNo: 0,
+    pageSize: 10,
+    totalElements: 0,
+    totalPages: 0,
+    last: false
+  });
+  
+  // Feedback data state
+  const [feedbackData, setFeedbackData] = useState([]);
+  const [publishedFeedbacks, setPublishedFeedbacks] = useState([]);
+  
+  // Reminder data state
+  const [reminderData, setReminderData] = useState([]);
+  const [reminderPagination, setReminderPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0
+  });
+  
+  // Loading states
   const [loading, setLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [reminderLoading, setReminderLoading] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  useEffect(() => {
-    const fetchAdminDashboardData = async () => {
-      try {
-        // Fetch all admin dashboard data
-        const overview = adminDashboardService.getSystemOverview();
-        const users = adminDashboardService.getUserStatistics();
-        const quitPlans = adminDashboardService.getQuitPlanStatistics();
-        const content = adminDashboardService.getContentStatistics();
-        const users_recent = adminDashboardService.getRecentUsers();
-        const coaches = adminDashboardService.getCoachPerformance();
-        const alerts = adminDashboardService.getSystemAlerts();
-        
-        // Set state with fetched data
-        setSystemOverview(overview);
-        setUserStats(users);
-        setQuitPlanStats(quitPlans);
-        setContentStats(content);
-        setRecentUsers(users_recent);
-        setCoachPerformance(coaches);
-        setSystemAlerts(alerts);
+  // Modal states for reminder management
+  const [reminderModalVisible, setReminderModalVisible] = useState(false);
+  const [editingReminder, setEditingReminder] = useState(null);
+  const [reminderForm] = Form.useForm();
 
-        // Fetch additional data
-        const userStatsData = getDetailedUserStats();
-        const revenueData = getMembershipRevenue();
-        
-        setDetailedUserStats(userStatsData);
-        setMembershipRevenue(revenueData);
-        
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching admin dashboard data:", error);
-        setLoading(false);
+  // Fetch dashboard statistics
+  const fetchDashboardStats = async () => {
+    try {
+      const stats = await adminDashboardService.getSystemOverview();
+      setDashboardStats(stats || {});
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      message.error("Failed to load dashboard statistics");
+      setDashboardStats({});
+    }
+  };
+
+  // Fetch users data
+  const fetchUsersData = async (page = 0, size = 10) => {
+    try {
+      setUsersLoading(true);
+      const users = await userService.getAllUsers(page, size);
+      setUsersData(users || {
+        content: [],
+        pageNo: 0,
+        pageSize: 10,
+        totalElements: 0,
+        totalPages: 0,
+        last: false
+      });
+    } catch (error) {
+      console.error("Error fetching users data:", error);
+      message.error("Failed to load users data");
+      setUsersData({
+        content: [],
+        pageNo: 0,
+        pageSize: 10,
+        totalElements: 0,
+        totalPages: 0,
+        last: false
+      });
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  // Fetch feedback data
+  const fetchFeedbackData = async () => {
+    try {
+      setFeedbackLoading(true);
+      const [allFeedbacks, published] = await Promise.all([
+        feedbackService.getAllFeedbacks(),
+        feedbackService.getPublishedFeedbacks()
+      ]);
+      setFeedbackData(allFeedbacks || []);
+      setPublishedFeedbacks(published || []);
+    } catch (error) {
+      console.error("Error fetching feedback data:", error);
+      message.error("Failed to load feedback data");
+      setFeedbackData([]);
+      setPublishedFeedbacks([]);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
+  // Fetch reminder data
+  const fetchReminderData = async (page = 0, size = 10) => {
+    try {
+      setReminderLoading(true);
+      const response = await reminderService.getAllReminders(page, size);
+      console.log('Reminder response:', response); // Debug log
+      
+      if (response) {
+        // Check if response has success property (from catch block with mock data)
+        if (response.success === true && Array.isArray(response.data)) {
+          // Mock data format
+          setReminderData(response.data);
+          setReminderPagination({
+            current: page + 1,
+            pageSize: size,
+            total: response.data.length
+          });
+        } else if (response.content) {
+          // Real API data format (after handleApiResponse)
+          setReminderData(response.content || []);
+          setReminderPagination({
+            current: (response.pageNo || 0) + 1,
+            pageSize: response.pageSize || size,
+            total: response.totalElements || 0
+          });
+        } else {
+          // Fallback
+          setReminderData([]);
+          setReminderPagination({
+            current: 1,
+            pageSize: size,
+            total: 0
+          });
+        }
+      } else {
+        setReminderData([]);
+        setReminderPagination({
+          current: 1,
+          pageSize: size,
+          total: 0
+        });
       }
+    } catch (error) {
+      console.error("Error fetching reminder data:", error);
+      message.error("Failed to load reminder data");
+      setReminderData([]);
+      setReminderPagination({
+        current: 1,
+        pageSize: size,
+        total: 0
+      });
+    } finally {
+      setReminderLoading(false);
+    }
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setLoading(true);
+      await Promise.all([
+        fetchDashboardStats(),
+        fetchUsersData(0, pageSize),
+        fetchFeedbackData(),
+        fetchReminderData(0, pageSize)
+      ]);
+      setLoading(false);
     };
 
-    fetchAdminDashboardData();
-  }, []);
+    fetchInitialData();
+  }, [pageSize]);
 
-  if (loading) {
-    return (
-      <div className="dashboard loading-container">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
+  // Handle pagination change
+  const handlePaginationChange = (page, size) => {
+    setCurrentPage(page);
+    setPageSize(size);
+    fetchUsersData(page - 1, size); // API uses 0-based pagination
+  };
 
-  // Table columns for recent users
+  // Handle user disable/enable
+  const handleUserDisableToggle = async (record) => {
+    console.log(record)
+    try {
+      if (record.role === 'ADMIN') {
+        message.warning('Admin users cannot be disabled');
+        return;
+      }
+
+      const action = record.status ? 'disable' : 'enable';
+      const response = await userService.disableUser(record.id);
+      
+      if (response.success) {
+        message.success(`User ${action}d successfully`);
+        // Refresh users data to show updated status
+        fetchUsersData(currentPage - 1, pageSize);
+      } else {
+        message.error(`Failed to ${action} user`);
+      }
+    } catch (error) {
+      console.error(`Error ${record.status ? 'disabling' : 'enabling'} user:`, error);
+      message.error(`Failed to ${record.status ? 'disable' : 'enable'} user`);
+    }
+  };
+
+  // Handle feedback approval
+  const handleFeedbackApproval = async (feedbackId) => {
+    try {
+      const response = await feedbackService.approveFeedback(feedbackId);
+      if (response.success) {
+        message.success('Feedback approved and published successfully');
+        fetchFeedbackData(); // Refresh feedback data
+      } else {
+        message.error('Failed to approve feedback');
+      }
+    } catch (error) {
+      console.error('Error approving feedback:', error);
+      message.error('Failed to approve feedback');
+    }
+  };
+
+  // Handle feedback hiding
+  const handleFeedbackHide = async (feedbackId) => {
+    try {
+      const response = await feedbackService.hideFeedback(feedbackId);
+      if (response.success) {
+        message.success('Feedback hidden successfully');
+        fetchFeedbackData(); // Refresh feedback data
+      } else {
+        message.error('Failed to hide feedback');
+      }
+    } catch (error) {
+      console.error('Error hiding feedback:', error);
+      message.error('Failed to hide feedback');
+    }
+  };
+
+  // Handle marking feedback as reviewed
+  const handleFeedbackReviewed = async (feedbackId) => {
+    try {
+      const response = await feedbackService.markFeedbackReviewed(feedbackId);
+      if (response.success) {
+        message.success('Feedback marked as reviewed');
+        fetchFeedbackData(); // Refresh feedback data
+      } else {
+        message.error('Failed to mark feedback as reviewed');
+      }
+    } catch (error) {
+      console.error('Error marking feedback as reviewed:', error);
+      message.error('Failed to mark feedback as reviewed');
+    }
+  };
+
+  // Create new reminder
+  const handleCreateReminder = async (content, category) => {
+    try {
+      const response = await reminderService.createReminder(content, category);
+      if (response.success) {
+        message.success('Reminder created successfully');
+        fetchReminderData(reminderPagination.current - 1, reminderPagination.pageSize);
+      } else {
+        message.error('Failed to create reminder');
+      }
+    } catch (error) {
+      console.error('Error creating reminder:', error);
+      message.error('Failed to create reminder');
+    }
+  };
+
+  // Update existing reminder
+  const handleUpdateReminder = async (reminderId, content, category) => {
+    try {
+      const response = await reminderService.updateReminder(reminderId, content, category);
+      if (response.success) {
+        message.success('Reminder updated successfully');
+        fetchReminderData(reminderPagination.current - 1, reminderPagination.pageSize);
+      } else {
+        message.error('Failed to update reminder');
+      }
+    } catch (error) {
+      console.error('Error updating reminder:', error);
+      message.error('Failed to update reminder');
+    }
+  };
+
+  // Disable reminder
+  const handleDisableReminder = async (reminderId) => {
+    try {
+      const response = await reminderService.disableReminder(reminderId);
+      if (response.success) {
+        message.success('Reminder disabled successfully');
+        fetchReminderData(reminderPagination.current - 1, reminderPagination.pageSize);
+      } else {
+        message.error('Failed to disable reminder');
+      }
+    } catch (error) {
+      console.error('Error disabling reminder:', error);
+      message.error('Failed to disable reminder');
+    }
+  };
+
+  // Handle reminder pagination change
+  const handleReminderPaginationChange = (page, size) => {
+    setReminderPagination(prev => ({
+      ...prev,
+      current: page,
+      pageSize: size
+    }));
+    fetchReminderData(page - 1, size);
+  };
+
+  // Handle edit reminder
+  const handleEditReminder = (record) => {
+    setEditingReminder(record);
+    reminderForm.setFieldsValue({
+      content: record.content,
+      category: record.category
+    });
+    setReminderModalVisible(true);
+  };
+
+  // Handle reminder modal submission
+  const handleReminderModalSubmit = async () => {
+    try {
+      const values = await reminderForm.validateFields();
+      
+      if (editingReminder) {
+        // Update existing reminder
+        await handleUpdateReminder(editingReminder.id, values.content, values.category);
+      } else {
+        // Create new reminder
+        await handleCreateReminder(values.content, values.category);
+      }
+      
+      setReminderModalVisible(false);
+      setEditingReminder(null);
+      reminderForm.resetFields();
+    } catch (error) {
+      console.error('Form validation failed:', error);
+    }
+  };
+
+  // Handle reminder modal cancel
+  const handleReminderModalCancel = () => {
+    setReminderModalVisible(false);
+    setEditingReminder(null);
+    reminderForm.resetFields();
+  };
+
+  // Table columns for users
   const userColumns = [
     {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
+      width: 80,
     },
     {
       title: 'Name',
@@ -134,7 +430,7 @@ const AdminDashboard = () => {
       dataIndex: 'role',
       key: 'role',
       render: (role) => (
-        <Tag color={role === 'Member' ? 'blue' : role === 'Coach' ? 'green' : 'purple'}>
+        <Tag color={role === 'MEMBER' ? 'blue' : role === 'COACH' ? 'green' : 'purple'}>
           {role}
         </Tag>
       )
@@ -144,13 +440,11 @@ const AdminDashboard = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Badge status={status === 'Active' ? 'success' : 'default'} text={status} />
+        <Badge 
+          status={status ? 'success' : 'error'} 
+          text={status ? 'Active' : 'Inactive'} 
+        />
       )
-    },
-    {
-      title: 'Joined',
-      dataIndex: 'joined',
-      key: 'joined',
     },
     {
       title: 'Action',
@@ -158,293 +452,608 @@ const AdminDashboard = () => {
       render: (_, record) => (
         <Space>
           <Button type="link" size="small">View</Button>
-          <Button type="link" size="small">Edit</Button>
+          {record.role !== 'ADMIN' && (
+            <Button 
+              type="link" 
+              size="small" 
+              danger={record.status}
+              onClick={() => handleUserDisableToggle(record)}
+            >
+              {record.status ? 'Disable' : 'Enable'}
+            </Button>
+          )}
+          {record.role === 'ADMIN' && (
+            <Tooltip title="Admin users cannot be disabled">
+              <Button type="link" size="small" disabled>
+                Protected
+              </Button>
+            </Tooltip>
+          )}
         </Space>
       )
     }
   ];
 
-  // Table columns for coach performance
-  const coachColumns = [
+  // Table columns for feedbacks
+  const feedbackColumns = [
     {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
+      width: 80,
     },
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: 'Rating',
-      dataIndex: 'rating',
-      key: 'rating',
-      render: (rating) => (
-        <Space>
-          <StarOutlined style={{ color: '#faad14' }} />
-          <span>{rating}/5.0</span>
-        </Space>
+      title: 'Content',
+      dataIndex: 'content',
+      key: 'content',
+      ellipsis: true,
+      render: (content) => (
+        <Tooltip title={content}>
+          <span>{content}</span>
+        </Tooltip>
       )
     },
     {
-      title: 'Members',
-      dataIndex: 'members',
-      key: 'members',
+      title: 'Rating',
+      dataIndex: 'star',
+      key: 'star',
+      width: 100,
+      render: (star) => (
+        <div>
+          <StarOutlined style={{ color: '#faad14' }} /> {star}/5
+        </div>
+      )
     },
     {
-      title: 'Success Rate',
-      dataIndex: 'successRate',
-      key: 'successRate',
-      render: (rate) => <Progress percent={rate} size="small" />
+      title: 'Coach',
+      dataIndex: ['coach', 'name'],
+      key: 'coachName',
+      render: (name, record) => name || record.coachName || 'N/A'
     },
     {
-      title: 'Action',
-      key: 'action',
+      title: 'Member',
+      dataIndex: ['member', 'name'],
+      key: 'memberName',
+      render: (name, record) => name || record.memberName || 'N/A'
+    },
+    {
+      title: 'Status',
+      key: 'status',
+      render: (_, record) => {
+        const isPublished = record.published || record.isPublished;
+        const isReviewed = record.reviewed || record.isReviewed;
+        
+        if (isPublished) {
+          return <Tag color="green">Published</Tag>;
+        } else if (isReviewed) {
+          return <Tag color="blue">Reviewed</Tag>;
+        } else {
+          return <Tag color="orange">Unreviewed</Tag>;
+        }
+      }
+    },
+    {
+      title: 'Created Date',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 120,
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      width: 200,
+      render: (_, record) => {
+        const isPublished = record.published || record.isPublished;
+        const isReviewed = record.reviewed || record.isReviewed;
+        
+        return (
+          <Space>
+            {!isReviewed && (
+              <Button 
+                type="link" 
+                size="small"
+                onClick={() => handleFeedbackReviewed(record.id)}
+              >
+                Mark Reviewed
+              </Button>
+            )}
+            {!isPublished && isReviewed && (
+              <Button 
+                type="link" 
+                size="small"
+                style={{ color: '#52c41a' }}
+                onClick={() => handleFeedbackApproval(record.id)}
+              >
+                Approve & Publish
+              </Button>
+            )}
+            {isPublished && (
+              <Button 
+                type="link" 
+                size="small"
+                danger
+                onClick={() => handleFeedbackHide(record.id)}
+              >
+                Hide
+              </Button>
+            )}
+          </Space>
+        );
+      }
+    }
+  ];
+
+  // Table columns for reminders
+  const reminderColumns = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+    },
+    {
+      title: 'Content',
+      dataIndex: 'content',
+      key: 'content',
+      ellipsis: true,
+      render: (content) => (
+        <Tooltip title={content}>
+          <span>{content}</span>
+        </Tooltip>
+      )
+    },
+    {
+      title: 'Category',
+      dataIndex: 'category',
+      key: 'category',
+      render: (category) => {
+        const colors = {
+          'HEALTH_BENEFITS': 'green',
+          'MOTIVATIONAL_QUOTES': 'blue',
+          'TIPS_AND_TRICKS': 'orange',
+          'MILESTONE_CELEBRATIONS': 'purple',
+          'SMOKING_FACTS': 'red'
+        };
+        return (
+          <Tag color={colors[category] || 'default'}>
+            {category?.replace(/_/g, ' ') || 'General'}
+          </Tag>
+        );
+      }
+    },
+    {
+      title: 'Status',
+      dataIndex: 'active',
+      key: 'active',
+      render: (active) => (
+        <Badge 
+          status={active ? 'success' : 'error'} 
+          text={active ? 'Active' : 'Inactive'} 
+        />
+      )
+    },
+    {
+      title: 'Created Date',
+      dataIndex: 'createAt',
+      key: 'createAt',
+      width: 120,
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+    },
+    {
+      title: 'Updated Date',
+      dataIndex: 'updateAt',
+      key: 'updateAt',
+      width: 120,
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      width: 200,
       render: (_, record) => (
         <Space>
-          <Button type="link" size="small">Details</Button>
-          <Button type="link" size="small">Contact</Button>
+          <Button 
+            type="link" 
+            size="small"
+            onClick={() => handleEditReminder(record)}
+          >
+            Edit
+          </Button>
+          <Button 
+            type="link" 
+            size="small"
+            danger={record.active}
+            onClick={() => handleDisableReminder(record.id)}
+          >
+            {record.active ? 'Disable' : 'Enable'}
+          </Button>
         </Space>
       )
     }
   ];
 
-  // Colors for pie chart
-  const COLORS = ['#1890ff', '#52c41a', '#722ed1', '#faad14'];
+  // Prepare chart data from dashboard stats
+  const prepareUserRoleData = () => {
+    const { totalMembers = 0, totalCoaches = 0, totalUsers = 0 } = dashboardStats;
+    const admins = totalUsers - totalMembers - totalCoaches;
+    
+    return [
+      { name: 'Members', value: totalMembers, color: '#1890ff' },
+      { name: 'Coaches', value: totalCoaches, color: '#52c41a' },
+      { name: 'Admins', value: Math.max(0, admins), color: '#722ed1' }
+    ].filter(item => item.value > 0);
+  };
+
+  const prepareFeedbackData = () => {
+    const { 
+      totalFeedback = 0, 
+      reviewedFeedback = 0, 
+      unreviewedFeedback = 0, 
+      publishedFeedback = 0, 
+      unpublishedFeedback = 0 
+    } = dashboardStats;
+    
+    return [
+      { name: 'Reviewed', value: reviewedFeedback, color: '#52c41a' },
+      { name: 'Unreviewed', value: unreviewedFeedback, color: '#faad14' },
+      { name: 'Published', value: publishedFeedback, color: '#1890ff' },
+      { name: 'Unpublished', value: unpublishedFeedback, color: '#ff4d4f' }
+    ].filter(item => item.value > 0);
+  };
+
+  const prepareQuitPlanData = () => {
+    const { 
+      totalQuitPlans = 0,
+      activeQuitPlans = 0, 
+      completedQuitPlans = 0, 
+      cancelledQuitPlans = 0, 
+      rejectedQuitPlans = 0 
+    } = dashboardStats;
+    
+    return [
+      { name: 'Active', value: activeQuitPlans, color: '#1890ff' },
+      { name: 'Completed', value: completedQuitPlans, color: '#52c41a' },
+      { name: 'Cancelled', value: cancelledQuitPlans, color: '#faad14' },
+      { name: 'Rejected', value: rejectedQuitPlans, color: '#ff4d4f' }
+    ].filter(item => item.value > 0);
+  };
+
+  // Prepare feedback rating distribution
+  const prepareFeedbackRatingData = () => {
+    const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    
+    feedbackData.forEach(feedback => {
+      const rating = feedback.star || feedback.rating;
+      if (rating >= 1 && rating <= 5) {
+        ratingCounts[rating]++;
+      }
+    });
+
+    return [
+      { name: '1 Star', value: ratingCounts[1], color: '#ff4d4f' },
+      { name: '2 Stars', value: ratingCounts[2], color: '#ff7a45' },
+      { name: '3 Stars', value: ratingCounts[3], color: '#faad14' },
+      { name: '4 Stars', value: ratingCounts[4], color: '#a0d911' },
+      { name: '5 Stars', value: ratingCounts[5], color: '#52c41a' }
+    ].filter(item => item.value > 0);
+  };
+
+  // Calculate feedback status statistics
+  const getFeedbackStatusStats = () => {
+    const total = feedbackData.length;
+    const published = feedbackData.filter(f => f.published || f.isPublished).length;
+    const reviewed = feedbackData.filter(f => f.reviewed || f.isReviewed).length;
+    const unreviewed = total - reviewed;
+    
+    return {
+      total,
+      published,
+      reviewed,
+      unreviewed,
+      publishedRate: total > 0 ? Math.round((published / total) * 100) : 0,
+      reviewedRate: total > 0 ? Math.round((reviewed / total) * 100) : 0
+    };
+  };
+
+  if (loading) {
+    return (
+      <div className="dashboard loading-container">
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard admin-dashboard">
       <div className="container py-4">
-        <Title level={2} className="page-title">System Dashboard</Title>
-        
-        {/* System Alerts */}
-        {systemAlerts.length > 0 && (
-          <Alert
-            message={`You have ${systemAlerts.length} system alerts`}
-            description={
-              <List
-                size="small"
-                dataSource={systemAlerts.slice(0, 3)}
-                renderItem={item => (
-                  <List.Item>
-                    <Text type={item.level === 'high' ? 'danger' : item.level === 'medium' ? 'warning' : 'secondary'}>
-                      <BellOutlined style={{ marginRight: 8 }} />
-                      {item.message}
-                    </Text>
-                  </List.Item>
-                )}
-              />
-            }
-            type="info"
-            showIcon
-            className="mb-4"
-          />
-        )}
+        <Title level={2} className="page-title">Admin Dashboard</Title>
         
         {/* Overview Statistics */}
-        <Row gutter={[16, 16]} className="stats-overview">
+        <Row gutter={[16, 16]} className="stats-overview mb-4">
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
               <Statistic 
                 title="Total Users"
-                value={systemOverview.totalUsers}
+                value={dashboardStats.totalUsers || 0}
                 prefix={<TeamOutlined />}
                 valueStyle={{ color: '#1890ff' }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  <RiseOutlined /> {systemOverview.userGrowth}% from last month
+                  {dashboardStats.totalMembers || 0} Members, {dashboardStats.totalCoaches || 0} Coaches
                 </Text>
               </div>
             </Card>
           </Col>
+          
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
               <Statistic 
-                title="Active Quit Plans"
-                value={systemOverview.activePlans}
-                prefix={<CheckCircleOutlined />}
+                title="Active Members"
+                value={dashboardStats.activeMembers || 0}
+                prefix={<UserOutlined />}
                 valueStyle={{ color: '#52c41a' }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  {systemOverview.completedPlans} completed
+                  {dashboardStats.inactiveMembers || 0} Inactive
                 </Text>
               </div>
             </Card>
           </Col>
+          
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
               <Statistic 
-                title="Total Coaches"
-                value={systemOverview.totalCoaches}
+                title="Active Coaches"
+                value={dashboardStats.activeCoaches || 0}
                 prefix={<MedicineBoxOutlined />}
                 valueStyle={{ color: '#722ed1' }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  Average rating: {systemOverview.averageRating}
+                  {dashboardStats.coachesWithActiveMembers || 0} with active members
                 </Text>
               </div>
             </Card>
           </Col>
+          
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
               <Statistic 
-                title="Total Revenue"
-                value={systemOverview.totalRevenue}
-                prefix={<DollarOutlined />}
-                valueStyle={{ color: '#eb2f96' }}
+                title="Total Feedback"
+                value={dashboardStats.totalFeedback || 0}
+                prefix={<FileTextOutlined />}
+                valueStyle={{ color: '#faad14' }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  <RiseOutlined /> {systemOverview.revenueGrowth}% growth
+                  Average: {dashboardStats.averageStarAll || 0} stars
+                </Text>
+              </div>
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Secondary Statistics */}
+        <Row gutter={[16, 16]} className="stats-overview mb-4">
+          <Col xs={24} sm={12} md={6}>
+            <Card className="stat-card">
+              <Statistic 
+                title="Quit Plans"
+                value={dashboardStats.totalQuitPlans || 0}
+                prefix={<TrophyOutlined />}
+                valueStyle={{ color: '#1890ff' }}
+              />
+              <div className="stat-footer">
+                <Text type="secondary">
+                  Success Rate: {dashboardStats.successRateOfQuitPlans || 0}%
+                </Text>
+              </div>
+            </Card>
+          </Col>
+          
+          <Col xs={24} sm={12} md={6}>
+            <Card className="stat-card">
+              <Statistic 
+                title="Daily Logs"
+                value={dashboardStats.totalDailyLogs || 0}
+                prefix={<FileTextOutlined />}
+                valueStyle={{ color: '#52c41a' }}
+              />
+              <div className="stat-footer">
+                <Text type="secondary">
+                  {dashboardStats.membersWithAnyLog || 0} active loggers
+                </Text>
+              </div>
+            </Card>
+          </Col>
+          
+          <Col xs={24} sm={12} md={6}>
+            <Card className="stat-card">
+              <Statistic 
+                title="Members with Coach"
+                value={dashboardStats.membersWithAssignedCoach || 0}
+                prefix={<TeamOutlined />}
+                valueStyle={{ color: '#722ed1' }}
+              />
+              <div className="stat-footer">
+                <Text type="secondary">
+                  Coach assignment rate
+                </Text>
+              </div>
+            </Card>
+          </Col>
+          
+          <Col xs={24} sm={12} md={6}>
+            <Card className="stat-card">
+              <Statistic 
+                title="Avg Phases per Plan"
+                value={dashboardStats.averagePhasesPerQuitPlan || 0}
+                prefix={<CheckCircleOutlined />}
+                valueStyle={{ color: '#faad14' }}
+              />
+              <div className="stat-footer">
+                <Text type="secondary">
+                  Per quit plan
                 </Text>
               </div>
             </Card>
           </Col>
         </Row>
         
-        <Tabs defaultActiveKey="1" className="dashboard-tabs mt-4">
-          <TabPane tab="User Statistics" key="1">
-            <Row gutter={[16, 16]}>
-              <Col xs={24} md={12}>
-                <Card title="User Roles Distribution">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={userStats.usersByRole || []}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={true}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="count"
-                      >
-                        {userStats.usersByRole && userStats.usersByRole.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [`${value} users`, 'Count']} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
+        <Tabs defaultActiveKey="1" className="dashboard-tabs">
+          <TabPane tab="User Management" key="1">
+            <Card title={`All Users (${usersData.totalElements || 0} total)`}>
+              <Table 
+                dataSource={usersData.content || []} 
+                columns={userColumns} 
+                rowKey="id"
+                loading={usersLoading}
+                pagination={false}
+              />
+              <div className="mt-4 text-center">
+                <Pagination
+                  current={currentPage}
+                  pageSize={pageSize}
+                  total={usersData.totalElements || 0}
+                  onChange={handlePaginationChange}
+                  onShowSizeChange={handlePaginationChange}
+                  showSizeChanger
+                  showQuickJumper
+                  showTotal={(total, range) => 
+                    `${range[0]}-${range[1]} of ${total} users`
+                  }
+                />
+              </div>
+            </Card>
+          </TabPane>
+          
+          <TabPane tab="Feedback Management" key="2.5">
+            <Row gutter={[16, 16]} className="mb-4">
+              <Col xs={24} sm={6}>
+                <Card className="stat-card">
+                  <Statistic 
+                    title="Total Feedback"
+                    value={feedbackData.length || 0}
+                    prefix={<FileTextOutlined />}
+                    valueStyle={{ color: '#1890ff' }}
+                  />
                 </Card>
               </Col>
-              <Col xs={24} md={12}>
-                <Card title="User Activity (Last 7 Days)">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart
-                      data={userStats.userGrowth || []}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="day" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="activeUsers" stroke="#1890ff" activeDot={{ r: 8 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
+              <Col xs={24} sm={6}>
+                <Card className="stat-card">
+                  <Statistic 
+                    title="Published Feedback"
+                    value={getFeedbackStatusStats().published || 0}
+                    prefix={<CheckCircleOutlined />}
+                    valueStyle={{ color: '#52c41a' }}
+                  />
+                  <div className="stat-footer">
+                    <Text type="secondary">
+                      {getFeedbackStatusStats().publishedRate}% published rate
+                    </Text>
+                  </div>
                 </Card>
               </Col>
-              <Col xs={24}>
-                <Card title="Recent Users">
-                  <Table 
-                    dataSource={recentUsers} 
-                    columns={userColumns} 
-                    rowKey="id"
-                    pagination={{ pageSize: 5 }}
+              <Col xs={24} sm={6}>
+                <Card className="stat-card">
+                  <Statistic 
+                    title="Reviewed Feedback"
+                    value={getFeedbackStatusStats().reviewed || 0}
+                    prefix={<BellOutlined />}
+                    valueStyle={{ color: '#722ed1' }}
+                  />
+                  <div className="stat-footer">
+                    <Text type="secondary">
+                      {getFeedbackStatusStats().reviewedRate}% reviewed rate
+                    </Text>
+                  </div>
+                </Card>
+              </Col>
+              <Col xs={24} sm={6}>
+                <Card className="stat-card">
+                  <Statistic 
+                    title="Average Rating"
+                    value={dashboardStats.averageStarAll || 0}
+                    precision={1}
+                    prefix={<StarOutlined />}
+                    suffix="/ 5.0"
+                    valueStyle={{ color: '#faad14' }}
                   />
                 </Card>
               </Col>
             </Row>
-          </TabPane>
-          
-          <TabPane tab="Quit Plan Statistics" key="2">
-            <Row gutter={[16, 16]}>
+
+            <Row gutter={[16, 16]} className="mb-4">
               <Col xs={24} md={12}>
-                <Card title="Quit Plan Status">
+                <Card title="Feedback Rating Distribution">
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart
-                      data={quitPlanStats.plansByStatus || []}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
+                    <BarChart data={prepareFeedbackRatingData()}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="status" />
+                      <XAxis dataKey="name" />
                       <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="count" fill="#1890ff" />
+                      <RechartsTooltip />
+                      <Bar dataKey="value" fill="#8884d8">
+                        {prepareFeedbackRatingData().map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </Card>
               </Col>
+              
               <Col xs={24} md={12}>
-                <Card title="Success Rate Trend">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart
-                      data={quitPlanStats.successRate || []}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="rate" stroke="#52c41a" activeDot={{ r: 8 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </Card>
-              </Col>
-              <Col xs={24} md={12}>
-                <Card>
-                  <Statistic
-                    title="Average Plan Completion Time"
-                    value={quitPlanStats.avgCompletionTime}
-                    suffix="days"
-                    valueStyle={{ color: '#1890ff' }}
-                  />
-                  <Divider />
-                  <Title level={5}>Phase Distribution</Title>
-                  <div className="phase-distribution">
-                    {quitPlanStats.phaseDistribution && quitPlanStats.phaseDistribution.map((phase, index) => (
-                      <div key={index} className="phase-item">
-                        <Text>{phase.phase}</Text>
-                        <Progress 
-                          percent={Math.round((phase.count / quitPlanStats.phaseDistribution.reduce((acc, curr) => acc + curr.count, 0)) * 100)} 
-                          size="small" 
-                          status={index === quitPlanStats.phaseDistribution.length - 1 ? "success" : "active"}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </Col>
-              <Col xs={24} md={12}>
-                <Card title="Top Badges Earned">
-                  <List
-                    dataSource={contentStats.topBadges || []}
-                    renderItem={item => (
-                      <List.Item>
-                        <List.Item.Meta
-                          avatar={<TrophyOutlined style={{ fontSize: 24, color: '#faad14' }} />}
-                          title={item.name}
-                          description={`Earned by ${item.count} users`}
-                        />
-                        <Progress 
-                          percent={contentStats.topBadges ? 
-                            Math.round((item.count / contentStats.topBadges.reduce((acc, curr) => acc + curr.count, 0)) * 100) : 0} 
-                          size="small" 
-                        />
-                      </List.Item>
-                    )}
-                  />
+                <Card title="Feedback Status Overview">
+                  <Row gutter={[16, 16]}>
+                    <Col span={12}>
+                      <Statistic 
+                        title="Unreviewed"
+                        value={getFeedbackStatusStats().unreviewed}
+                        valueStyle={{ color: '#ff4d4f' }}
+                      />
+                      <Progress 
+                        percent={100 - getFeedbackStatusStats().reviewedRate} 
+                        strokeColor="#ff4d4f"
+                        showInfo={false}
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <Statistic 
+                        title="Reviewed"
+                        value={getFeedbackStatusStats().reviewed}
+                        valueStyle={{ color: '#52c41a' }}
+                      />
+                      <Progress 
+                        percent={getFeedbackStatusStats().reviewedRate} 
+                        strokeColor="#52c41a"
+                        showInfo={false}
+                      />
+                    </Col>
+                  </Row>
                 </Card>
               </Col>
             </Row>
+
+            <Card title={`All Feedback (${feedbackData.length || 0} total)`}>
+              <Table 
+                dataSource={feedbackData || []} 
+                columns={feedbackColumns} 
+                rowKey="id"
+                loading={feedbackLoading}
+                scroll={{ x: 1200 }}
+                pagination={{
+                  showSizeChanger: true,
+                  showQuickJumper: true,
+                  showTotal: (total, range) => 
+                    `${range[0]}-${range[1]} of ${total} feedback entries`
+                }}
+              />
+            </Card>
           </TabPane>
           
           <TabPane tab="User Analytics" key="3">
@@ -454,126 +1063,194 @@ const AdminDashboard = () => {
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={detailedUserStats?.usersByRole || []}
+                        data={prepareUserRoleData()}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
+                        label={({ name, value, percent }) => 
+                          `${name}: ${value} (${(percent * 100).toFixed(1)}%)`
+                        }
                         outerRadius={80}
                         fill="#8884d8"
-                        dataKey="count"
-                        nameKey="role"
-                        label={({ role, count, percent }) => `${role}: ${(percent * 100).toFixed(0)}%`}
+                        dataKey="value"
                       >
-                        {detailedUserStats?.usersByRole.map((entry, index) => (
+                        {prepareUserRoleData().map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value, name) => [`${value} users`, name]} />
-                      <Legend />
+                      <Tooltip />
                     </PieChart>
                   </ResponsiveContainer>
                 </Card>
               </Col>
               
               <Col xs={24} md={12}>
-                <Card title="New User Registrations">
+                <Card title="Feedback Status Distribution">
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart
-                      data={detailedUserStats?.registrationsByMonth || []}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
+                    <PieChart>
+                      <Pie
+                        data={prepareFeedbackData()}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, value, percent }) => 
+                          `${name}: ${value} (${(percent * 100).toFixed(1)}%)`
+                        }
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {prepareFeedbackData().map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
                       <Tooltip />
-                      <Legend />
-                      <Bar dataKey="users" name="New Users" fill="#52c41a" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Card>
-              </Col>
-              
-              <Col xs={24} md={12}>
-                <Card title="Membership Distribution">
-                  <Row gutter={[16, 16]}>
-                    <Col span={8}>
-                      <Statistic 
-                        title="Premium"
-                        value={detailedUserStats?.membershipStats.premium || 0}
-                        valueStyle={{ color: '#722ed1' }}
-                      />
-                      <Progress 
-                        percent={detailedUserStats ? 
-                          (detailedUserStats.membershipStats.premium / detailedUserStats.totalUsers * 100).toFixed(1) : 0
-                        } 
-                        strokeColor="#722ed1" 
-                      />
-                    </Col>
-                    <Col span={8}>
-                      <Statistic 
-                        title="Standard"
-                        value={detailedUserStats?.membershipStats.standard || 0}
-                        valueStyle={{ color: '#1890ff' }}
-                      />
-                      <Progress 
-                        percent={detailedUserStats ? 
-                          (detailedUserStats.membershipStats.standard / detailedUserStats.totalUsers * 100).toFixed(1) : 0
-                        } 
-                        strokeColor="#1890ff" 
-                      />
-                    </Col>
-                    <Col span={8}>
-                      <Statistic 
-                        title="Free"
-                        value={detailedUserStats?.membershipStats.free || 0}
-                        valueStyle={{ color: '#52c41a' }}
-                      />
-                      <Progress 
-                        percent={detailedUserStats ? 
-                          (detailedUserStats.membershipStats.free / detailedUserStats.totalUsers * 100).toFixed(1) : 0
-                        } 
-                        strokeColor="#52c41a" 
-                      />
-                    </Col>
-                  </Row>
-                </Card>
-              </Col>
-              
-              <Col xs={24} md={12}>
-                <Card title="Revenue by Month">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart
-                      data={membershipRevenue?.revenueByMonth || []}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
-                      <Legend />
-                      <Line type="monotone" dataKey="revenue" name="Monthly Revenue" stroke="#eb2f96" activeDot={{ r: 8 }} />
-                    </LineChart>
+                    </PieChart>
                   </ResponsiveContainer>
                 </Card>
               </Col>
             </Row>
           </TabPane>
           
-          <TabPane tab="Coach Performance" key="4">
+          <TabPane tab="Quit Plan Analytics" key="4">
             <Row gutter={[16, 16]}>
-              <Col xs={24}>
-                <Card title="Coach Performance Overview">
-                  <Table 
-                    dataSource={coachPerformance} 
-                    columns={coachColumns} 
-                    rowKey="id"
-                    pagination={{ pageSize: 5 }}
-                  />
+              <Col xs={24} md={12}>
+                <Card title="Quit Plan Status Distribution">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={prepareQuitPlanData()}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, value, percent }) => 
+                          `${name}: ${value} (${(percent * 100).toFixed(1)}%)`
+                        }
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {prepareQuitPlanData().map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Card>
+              </Col>
+              
+              <Col xs={24} md={12}>
+                <Card title="Quit Plan Statistics">
+                  <Row gutter={[16, 16]}>
+                    <Col span={24}>
+                      <Statistic 
+                        title="Success Rate"
+                        value={dashboardStats.successRateOfQuitPlans || 0}
+                        suffix="%"
+                        valueStyle={{ color: '#52c41a' }}
+                      />
+                      <Progress 
+                        percent={dashboardStats.successRateOfQuitPlans || 0}
+                        strokeColor="#52c41a"
+                        showInfo={false}
+                      />
+                    </Col>
+                  </Row>
                 </Card>
               </Col>
             </Row>
           </TabPane>
+          
+          <TabPane tab="Reminders" key="5">
+            <Card 
+              title={`All Reminders (${reminderPagination.total} total)`}
+              extra={
+                <Button 
+                  type="primary" 
+                  onClick={() => setReminderModalVisible(true)}
+                  icon={<PlusOutlined />}
+                >
+                  Create Reminder
+                </Button>
+              }
+            >
+              <Table 
+                dataSource={reminderData} 
+                columns={reminderColumns} 
+                rowKey="id"
+                loading={reminderLoading}
+                pagination={false}
+              />
+              <div className="mt-4 text-center">
+                <Pagination
+                  current={reminderPagination.current}
+                  pageSize={reminderPagination.pageSize}
+                  total={reminderPagination.total}
+                  onChange={handleReminderPaginationChange}
+                  onShowSizeChange={handleReminderPaginationChange}
+                  showSizeChanger
+                  showQuickJumper
+                  showTotal={(total, range) => 
+                    `${range[0]}-${range[1]} of ${total} reminders`
+                  }
+                />
+              </div>
+            </Card>
+          </TabPane>
         </Tabs>
+
+        {/* Reminder Management Modal */}
+        <Modal
+          title={editingReminder ? 'Edit Reminder' : 'Create Reminder'}
+          visible={reminderModalVisible}
+          onCancel={handleReminderModalCancel}
+          footer={null}
+          destroyOnClose
+        >
+          <Form
+            form={reminderForm}
+            layout="vertical"
+            onFinish={handleReminderModalSubmit}
+          >
+            <Form.Item
+              name="content"
+              label="Content"
+              rules={[
+                { required: true, message: 'Please enter reminder content' }
+              ]}
+            >
+              <Input.TextArea rows={4} placeholder="Enter reminder content..." />
+            </Form.Item>
+            
+            <Form.Item
+              name="category"
+              label="Category"
+              rules={[
+                { required: true, message: 'Please select reminder category' }
+              ]}
+            >
+              <Select placeholder="Select category">
+                <Select.Option value="HEALTH_BENEFITS">Health Benefits</Select.Option>
+                <Select.Option value="MOTIVATIONAL_QUOTES">Motivational Quotes</Select.Option>
+                <Select.Option value="TIPS_AND_TRICKS">Tips and Tricks</Select.Option>
+                <Select.Option value="MILESTONE_CELEBRATIONS">Milestone Celebrations</Select.Option>
+                <Select.Option value="SMOKING_FACTS">Smoking Facts</Select.Option>
+              </Select>
+            </Form.Item>
+            
+            <Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit" loading={reminderLoading}>
+                  {editingReminder ? 'Update Reminder' : 'Create Reminder'}
+                </Button>
+                <Button onClick={handleReminderModalCancel}>
+                  Cancel
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
     </div>
   );

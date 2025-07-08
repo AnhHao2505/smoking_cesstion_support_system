@@ -10,6 +10,18 @@ import {
   MenuUnfoldOutlined,
   BellOutlined,
   FormOutlined,
+  QuestionCircleOutlined,
+  LineChartOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  FireOutlined,
+  TeamOutlined,
+  SettingOutlined,
+  CrownOutlined,
+  PlusOutlined,
+  HeartOutlined,
+  BarChartOutlined,
+  AimOutlined
 } from '@ant-design/icons';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -37,6 +49,153 @@ const MemberLayout = () => {
       icon: <LogoutOutlined />,
       label: <span onClick={handleLogout}>Logout</span>,
     },
+  ];
+
+  // Add new menu items
+  const items = [
+    {
+      key: '/member/dashboard',
+      icon: <DashboardOutlined />,
+      label: <Link to="/member/dashboard">Dashboard</Link>,
+    },
+    {
+      key: 'quit-plan',
+      icon: <FileTextOutlined />,
+      label: 'Kế hoạch cai thuốc',
+      children: [
+        {
+          key: '/member/quit-plan',
+          label: <Link to="/member/quit-plan">Kế hoạch của tôi</Link>,
+        },
+        {
+          key: '/member/quit-plan-creation',
+          label: <Link to="/member/quit-plan-creation">Tạo kế hoạch mới</Link>,
+        },
+        {
+          key: '/member/phase-progress',
+          label: <Link to="/member/phase-progress">Tiến độ giai đoạn</Link>,
+        }
+      ]
+    },
+    {
+      key: 'daily-tracking',
+      icon: <FormOutlined />,
+      label: 'Theo dõi hàng ngày',
+      children: [
+        {
+          key: '/member/daily-checkin',
+          label: <Link to="/member/daily-checkin">Check-in hàng ngày</Link>,
+        },
+        {
+          key: '/member/daily-record',
+          label: <Link to="/member/daily-record">Nhật ký</Link>,
+        },
+        {
+          key: '/member/smoking-status',
+          label: <Link to="/member/smoking-status">Trạng thái hút thuốc</Link>,
+        },
+        {
+          key: '/member/craving-logger',
+          label: <Link to="/member/craving-logger">Ghi chép cơn thèm</Link>,
+        }
+      ]
+    },
+    {
+      key: 'progress',
+      icon: <LineChartOutlined />,
+      label: 'Tiến độ & Thống kê',
+      children: [
+        {
+          key: '/member/quit-progress',
+          label: <Link to="/member/quit-progress">Tiến độ cai thuốc</Link>,
+        },
+        {
+          key: '/member/phase-progress',
+          label: <Link to="/member/phase-progress">Tiến độ giai đoạn</Link>,
+        }
+      ]
+    },
+    {
+      key: 'reminders',
+      icon: <BellOutlined />,
+      label: 'Nhắc nhở',
+      children: [
+        {
+          key: '/member/reminders',
+          label: <Link to="/member/reminders">Danh sách nhắc nhở</Link>,
+        },
+        {
+          key: '/member/reminders/create',
+          label: <Link to="/member/reminders/create">Tạo nhắc nhở</Link>,
+        },
+        {
+          key: '/member/reminders/calendar',
+          label: <Link to="/member/reminders/calendar">Lịch nhắc nhở</Link>,
+        },
+        {
+          key: '/member/reminders/settings',
+          label: <Link to="/member/reminders/settings">Cài đặt</Link>,
+        }
+      ]
+    },
+    {
+      key: 'appointments',
+      icon: <CalendarOutlined />,
+      label: 'Cuộc hẹn',
+      children: [
+        {
+          key: '/member/appointments',
+          label: <Link to="/member/appointments">Lịch hẹn</Link>,
+        },
+        {
+          key: '/member/appointment-management',
+          label: <Link to="/member/appointment-management">Quản lý cuộc hẹn</Link>,
+        }
+      ]
+    },
+    {
+      key: 'coach',
+      icon: <TeamOutlined />,
+      label: 'Coach',
+      children: [
+        {
+          key: '/member/coach-selection',
+          label: <Link to="/member/coach-selection">Chọn Coach</Link>,
+        }
+      ]
+    },
+    {
+      key: 'qa-forum',
+      icon: <QuestionCircleOutlined />,
+      label: <Link to="/qa-forum">Q&A Forum</Link>,
+    },
+    {
+      key: 'account',
+      icon: <UserOutlined />,
+      label: 'Tài khoản',
+      children: [
+        {
+          key: '/member/account-management',
+          label: <Link to="/member/account-management">Quản lý tài khoản</Link>,
+        },
+        {
+          key: '/member/member-profile',
+          label: <Link to="/member/member-profile">Hồ sơ cá nhân</Link>,
+        },
+        {
+          key: '/member/user-settings',
+          label: <Link to="/member/user-settings">Cài đặt</Link>,
+        },
+        {
+          key: '/member/membership-status',
+          label: <Link to="/member/membership-status">Trạng thái thành viên</Link>,
+        },
+        {
+          key: '/member/premium-upgrade',
+          label: <Link to="/member/premium-upgrade">Nâng cấp Premium</Link>,
+        }
+      ]
+    }
   ];
 
   return (
@@ -78,24 +237,10 @@ const MemberLayout = () => {
         <Menu
           theme="light"
           mode="inline"
-          selectedKeys={[location.pathname === '/' ? '/' : location.pathname.replace('/', '')]}
-        >
-          <Menu.Item key="/" icon={<DashboardOutlined />}>
-            <Link to="/">Dashboard</Link>
-          </Menu.Item>
-          <Menu.Item key="quit-plan" icon={<FileTextOutlined />}>
-            <Link to="/quit-plan">Quit Plan</Link>
-          </Menu.Item>
-          <Menu.Item key="daily-record" icon={<FormOutlined />}>
-            <Link to="/daily-record">Daily Record</Link>
-          </Menu.Item>
-          <Menu.Item key="appointments" icon={<CalendarOutlined />}>
-            <Link to="/appointments">Appointments</Link>
-          </Menu.Item>
-          <Menu.Item key="profile" icon={<UserOutlined />}>
-            <Link to="/profile">My Profile</Link>
-          </Menu.Item>
-        </Menu>
+          selectedKeys={[location.pathname]}
+          defaultOpenKeys={['quit-plan', 'daily-tracking', 'progress', 'reminders', 'appointments', 'coach', 'account']}
+          items={items}
+        />
       </Sider>
 
       <Layout>

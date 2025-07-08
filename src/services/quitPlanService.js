@@ -1,3 +1,6 @@
+import axiosInstance from '../utils/axiosConfig';
+import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
+
 // Mock data for quit plan creation
 
 // Get available coaches
@@ -103,15 +106,193 @@ export const getSuggestedMedications = () => {
   ];
 };
 
-// Create a new quit plan (mock implementation)
-export const createQuitPlan = (quitPlanData) => {
-  console.log("Creating new quit plan with data:", quitPlanData);
-  
-  // In a real app, this would make an API call
-  // For now, just return a success response with mock data
+// Real API functions for quit plan operations
+
+// Create a new quit plan - Updated to match new API
+export const createQuitPlan = async (memberId, quitPlanData) => {
+  try {
+    const response = await axiosInstance.post('/api/quit-plans/create', quitPlanData, {
+      params: { memberId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Update quit plan by coach - Updated to match new API
+export const updateQuitPlanByCoach = async (planId, quitPlanData) => {
+  try {
+    const response = await axiosInstance.put('/api/quit-plans/update', quitPlanData, {
+      params: { planId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Get newest quit plan of member - Updated to match new API
+export const getNewestQuitPlan = async (memberId) => {
+  try {
+    const response = await axiosInstance.get('/api/quit-plans/newest', {
+      params: { memberId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Get old plans of member with pagination - Updated to match new API
+export const getOldPlansOfMember = async (memberId, page = 0, size = 10) => {
+  try {
+    const response = await axiosInstance.get('/api/quit-plans/olds', {
+      params: { memberId, page, size }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Coach finish a quit plan - Updated to match new API
+export const finishQuitPlan = async (planId, note = '') => {
+  try {
+    const response = await axiosInstance.patch('/api/quit-plans/finish', null, {
+      params: { planId, note }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Get quit plan detail - using newest plan as there's no direct endpoint for plan by ID
+export const getQuitPlanDetail = async (planId) => {
+  try {
+    // Since there's no direct endpoint for plan by ID in the API spec, 
+    // we'll need to use the newest plan or implement a workaround
+    console.warn('No direct endpoint for plan by ID, this would need to be implemented based on business logic');
+    return {
+      success: true,
+      data: getQuitPlanDetailMock(planId)
+    };
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Alias for backward compatibility
+export const getQuitPlanByPlanId = getQuitPlanDetail;
+
+// Mock function for quit plan detail (keeping for backward compatibility)
+const getQuitPlanDetailMock = (planId) => {
   return {
-    success: true,
-    message: "Kế hoạch cai thuốc đã được tạo thành công!",
-    quit_plan_id: Math.floor(Math.random() * 1000) + 200
+    quit_plan_id: planId,
+    user_id: 101,
+    coach_id: 1,
+    coach_name: "Dr. Sarah Johnson",
+    coach_photo: "https://randomuser.me/api/portraits/women/45.jpg",
+    circumstance_id: 2,
+    circumstance_name: "Social Activities",
+    start_date: "2025-04-01",
+    end_date: "2025-07-01",
+    strategies_to_use: "Nicotine replacement therapy, daily exercise, mindfulness meditation",
+    medications_to_use: "Nicotine patches, gum as needed",
+    medication_instructions: "Apply patch every morning. Use gum when experiencing strong cravings (max 8 pieces per day).",
+    preparation_steps: "Remove all cigarettes and smoking accessories from home and workplace. Inform friends and family about quit date and ask for support. Stock up on healthy snacks and water.",
+    note: "This plan was created after previous attempt failed due to stress at work. Special focus on stress management techniques.",
+    status: true,
+    quit_phases: [
+      {
+        quit_phase_id: 2,
+        phase_name: "Preparation",
+        phase_order: 1,
+        start_date: "2025-04-01",
+        end_date: "2025-04-14",
+        is_completed: true,
+        objective: "Prepare for quit day and gather necessary resources"
+      },
+      {
+        quit_phase_id: 3,
+        phase_name: "Action",
+        phase_order: 2,
+        start_date: "2025-04-15",
+        end_date: "2025-05-30",
+        is_completed: false,
+        objective: "Implement strategies to manage cravings and maintain abstinence"
+      },
+      {
+        quit_phase_id: 4,
+        phase_name: "Maintenance",
+        phase_order: 3,
+        start_date: "2025-06-01",
+        end_date: "2025-07-01",
+        is_completed: false,
+        objective: "Strengthen commitment and develop long-term strategies"
+      }
+    ],
+    current_phase: {
+      quit_phase_id: 3,
+      phase_name: "Action",
+      phase_order: 2,
+      start_date: "2025-04-15",
+      is_completed: false,
+      objective: "Implement strategies to manage cravings and maintain abstinence"
+    }
   };
 };
+
+// Coach disables a quit plan - Updated to match new API
+export const disableQuitPlan = async (planId) => {
+  try {
+    const response = await axiosInstance.patch('/api/quit-plans/disable', null, {
+      params: { planId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Member accepts a quit plan - Updated to match new API
+export const acceptQuitPlan = async (planId) => {
+  try {
+    const response = await axiosInstance.patch('/api/quit-plans/accept', null, {
+      params: { planId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Member denies a quit plan - Updated to match new API
+export const denyQuitPlan = async (planId) => {
+  try {
+    const response = await axiosInstance.patch('/api/quit-plans/deny', null, {
+      params: { planId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Get all plans created by coach - NOT AVAILABLE IN API, using mock
+export const getAllPlanCreatedByCoach = async (coachId) => {
+  try {
+    console.warn('Coach plans endpoint not available in API specification');
+    // Return mock data for development
+    return {
+      success: true,
+      data: []
+    };
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Note: GET quit plan by ID is not available in the API specification
+// The available endpoints are only for getting newest and old plans

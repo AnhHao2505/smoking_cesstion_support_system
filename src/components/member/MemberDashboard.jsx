@@ -15,7 +15,9 @@ import {
   Space, 
   Badge, 
   Timeline,
-  Button
+  Button,
+  Spin,
+  message
 } from 'antd';
 import { 
   UserOutlined, 
@@ -30,46 +32,147 @@ import {
   QuestionOutlined,
   CheckCircleOutlined
 } from '@ant-design/icons';
-import * as memberDashboardService from '../../services/memberDashboardService';
+import { getMyProfile } from '../../services/memberProfileService';
+import { getMemberDailyLogs } from '../../services/dailylogService';
+import { getMyQna } from '../../services/askQuestionService';
+import { useAuth } from '../../contexts/AuthContext';
+import axiosInstance from '../../utils/axiosConfig';
+import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../../utils/apiEndpoints';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
 
 const MemberDashboard = () => {
+  const { currentUser } = useAuth();
   const [memberProfile, setMemberProfile] = useState(null);
   const [quitPlan, setQuitPlan] = useState(null);
   const [dailyRecords, setDailyRecords] = useState([]);
-  const [badges, setBadges] = useState([]);
-  const [healthImprovements, setHealthImprovements] = useState([]);
-  const [reminders, setReminders] = useState([]);
   const [questionsAnswers, setQuestionsAnswers] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  const userId = 101; // In a real app, this would come from authentication context
+  const userId = currentUser?.userId;
+
+  // Helper function to get newest quit plan
+  const getNewestQuitPlan = async (memberId) => {
+    try {
+      const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PLANS.NEWEST, {
+        params: { memberId }
+      });
+      return handleApiResponse(response);
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  };
+
+  // Helper function to get phases for a quit plan
+  const getQuitPlanPhases = async (quitPlanId) => {
+    try {
+      if (!quitPlanId) {
+        throw new Error('Quit plan ID is required');
+      }
+      
+      const response = await axiosInstance.get(API_ENDPOINTS.QUIT_PHASES.FROM_PLAN, {
+        params: { quitPlanId }
+      });
+      return handleApiResponse(response);
+    } catch (error) {
+      console.error('Error fetching phases:', error);
+      throw handleApiError(error);
+    }
+  };
 
   useEffect(() => {
     const fetchMemberDashboardData = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        // Fetch all data in parallel
-        const profile = memberDashboardService.getMemberProfile(userId);
-        const planData = memberDashboardService.getQuitPlanData(userId);
-        const records = memberDashboardService.getDailyStateRecords(userId);
-        const earnedBadges = memberDashboardService.getEarnedBadges(userId);
-        const improvements = memberDashboardService.getHealthImprovements(userId);
-        const upcomingReminders = memberDashboardService.getUpcomingReminders(userId);
-        const recentQA = memberDashboardService.getRecentQuestionsAnswers(userId);
+        setLoading(true);
         
+        // Fetch member profile
+        const profile = await getMyProfile();
         setMemberProfile(profile);
-        setQuitPlan(planData);
-        setDailyRecords(records);
-        setBadges(earnedBadges);
-        setHealthImprovements(improvements);
-        setReminders(upcomingReminders);
-        setQuestionsAnswers(recentQA);
+
+        // Fetch newest quit plan
+        const quitPlanData = await getNewestQuitPlan(userId);
+        console.log('Quit plan data:', quitPlanData); // Debug log
+        
+        if (quitPlanData) {
+          try {
+            // Check for quit plan ID field - it might be named differently
+            const quitPlanId = quitPlanData.quit_plan_id || quitPlanData.id || quitPlanData.quitPlanId;
+            console.log('Quit plan ID:', quitPlanId); // Debug log
+            
+            if (quitPlanId) {
+              // Fetch phases for the quit plan
+              const phases = await getQuitPlanPhases(quitPlanId);
+              setQuitPlan({
+                ...quitPlanData,
+                phases: phases || []
+              });
+            } else {
+              console.warn("No quit plan ID found in data");
+              // Use mock phases if we can't fetch real ones
+              const mockPhases = [
+                {
+                  phase_name: "Preparation",
+                  objective: "Prepare mentally and physically for quitting",
+                  start_date: quitPlanData.start_date,
+                  end_date: quitPlanData.end_date,
+                  is_completed: false,
+                  completion_percentage: 30
+                }
+              ];
+              setQuitPlan({
+                ...quitPlanData,
+                phases: mockPhases
+              });
+            }
+          } catch (phaseError) {
+            console.warn("Could not fetch phases:", phaseError);
+            // Use mock phases as fallback
+            const mockPhases = [
+              {
+                phase_name: "Active Phase",
+                objective: "Maintain smoke-free lifestyle",
+                start_date: quitPlanData.start_date,
+                end_date: quitPlanData.end_date,
+                is_completed: false,
+                completion_percentage: 50
+              }
+            ];
+            setQuitPlan({
+              ...quitPlanData,
+              phases: mockPhases
+            });
+          }
+        }
+
+        // Fetch daily logs
+        try {
+          const records = await getMemberDailyLogs(userId);
+          setDailyRecords(records || []);
+        } catch (logError) {
+          console.warn("Could not fetch daily logs:", logError);
+          setDailyRecords([]);
+        }
+
+        // Fetch Q&A data
+        try {
+          const qaData = await getMyQna(0, 5);
+          setQuestionsAnswers(qaData?.content || []);
+        } catch (qaError) {
+          console.warn("Could not fetch Q&A data:", qaError);
+          setQuestionsAnswers([]);
+        }
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching member dashboard data:", error);
+        message.error("Failed to load dashboard data");
         setLoading(false);
       }
     };
@@ -77,11 +180,46 @@ const MemberDashboard = () => {
     fetchMemberDashboardData();
   }, [userId]);
 
-  if (loading || !quitPlan) {
+  if (loading || !userId) {
     return (
-      <div className="dashboard loading-container">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
+      <div className="dashboard loading-container" style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+        <div style={{ marginTop: '16px' }}>
+          {!userId ? 'Please log in to view dashboard' : 'Loading dashboard...'}
+        </div>
+      </div>
+    );
+  }
+
+  if (!quitPlan) {
+    return (
+      <div className="dashboard member-dashboard">
+        <div className="container py-4">
+          <Card className="mb-4 profile-card">
+            <Row gutter={[24, 24]} align="middle" justify="center">
+              <Col xs={24} md={12} style={{ textAlign: 'center' }}>
+                <Avatar size={120} icon={<UserOutlined />} />
+                <div className="mt-3">
+                  <Title level={2}>{memberProfile?.name || 'Member'}</Title>
+                  <Paragraph>
+                    <Text type="secondary">
+                      <strong>Email:</strong> {memberProfile?.email || 'N/A'}
+                    </Text>
+                  </Paragraph>
+                  <div style={{ marginTop: '20px' }}>
+                    <Text type="secondary" style={{ fontSize: '16px' }}>
+                      No quit plan found. Please create a quit plan to get started with your smoking cessation journey.
+                    </Text>
+                  </div>
+                  <div style={{ marginTop: '20px' }}>
+                    <Button type="primary" size="large">
+                      Create Quit Plan
+                    </Button>
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          </Card>
         </div>
       </div>
     );
@@ -89,16 +227,57 @@ const MemberDashboard = () => {
 
   // Format date for display
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('vi-VN', options);
   };
 
   // Get current phase index for the Steps component
   const getCurrentPhaseIndex = () => {
-    return quitPlan.phases.findIndex(phase => 
-      phase.phase_name === quitPlan.current_phase.phase_name
-    );
+    if (!quitPlan || !quitPlan.phases || quitPlan.phases.length === 0) {
+      return 0;
+    }
+    
+    // Find the first incomplete phase or return the last phase if all are complete
+    const incompletePhaseIndex = quitPlan.phases.findIndex(phase => !phase.is_completed);
+    return incompletePhaseIndex >= 0 ? incompletePhaseIndex : quitPlan.phases.length - 1;
   };
+
+  // Calculate statistics from quit plan and daily logs
+  const calculateStatistics = () => {
+    const stats = {
+      daysSmokeeFree: 0,
+      overallProgress: 0,
+      moneySaved: 0,
+      cigarettesAvoided: 0
+    };
+
+    if (quitPlan) {
+      // Calculate days smoke-free from start date
+      const startDate = new Date(quitPlan.start_date);
+      const today = new Date();
+      const timeDiff = today.getTime() - startDate.getTime();
+      stats.daysSmokeeFree = Math.max(0, Math.floor(timeDiff / (1000 * 3600 * 24)));
+
+      // Calculate overall progress based on phases
+      if (quitPlan.phases && quitPlan.phases.length > 0) {
+        const completedPhases = quitPlan.phases.filter(phase => phase.is_completed).length;
+        stats.overallProgress = Math.round((completedPhases / quitPlan.phases.length) * 100);
+      }
+
+      // Calculate money saved (assuming $10 per pack, 20 cigarettes per pack)
+      const cigarettesPerDay = quitPlan.cigarettes_per_day || 20;
+      const costPerCigarette = 0.5; // $0.5 per cigarette
+      stats.moneySaved = Math.round(stats.daysSmokeeFree * cigarettesPerDay * costPerCigarette);
+      
+      // Calculate cigarettes avoided
+      stats.cigarettesAvoided = stats.daysSmokeeFree * cigarettesPerDay;
+    }
+
+    return stats;
+  };
+
+  const statistics = calculateStatistics();
 
   return (
     <div className="dashboard member-dashboard">
@@ -110,256 +289,242 @@ const MemberDashboard = () => {
               <div className="text-center">
                 <Avatar 
                   size={120} 
-                  src={memberProfile.photo_url} 
                   icon={<UserOutlined />} 
                 />
                 <div className="mt-3">
-                  <Tag color="blue">{memberProfile.membership_status} Member</Tag>
+                  <Tag color={memberProfile?.premium_membership || memberProfile?.premiumMembership ? "gold" : "blue"}>
+                    {memberProfile?.premium_membership || memberProfile?.premiumMembership ? 'Premium' : 'Basic'} Member
+                  </Tag>
                 </div>
               </div>
             </Col>
             <Col xs={24} md={18}>
-              <Title level={2}>{memberProfile.full_name}</Title>
-              <Text type="secondary">Member since {formatDate(memberProfile.joined_date)}</Text>
-              
-              <Row gutter={[16, 16]} className="mt-4">
-                <Col xs={24} sm={8}>
-                  <Statistic 
-                    title="Days Smoke-Free"
-                    value={quitPlan.days_smoke_free}
-                    prefix={<ClockCircleOutlined />}
-                    valueStyle={{ color: '#3f8600' }}
-                  />
-                </Col>
-                <Col xs={24} sm={8}>
-                  <Statistic 
-                    title="Cigarettes Avoided"
-                    value={quitPlan.cigarettes_avoided}
-                    prefix={<FireOutlined />}
-                    valueStyle={{ color: '#cf1322' }}
-                  />
-                </Col>
-                <Col xs={24} sm={8}>
-                  <Statistic 
-                    title="Money Saved ($)"
-                    value={quitPlan.money_saved}
-                    prefix={<DollarOutlined />}
-                    valueStyle={{ color: '#1890ff' }}
-                  />
-                </Col>
-              </Row>
+              <Title level={2}>{memberProfile?.name || 'Member'}</Title>
+              <Paragraph>
+                <Text type="secondary">
+                  <strong>Email:</strong> {memberProfile?.email || 'N/A'}
+                </Text>
+                <br />
+                <Text type="secondary">
+                  <strong>Plan:</strong> {quitPlan?.plan_name || quitPlan?.name || 'N/A'}
+                </Text>
+                <br />
+                <Text type="secondary">
+                  <strong>Start Date:</strong> {formatDate(quitPlan?.start_date)}
+                </Text>
+                <br />
+                <Text type="secondary">
+                  <strong>Target Date:</strong> {formatDate(quitPlan?.end_date)}
+                </Text>
+              </Paragraph>
             </Col>
           </Row>
         </Card>
-        
-        {/* Main Dashboard Content */}
-        <Row gutter={[16, 16]}>
-          {/* Quit Plan Progress */}
-          <Col xs={24} lg={16}>
-            <Card title="Your Quit Plan Progress" className="mb-4">
-              <Steps current={getCurrentPhaseIndex()} direction="vertical">
-                {quitPlan.phases.map((phase) => (
-                  <Step 
-                    key={phase.quit_phase_id}
-                    title={phase.phase_name}
-                    description={
-                      <div>
-                        <Paragraph>{phase.objective}</Paragraph>
-                        <Text type="secondary">
-                          {phase.is_completed 
-                            ? `Completed on ${formatDate(phase.end_date)}` 
-                            : `Started on ${formatDate(phase.start_date)}`}
-                        </Text>
-                      </div>
-                    }
-                    status={phase.is_completed ? 'finish' : phase.phase_name === quitPlan.current_phase.phase_name ? 'process' : 'wait'}
-                  />
-                ))}
-              </Steps>
-            </Card>
-            
-            {/* Strategies and Medications */}
-            <Card title="Your Quit Plan Details" className="mb-4">
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
-                  <Title level={5}>Strategies</Title>
-                  <Paragraph>
-                    {quitPlan.strategies_to_use}
-                  </Paragraph>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Title level={5}>Medications</Title>
-                  <Paragraph>
-                    {quitPlan.medications_to_use}
-                  </Paragraph>
-                  <Text type="secondary">{quitPlan.medication_instructions}</Text>
-                </Col>
-              </Row>
-            </Card>
-            
-            {/* Daily Records */}
-            <Card title="Your Recent Daily Records" className="mb-4">
-              <List
-                itemLayout="horizontal"
-                dataSource={dailyRecords}
-                renderItem={record => (
-                  <List.Item>
-                    <List.Item.Meta
-                      title={<Text strong>{formatDate(record.date)}</Text>}
-                      description={
-                        <Space direction="vertical" style={{ width: '100%' }}>
-                          <Row gutter={[16, 8]}>
-                            <Col xs={12} md={6}>
-                              <Text type="secondary">Cigarettes: </Text>
-                              <Text>{record.daily_cigarette_consumed}</Text>
-                            </Col>
-                            <Col xs={12} md={6}>
-                              <Text type="secondary">Stress Level: </Text>
-                              <Progress percent={record.stress_level * 10} size="small" showInfo={false} />
-                              <Text>{record.stress_level}/10</Text>
-                            </Col>
-                            <Col xs={12} md={6}>
-                              <Text type="secondary">Cravings: </Text>
-                              <Progress percent={record.cravings_intensity * 10} size="small" showInfo={false} />
-                              <Text>{record.cravings_intensity}/10</Text>
-                            </Col>
-                            <Col xs={12} md={6}>
-                              <Text type="secondary">Health: </Text>
-                              <Tag color={
-                                record.overall_health === 'good' ? 'green' : 
-                                record.overall_health === 'normal' ? 'blue' : 
-                                record.overall_health === 'poor' ? 'orange' : 'red'
-                              }>{record.overall_health}</Tag>
-                            </Col>
-                          </Row>
-                          {record.physical_symptoms && (
-                            <Text type="secondary">Symptoms: {record.physical_symptoms}</Text>
-                          )}
-                        </Space>
-                      }
-                    />
-                  </List.Item>
-                )}
+
+        {/* Progress Statistics */}
+        <Row gutter={[16, 16]} className="mb-4">
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Days Smoke-Free"
+                value={statistics.daysSmokeeFree}
+                prefix={<ClockCircleOutlined />}
+                valueStyle={{ color: '#3f8600' }}
               />
-              <div className="text-center mt-3">
-                <Button type="primary">Log Today's Progress</Button>
-              </div>
-            </Card>
-            
-            {/* Coach Q&A */}
-            <Card title="Your Questions & Answers" className="mb-4">
-              <List
-                itemLayout="vertical"
-                dataSource={questionsAnswers}
-                renderItem={qa => (
-                  <List.Item>
-                    <div className="qa-container">
-                      <div className="question">
-                        <Space align="start">
-                          <Avatar icon={<QuestionOutlined />} style={{ backgroundColor: '#1890ff' }} />
-                          <div>
-                            <Text strong>You asked on {formatDate(qa.date_asked)}:</Text>
-                            <Paragraph>{qa.question}</Paragraph>
-                          </div>
-                        </Space>
-                      </div>
-                      
-                      {qa.is_answered && (
-                        <div className="answer">
-                          <Space align="start">
-                            <Avatar 
-                              src={quitPlan.coach_photo} 
-                              icon={<UserOutlined />} 
-                            />
-                            <div>
-                              <Text strong>{quitPlan.coach_name} answered on {formatDate(qa.answer.answered_date)}:</Text>
-                              <Paragraph>{qa.answer.answer}</Paragraph>
-                            </div>
-                          </Space>
-                        </div>
-                      )}
-                    </div>
-                  </List.Item>
-                )}
-              />
-              <div className="text-center mt-3">
-                <Button type="primary">Ask a New Question</Button>
-              </div>
             </Card>
           </Col>
-          
-          {/* Sidebar */}
-          <Col xs={24} lg={8}>
-            {/* Coach Information */}
-            <Card title="Your Coach" className="mb-4">
-              <div className="coach-card">
-                <Avatar 
-                  size={64} 
-                  src={quitPlan.coach_photo} 
-                  icon={<UserOutlined />} 
-                />
-                <Title level={4}>{quitPlan.coach_name}</Title>
-                <Button type="primary">Message Coach</Button>
-              </div>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Progress"
+                value={statistics.overallProgress}
+                suffix="%"
+                prefix={<RiseOutlined />}
+                valueStyle={{ color: '#1890ff' }}
+              />
+              <Progress percent={statistics.overallProgress} showInfo={false} />
             </Card>
-            
-            {/* Badges */}
-            <Card title="Your Badges" className="mb-4">
-              <List
-                grid={{ gutter: 16, column: 2 }}
-                dataSource={badges}
-                renderItem={badge => (
-                  <List.Item>
-                    <Card className="badge-card">
-                      <div className="text-center">
-                        <TrophyOutlined style={{ fontSize: '32px', color: '#faad14' }} />
-                        <Title level={5}>{badge.badge_name}</Title>
-                        <Text type="secondary">{formatDate(badge.earned_date)}</Text>
-                      </div>
-                    </Card>
-                  </List.Item>
-                )}
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Money Saved"
+                value={statistics.moneySaved}
+                prefix={<DollarOutlined />}
+                suffix="$"
+                valueStyle={{ color: '#faad14' }}
               />
             </Card>
-            
-            {/* Health Improvements */}
-            <Card title="Your Health Improvements" className="mb-4">
-              <Timeline mode="left">
-                {healthImprovements.map((improvement, index) => (
-                  <Timeline.Item 
-                    key={index} 
-                    dot={<HeartOutlined style={{ fontSize: '16px' }} />} 
-                    color="red"
-                  >
-                    <Text strong>{improvement.improvement}</Text>
-                    <br />
-                    <Text type="secondary">{formatDate(improvement.achieved_on)}</Text>
-                    <Paragraph>{improvement.description}</Paragraph>
-                  </Timeline.Item>
-                ))}
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Cigarettes Avoided"
+                value={statistics.cigarettesAvoided}
+                prefix={<FireOutlined />}
+                valueStyle={{ color: '#cf1322' }}
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Main Content */}
+        <Row gutter={[16, 16]}>
+          {/* Left Column */}
+          <Col xs={24} lg={16}>
+            {/* Quit Phase Progress */}
+            <Card title="Quit Plan Phases" className="mb-4">
+              {quitPlan && quitPlan.phases && quitPlan.phases.length > 0 ? (
+                <Steps current={getCurrentPhaseIndex()} direction="vertical">
+                  {quitPlan.phases.map((phase, index) => (
+                    <Step
+                      key={index}
+                      title={phase.phase_name}
+                      description={
+                        <div>
+                          <Text>{phase.objective}</Text>
+                          <br />
+                          <Text type="secondary">
+                            {formatDate(phase.start_date)} - {formatDate(phase.end_date)}
+                          </Text>
+                          {index === getCurrentPhaseIndex() && !phase.is_completed && (
+                            <Progress 
+                              percent={phase.completion_percentage || 0} 
+                              size="small" 
+                              style={{ marginTop: 8 }}
+                            />
+                          )}
+                        </div>
+                      }
+                      status={
+                        phase.is_completed 
+                          ? 'finish' 
+                          : index === getCurrentPhaseIndex()
+                            ? 'process' 
+                            : 'wait'
+                      }
+                    />
+                  ))}
+                </Steps>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Text type="secondary">No phases data available</Text>
+                </div>
+              )}
+            </Card>
+
+            {/* Health Improvements - Mock data since API not available */}
+            <Card title="Health Improvements" className="mb-4">
+              <Timeline>
+                <Timeline.Item color="green">
+                  <Text strong>Improved Blood Circulation</Text>
+                  <br />
+                  <Text type="secondary">Your circulation improves, making physical activities easier</Text>
+                  <div>
+                    <Tag color="success" style={{ marginTop: 4 }}>
+                      Achieved after 2 weeks
+                    </Tag>
+                  </div>
+                </Timeline.Item>
+                <Timeline.Item color="green">
+                  <Text strong>Better Lung Function</Text>
+                  <br />
+                  <Text type="secondary">Your lung capacity increases and breathing becomes easier</Text>
+                  <div>
+                    <Tag color="success" style={{ marginTop: 4 }}>
+                      Achieved after 1 month
+                    </Tag>
+                  </div>
+                </Timeline.Item>
+                <Timeline.Item color="blue">
+                  <Text strong>Reduced Heart Disease Risk</Text>
+                  <br />
+                  <Text type="secondary">Your risk of heart disease drops significantly</Text>
+                  <div>
+                    <Tag color="processing" style={{ marginTop: 4 }}>
+                      Expected after 1 year
+                    </Tag>
+                  </div>
+                </Timeline.Item>
               </Timeline>
             </Card>
-            
-            {/* Upcoming Reminders */}
-            <Card title="Upcoming Reminders" className="mb-4">
-              <List
-                itemLayout="horizontal"
-                dataSource={reminders}
-                renderItem={reminder => (
-                  <List.Item>
-                    <List.Item.Meta
-                      avatar={<BellOutlined style={{ fontSize: '24px', color: '#1890ff' }} />}
-                      title={reminder.message}
-                      description={formatDate(reminder.nextDate)}
-                    />
-                    <Tag color={
-                      reminder.reminder_type === 'appointment' ? 'blue' : 
-                      reminder.reminder_type === 'medication' ? 'purple' : 
-                      'green'
-                    }>{reminder.reminder_type}</Tag>
-                  </List.Item>
-                )}
-              />
+
+            {/* Recent Daily Records */}
+            <Card title="Recent Daily Records" className="mb-4">
+              {dailyRecords && dailyRecords.length > 0 ? (
+                <List
+                  itemLayout="horizontal"
+                  dataSource={dailyRecords.slice(0, 3)}
+                  renderItem={record => (
+                    <List.Item>
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar 
+                            icon={record.smoked_today ? <FireOutlined /> : <CheckCircleOutlined />}
+                            style={{ 
+                              backgroundColor: record.smoked_today ? '#ff4d4f' : '#52c41a' 
+                            }}
+                          />
+                        }
+                        title={formatDate(record.log_date || record.record_date)}
+                        description={
+                          <div>
+                            <Text>Mood: {record.mood_level}/10</Text>
+                            <Divider type="vertical" />
+                            <Text>Stress: {record.stress_level}/10</Text>
+                            <Divider type="vertical" />
+                            <Text>
+                              {record.smoked_today 
+                                ? `Smoked ${record.cigarettes_smoked || 0} cigarettes` 
+                                : 'Smoke-free day!'}
+                            </Text>
+                          </div>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Text type="secondary">No daily records available</Text>
+                </div>
+              )}
+            </Card>
+          </Col>
+
+          {/* Right Column */}
+          <Col xs={24} lg={8}>
+            {/* Recent Q&A */}
+            <Card title="Recent Questions & Answers" className="mb-4">
+              {questionsAnswers && questionsAnswers.length > 0 ? (
+                <List
+                  itemLayout="horizontal"
+                  dataSource={questionsAnswers.slice(0, 3)}
+                  renderItem={qa => (
+                    <List.Item>
+                      <List.Item.Meta
+                        avatar={<Avatar icon={<QuestionOutlined />} style={{ backgroundColor: '#722ed1' }} />}
+                        title={qa.question}
+                        description={
+                          <div>
+                            <Text type="secondary">{formatDate(qa.created_date)}</Text>
+                            {qa.answer && (
+                              <>
+                                <br />
+                                <Text>{qa.answer.substring(0, 100)}...</Text>
+                              </>
+                            )}
+                          </div>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Text type="secondary">No Q&A available</Text>
+                </div>
+              )}
             </Card>
           </Col>
         </Row>

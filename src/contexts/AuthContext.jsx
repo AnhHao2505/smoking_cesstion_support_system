@@ -19,17 +19,26 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is already logged in on app initialization
   useEffect(() => {
-    const user = authService.getCurrentUser();
-    setCurrentUser(user);
-    setLoading(false);
+    try {
+      const user = authService.getCurrentUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      setCurrentUser(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   // Login function
   const login = async (email, password) => {
     try {
       const response = await authService.login(email, password);
-      setCurrentUser(response.user);
-      return response.user;
+      if (response.success) {
+        setCurrentUser(response.user);
+        return response.user;
+      }
+      throw new Error(response.message || 'Login failed');
     } catch (error) {
       throw error;
     }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Form, Input, Button, Checkbox, Typography, Row, Col, Card, Alert, Divider } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
@@ -12,26 +12,42 @@ const LoginPage = () => {
   const [loginError, setLoginError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [form] = Form.useForm();
+  const [testUsers, setTestUsers] = useState({});
+  useEffect(() => {
+    const fetchTestUsers = async () => {
+      const response = await authService.getTesters();
+      console.log(response)
+      setTestUsers(response || {});
+    };
+    
+    fetchTestUsers();
+  }, [])
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
     setLoginError('');
     
     try {
-      const response = await authService.login(values.email, values.password);
+      // Extract email and password exactly as required by API
+      const { email, password } = values;
       
-      setIsLoading(false);
+      // Call login service with exact parameters
+      const response = await authService.login(email, password);
       
-      // Redirect based on user role
-      const { role } = response.user;
-      if (role === 'member') {
-        navigate('/member/dashboard');
-      } else if (role === 'coach') {
-        navigate('/coach/dashboard');
-      } else if (role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/');
+      if (response.success) {
+        const { user } = response;
+        const role = user.role?.toLowerCase();
+        
+        // Redirect based on user role
+        if (role === 'member') {
+          navigate('/member/dashboard');
+        } else if (role === 'coach') {
+          navigate('/coach/dashboard');
+        } else if (role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       setIsLoading(false);
@@ -81,8 +97,7 @@ const LoginPage = () => {
                 name="password"
                 label="Password"
                 rules={[
-                  { required: true, message: 'Please input your password!' },
-                  { min: 8, message: 'Password must be at least 8 characters' }
+                  { required: true, message: 'Please input your password!' }
                 ]}
               >
                 <Input.Password 
@@ -127,16 +142,29 @@ const LoginPage = () => {
 
             <Divider>Demo Accounts</Divider>
             
-            <Alert
-              message={
-                <div>
-                  <p><strong>Member:</strong> member@example.com / password123</p>
-                  <p><strong>Coach:</strong> coach@example.com / password123</p>
-                  <p style={{ marginBottom: 0 }}><strong>Admin:</strong> admin@example.com / password123</p>
-                </div>
-              }
-              type="info"
-            />
+            {Object.keys(testUsers).length > 0 ? (
+              <Alert
+                message={
+                  <div>
+                    {testUsers.admin && (
+                      <p><strong>Admin:</strong> {testUsers.admin.email} / {testUsers.admin.password}</p>
+                    )}
+                    {testUsers.coach && (
+                      <p><strong>Coach:</strong> {testUsers.coach.email} / {testUsers.coach.password}</p>
+                    )}
+                    {testUsers.member_free && (
+                      <p><strong>Member (Free):</strong> {testUsers.member_free.email} / {testUsers.member_free.password}</p>
+                    )}
+                    {testUsers.member_premium && (
+                      <p style={{ marginBottom: 0 }}><strong>Member (Premium):</strong> {testUsers.member_premium.email} / {testUsers.member_premium.password}</p>
+                    )}
+                  </div>
+                }
+                type="info"
+              />
+            ) : (
+              <Alert message="Loading demo accounts..." type="info" />
+            )}
           </Card>
         </Col>
       </Row>
