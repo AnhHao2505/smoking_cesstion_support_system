@@ -52,6 +52,7 @@ import BlogDetailPage from '../pages/blog/BlogDetailPage';
 import QuitPlanApproval from './coach/QuitPlanApproval';
 import QuitPlanApprovalNewFlow from './coach/QuitPlanApprovalNewFlow';
 import CoachScheduleManagement from './coach/CoachScheduleManagement';
+import CoachQnA from './coach/CoachQnA';
 
 // Admin components
 import AdminDashboard from './admin/AdminDashboard';
@@ -343,6 +344,15 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['COACH']}>
                     <CoachScheduleManagement />
+                  </PrivateRoute>
+                }
+              />
+
+              <Route 
+                path="/coach/qna" 
+                element={
+                  <PrivateRoute allowedRoles={['COACH']}>
+                    <CoachQnA />
                   </PrivateRoute>
                 }
               />

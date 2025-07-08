@@ -147,6 +147,7 @@ const NavBar = () => {
       label: 'Community',
       icon: <QuestionCircleOutlined />,
       items: [
+        { key: '/coach/qna', label: 'Answer Questions', path: '/coach/qna' },
         { key: '/qa-forum', label: 'Q&A Forum', path: '/qa-forum' }
       ]
     }

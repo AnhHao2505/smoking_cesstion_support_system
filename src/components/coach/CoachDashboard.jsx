@@ -18,7 +18,11 @@ import {
   Tabs,
   Rate,
   message,
-  Spin
+  Spin,
+  Modal,
+  Form,
+  Input,
+  Alert
 } from 'antd';
 import {
   UserOutlined,
@@ -30,18 +34,20 @@ import {
   MessageOutlined,
   BarChartOutlined,
   CalendarOutlined,
-  FireOutlined
+  FireOutlined,
+  SendOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { getCurrentUser } from '../../services/authService';
 import { getCoachDashboardData } from '../../services/coachDashboardServiceReal';
 import { getAssignedMembers, getCoachProfile } from '../../services/coachManagementService';
 import { getFeedbacksForCoach } from '../../services/feebackService';
-import { getUnansweredQna } from '../../services/askQuestionService';
+import { getUnansweredQna, answerQuestion } from '../../services/askQuestionService';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
+const { TextArea } = Input;
 
 const CoachDashboard = () => {
   const { currentUser } = useAuth();
@@ -60,6 +66,11 @@ const CoachDashboard = () => {
   const [membersLoading, setMembersLoading] = useState(false);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [answerModalVisible, setAnswerModalVisible] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState(null);
+  const [submittingAnswer, setSubmittingAnswer] = useState(false);
+
+  const [answerForm] = Form.useForm();
 
   const coachId = currentUser?.userId;
 
@@ -223,6 +234,44 @@ const CoachDashboard = () => {
     } finally {
       setFeedbackLoading(false);
     }
+  };
+
+  const handleAnswerQuestion = (question) => {
+    setSelectedQuestion(question);
+    setAnswerModalVisible(true);
+    answerForm.resetFields();
+  };
+
+  const handleSubmitAnswer = async (values) => {
+    if (!selectedQuestion) return;
+
+    try {
+      setSubmittingAnswer(true);
+      await answerQuestion(selectedQuestion.id, values.answer);
+      
+      message.success('Answer submitted successfully!');
+      setAnswerModalVisible(false);
+      setSelectedQuestion(null);
+      answerForm.resetFields();
+      
+      // Refresh the questions list
+      await refreshQuestions();
+    } catch (error) {
+      console.error('Error submitting answer:', error);
+      message.error('Failed to submit answer: ' + (error.message || 'Unknown error'));
+    } finally {
+      setSubmittingAnswer(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Unknown';
+    return new Date(dateString).toLocaleString();
+  };
+
+  const isOverdue = (deadline) => {
+    if (!deadline) return false;
+    return new Date(deadline) < new Date();
   };
 
   if (loading) {
@@ -480,13 +529,20 @@ const CoachDashboard = () => {
                     )}
                   </Title>
                 </div>
-                <Button
-                  type="primary"
-                  onClick={refreshQuestions}
-                  loading={questionsLoading}
-                >
-                  Refresh Questions
-                </Button>
+                <Space>
+                  <Button
+                    type="primary"
+                    onClick={refreshQuestions}
+                    loading={questionsLoading}
+                  >
+                    Refresh Questions
+                  </Button>
+                  <Button
+                    onClick={() => window.location.href = '/coach/qna'}
+                  >
+                    View All Questions
+                  </Button>
+                </Space>
               </div>
               {unansweredQuestions.length > 0 ? (
                 <List
@@ -500,10 +556,7 @@ const CoachDashboard = () => {
                         <Space direction="vertical" size="small">
                           <Button
                             type="primary"
-                            onClick={() => {
-                              // Navigate to Q&A page to answer
-                              window.location.href = `/coach/qna?questionId=${item.id}`;
-                            }}
+                            onClick={() => handleAnswerQuestion(item)}
                           >
                             Answer
                           </Button>
@@ -686,6 +739,117 @@ const CoachDashboard = () => {
           </TabPane>
         </Tabs>
       </div>
+
+      {/* Answer Question Modal */}
+      <Modal
+        title={
+          <Space>
+            <MessageOutlined />
+            <span>Answer Question</span>
+            {selectedQuestion && isOverdue(selectedQuestion.deadline) && (
+              <Tag color="red">Overdue</Tag>
+            )}
+          </Space>
+        }
+        open={answerModalVisible}
+        onCancel={() => {
+          setAnswerModalVisible(false);
+          setSelectedQuestion(null);
+          answerForm.resetFields();
+        }}
+        footer={null}
+        width={800}
+        destroyOnClose
+      >
+        {selectedQuestion && (
+          <>
+            {/* Question Details */}
+            <Card 
+              size="small" 
+              style={{ marginBottom: 16, backgroundColor: '#fafafa' }}
+            >
+              <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                <Space>
+                  <UserOutlined style={{ color: '#1890ff' }} />
+                  <Text strong>{selectedQuestion.memberName || 'Anonymous Member'}</Text>
+                  <Divider type="vertical" />
+                  <CalendarOutlined style={{ color: '#8c8c8c' }} />
+                  <Text type="secondary">
+                    {formatDate(selectedQuestion.createdAt)}
+                  </Text>
+                </Space>
+                
+                <div>
+                  <Text strong style={{ color: '#1890ff' }}>Question:</Text>
+                  <Paragraph style={{ marginTop: 8, marginBottom: 0 }}>
+                    {selectedQuestion.question}
+                  </Paragraph>
+                </div>
+              </Space>
+            </Card>
+
+            {/* Priority Alert for Overdue */}
+            {isOverdue(selectedQuestion.deadline) && (
+              <Alert
+                message="Overdue Question"
+                description="This question is overdue and requires immediate attention."
+                type="warning"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
+            )}
+
+            {/* Answer Form */}
+            <Form
+              form={answerForm}
+              layout="vertical"
+              onFinish={handleSubmitAnswer}
+              requiredMark={false}
+            >
+              <Form.Item
+                name="answer"
+                label="Your Answer"
+                rules={[
+                  { required: true, message: 'Please provide an answer!' },
+                  { min: 10, message: 'Answer must be at least 10 characters!' },
+                  { max: 2000, message: 'Answer cannot exceed 2000 characters!' }
+                ]}
+              >
+                <TextArea
+                  rows={6}
+                  placeholder="Provide a detailed and helpful answer for the member..."
+                  showCount
+                  maxLength={2000}
+                />
+              </Form.Item>
+
+              <Form.Item style={{ marginBottom: 0 }}>
+                <Space>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={submittingAnswer}
+                    icon={<SendOutlined />}
+                    size="large"
+                  >
+                    {submittingAnswer ? 'Submitting...' : 'Submit Answer'}
+                  </Button>
+                  <Button 
+                    size="large" 
+                    onClick={() => {
+                      setAnswerModalVisible(false);
+                      setSelectedQuestion(null);
+                      answerForm.resetFields();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          </>
+        )}
+      </Modal>
     </div>
   );
 };
