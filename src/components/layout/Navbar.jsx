@@ -24,8 +24,8 @@ const NavBar = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleLogout = () => {
-    authService.logout();
+  const handleLogout = async () => {
+    await authService.logout();
     setUser(null);
     navigate('/');
   };
