@@ -1,6 +1,11 @@
 // Quit Plan Detail Service
+import { getPhasesOfPlan, getMockPhasesOfPlan } from './quitPhaseService';
 
 export const getQuitPlanDetail = (quitPlanId) => {
+  // In a real app, this would call the API
+  // For now, using mock data with phases from quit phase service
+  const phases = getMockPhasesOfPlan(quitPlanId);
+  
   return {
     quit_plan_id: 201,
     user_id: 101,
@@ -17,43 +22,8 @@ export const getQuitPlanDetail = (quitPlanId) => {
     preparation_steps: "Remove all cigarettes and smoking accessories from home and workplace. Inform friends and family about quit date and ask for support. Stock up on healthy snacks and water.",
     note: "This plan was created after previous attempt failed due to stress at work. Special focus on stress management techniques.",
     status: true,
-    quit_phases: [
-      {
-        quit_phase_id: 2,
-        phase_name: "Preparation",
-        phase_order: 1,
-        start_date: "2025-04-01",
-        end_date: "2025-04-14",
-        is_completed: true,
-        objective: "Prepare for quit day and gather necessary resources"
-      },
-      {
-        quit_phase_id: 3,
-        phase_name: "Action",
-        phase_order: 2,
-        start_date: "2025-04-15",
-        end_date: "2025-05-30",
-        is_completed: false,
-        objective: "Implement strategies to manage cravings and maintain abstinence"
-      },
-      {
-        quit_phase_id: 4,
-        phase_name: "Maintenance",
-        phase_order: 3,
-        start_date: "2025-06-01",
-        end_date: "2025-07-01",
-        is_completed: false,
-        objective: "Strengthen commitment and develop long-term strategies"
-      }
-    ],
-    current_phase: {
-      quit_phase_id: 3,
-      phase_name: "Action",
-      phase_order: 2,
-      start_date: "2025-04-15",
-      is_completed: false,
-      objective: "Implement strategies to manage cravings and maintain abstinence"
-    }
+    quit_phases: phases,
+    current_phase: phases.find(phase => !phase.is_completed) || phases[0]
   };
 };
 

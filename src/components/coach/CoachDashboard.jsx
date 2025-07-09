@@ -22,7 +22,8 @@ import {
   Modal,
   Form,
   Input,
-  Alert
+  Alert,
+  Descriptions
 } from 'antd';
 import {
   UserOutlined,
@@ -43,6 +44,8 @@ import { getCoachDashboardData } from '../../services/coachDashboardServiceReal'
 import { getAssignedMembers, getCoachProfile } from '../../services/coachManagementService';
 import { getFeedbacksForCoach } from '../../services/feebackService';
 import { getUnansweredQna, answerQuestion } from '../../services/askQuestionService';
+import { getNewestQuitPlan } from '../../services/quitPlanService';
+import { getPhasesOfPlan } from '../../services/quitPhaseService';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -69,6 +72,11 @@ const CoachDashboard = () => {
   const [answerModalVisible, setAnswerModalVisible] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
+  const [viewPlanModalVisible, setViewPlanModalVisible] = useState(false);
+  const [selectedMemberPlan, setSelectedMemberPlan] = useState(null);
+  const [loadingPlan, setLoadingPlan] = useState(false);
+  const [planPhases, setPlanPhases] = useState([]);
+  const [loadingPhases, setLoadingPhases] = useState(false);
 
   const [answerForm] = Form.useForm();
 
@@ -264,6 +272,88 @@ const CoachDashboard = () => {
     }
   };
 
+  const handleViewPlan = async (member) => {
+    if (!member.user_id) {
+      message.error('Member ID not found');
+      return;
+    }
+
+    try {
+      setLoadingPlan(true);
+      setViewPlanModalVisible(true);
+      setPlanPhases([]); // Reset phases
+      
+      console.log('Fetching newest quit plan for member:', member.user_id);
+      const response = await getNewestQuitPlan(member.user_id);
+      console.log('Newest quit plan response:', response);
+      
+      if (response && (response.success || response.data || response.id)) {
+        // Handle different response formats
+        let planData = null;
+        if (response.success && response.data) {
+          planData = response.data;
+        } else if (response.data) {
+          planData = response.data;
+        } else if (response.id) {
+          planData = response;
+        }
+        
+        if (planData) {
+          const planWithMemberInfo = {
+            ...planData,
+            memberName: member.full_name,
+            memberEmail: member.email
+          };
+          
+          setSelectedMemberPlan(planWithMemberInfo);
+          
+          // Fetch phases for this plan
+          const planId = planData.id || planData.planId || planData.quit_plan_id;
+          if (planId) {
+            await fetchPlanPhases(planId);
+          }
+        } else {
+          message.warning('No quit plan data found for this member');
+          setSelectedMemberPlan(null);
+        }
+      } else {
+        message.info('This member does not have any quit plans yet');
+        setSelectedMemberPlan(null);
+      }
+    } catch (error) {
+      console.error('Error fetching member quit plan:', error);
+      message.error('Failed to load quit plan: ' + (error.message || 'Unknown error'));
+      setSelectedMemberPlan(null);
+    } finally {
+      setLoadingPlan(false);
+    }
+  };
+
+  const fetchPlanPhases = async (planId) => {
+    try {
+      setLoadingPhases(true);
+      console.log('Fetching phases for plan ID:', planId);
+      
+      const phasesResponse = await getPhasesOfPlan(planId);
+      console.log('Phases response:', phasesResponse);
+      
+      if (phasesResponse && phasesResponse.data && Array.isArray(phasesResponse.data)) {
+        setPlanPhases(phasesResponse.data);
+      } else if (phasesResponse && Array.isArray(phasesResponse)) {
+        setPlanPhases(phasesResponse);
+      } else {
+        console.log('No phases found or unexpected response format');
+        setPlanPhases([]);
+      }
+    } catch (error) {
+      console.error('Error fetching plan phases:', error);
+      message.warning('Failed to load quit phases for this plan');
+      setPlanPhases([]);
+    } finally {
+      setLoadingPhases(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Unknown';
     return new Date(dateString).toLocaleString();
@@ -396,10 +486,7 @@ const CoachDashboard = () => {
             <Button
               type="link"
               size="small"
-              onClick={() => {
-                // Navigate to view/edit quit plan
-                window.location.href = `/coach/quit-plan/${record.planId}?memberId=${record.user_id}`;
-              }}
+              onClick={() => handleViewPlan(record)}
             >
               View Plan
             </Button>
@@ -848,6 +935,311 @@ const CoachDashboard = () => {
               </Form.Item>
             </Form>
           </>
+        )}
+      </Modal>
+
+      {/* View Plan Modal */}
+      <Modal
+        title={
+          <Space>
+            <BarChartOutlined />
+            <span>Quit Plan Details</span>
+            {selectedMemberPlan && (
+              <Tag color="blue">
+                {selectedMemberPlan.memberName}
+              </Tag>
+            )}
+          </Space>
+        }
+        open={viewPlanModalVisible}
+        onCancel={() => {
+          setViewPlanModalVisible(false);
+          setSelectedMemberPlan(null);
+          setPlanPhases([]);
+        }}
+        footer={[
+          <Button 
+            key="close" 
+            onClick={() => {
+              setViewPlanModalVisible(false);
+              setSelectedMemberPlan(null);
+              setPlanPhases([]);
+            }}
+          >
+            Close
+          </Button>,
+          selectedMemberPlan && (
+            <Button
+              key="edit"
+              type="primary"
+              onClick={() => {
+                // Navigate to edit plan page
+                window.location.href = `/coach/quit-plan/${selectedMemberPlan.id || selectedMemberPlan.planId}?memberId=${selectedMemberPlan.memberId}`;
+              }}
+            >
+              Edit Plan
+            </Button>
+          )
+        ]}
+        width={800}
+        destroyOnClose
+      >
+        {loadingPlan ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Spin size="large" />
+            <div style={{ marginTop: 16 }}>Loading quit plan...</div>
+          </div>
+        ) : selectedMemberPlan ? (
+          <>
+            {/* Plan Overview */}
+            <Card 
+              size="small" 
+              style={{ marginBottom: 16 }}
+              title="Plan Overview"
+            >
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={12}>
+                  <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                    <div>
+                      <Text strong>Member: </Text>
+                      <Text>{selectedMemberPlan.memberName}</Text>
+                    </div>
+                    <div>
+                      <Text strong>Email: </Text>
+                      <Text>{selectedMemberPlan.memberEmail}</Text>
+                    </div>
+                    <div>
+                      <Text strong>Plan Status: </Text>
+                      <Tag color={
+                        selectedMemberPlan.quitPlanStatus === 'ACTIVE' ? 'green' :
+                        selectedMemberPlan.quitPlanStatus === 'PENDING_APPROVAL' ? 'orange' :
+                        selectedMemberPlan.quitPlanStatus === 'COMPLETED' ? 'blue' :
+                        selectedMemberPlan.quitPlanStatus === 'DENIED' ? 'red' : 'default'
+                      }>
+                        {selectedMemberPlan.quitPlanStatus || selectedMemberPlan.status || 'Unknown'}
+                      </Tag>
+                    </div>
+                    <div>
+                      <Text strong>Smoking Status: </Text>
+                      <Text>{selectedMemberPlan.currentSmokingStatus || 'Not specified'}</Text>
+                    </div>
+                  </Space>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                    <div>
+                      <Text strong>Start Date: </Text>
+                      <Text>{selectedMemberPlan.startDate ? new Date(selectedMemberPlan.startDate).toLocaleDateString() : 'Not set'}</Text>
+                    </div>
+                    <div>
+                      <Text strong>End Date: </Text>
+                      <Text>{selectedMemberPlan.endDate ? new Date(selectedMemberPlan.endDate).toLocaleDateString() : 'Not set'}</Text>
+                    </div>
+                    <div>
+                      <Text strong>Coach: </Text>
+                      <Text>{selectedMemberPlan.coachName || 'Not assigned'}</Text>
+                    </div>
+                    <div>
+                      <Text strong>Is Newest: </Text>
+                      <Tag color={selectedMemberPlan.isNewest ? 'green' : 'default'}>
+                        {selectedMemberPlan.isNewest ? 'Yes' : 'No'}
+                      </Tag>
+                    </div>
+                  </Space>
+                </Col>
+              </Row>
+            </Card>
+
+            {/* Plan Details */}
+            <Row gutter={[16, 16]}>
+              <Col xs={24} md={12}>
+                <Card size="small" title="Motivation & Goals" style={{ height: '100%' }}>
+                  <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                    <div>
+                      <Text strong>Motivation:</Text>
+                      <Paragraph style={{ marginTop: 4, marginBottom: 8 }}>
+                        {selectedMemberPlan.motivation || 'Not specified'}
+                      </Paragraph>
+                    </div>
+                    <div>
+                      <Text strong>Reward Plan:</Text>
+                      <Paragraph style={{ marginTop: 4, marginBottom: 0 }}>
+                        {selectedMemberPlan.rewardPlan || 'Not specified'}
+                      </Paragraph>
+                    </div>
+                  </Space>
+                </Card>
+              </Col>
+              <Col xs={24} md={12}>
+                <Card size="small" title="Strategies & Support" style={{ height: '100%' }}>
+                  <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                    <div>
+                      <Text strong>Coping Strategies:</Text>
+                      <Paragraph style={{ marginTop: 4, marginBottom: 8 }}>
+                        {selectedMemberPlan.copingStrategies || 'Not specified'}
+                      </Paragraph>
+                    </div>
+                    <div>
+                      <Text strong>Support Resources:</Text>
+                      <Paragraph style={{ marginTop: 4, marginBottom: 0 }}>
+                        {selectedMemberPlan.supportResources || 'Not specified'}
+                      </Paragraph>
+                    </div>
+                  </Space>
+                </Card>
+              </Col>
+            </Row>
+
+            <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+              <Col xs={24} md={12}>
+                <Card size="small" title="Medications" style={{ height: '100%' }}>
+                  <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                    <div>
+                      <Text strong>Medications to Use:</Text>
+                      <Paragraph style={{ marginTop: 4, marginBottom: 8 }}>
+                        {selectedMemberPlan.medicationsToUse || 'None specified'}
+                      </Paragraph>
+                    </div>
+                    <div>
+                      <Text strong>Instructions:</Text>
+                      <Paragraph style={{ marginTop: 4, marginBottom: 0 }}>
+                        {selectedMemberPlan.medicationInstructions || 'No instructions'}
+                      </Paragraph>
+                    </div>
+                  </Space>
+                </Card>
+              </Col>
+              <Col xs={24} md={12}>
+                <Card size="small" title="Prevention & Triggers" style={{ height: '100%' }}>
+                  <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                    <div>
+                      <Text strong>Triggers to Avoid:</Text>
+                      <Paragraph style={{ marginTop: 4, marginBottom: 8 }}>
+                        {selectedMemberPlan.smokingTriggersToAvoid || 'Not specified'}
+                      </Paragraph>
+                    </div>
+                    <div>
+                      <Text strong>Relapse Prevention:</Text>
+                      <Paragraph style={{ marginTop: 4, marginBottom: 0 }}>
+                        {selectedMemberPlan.relapsePreventionStrategies || 'Not specified'}
+                      </Paragraph>
+                    </div>
+                  </Space>
+                </Card>
+              </Col>
+            </Row>
+
+            {/* Quit Phases Section */}
+            <Card size="small" title="Quit Phases" style={{ marginTop: 16 }}>
+              {loadingPhases ? (
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <Spin size="small" />
+                  <div style={{ marginTop: 8 }}>Loading phases...</div>
+                </div>
+              ) : planPhases && planPhases.length > 0 ? (
+                <div>
+                  {planPhases
+                    .sort((a, b) => (a.phaseOrder || 0) - (b.phaseOrder || 0))
+                    .map((phase, index) => (
+                    <Card 
+                      key={phase.id || index}
+                      size="small" 
+                      style={{ 
+                        marginBottom: index < planPhases.length - 1 ? 12 : 0,
+                        backgroundColor: '#fafafa'
+                      }}
+                      title={
+                        <Space>
+                          <span>Phase {phase.phaseOrder || index + 1}</span>
+                          {phase.name && <span>- {phase.name}</span>}
+                        </Space>
+                      }
+                    >
+                      <Row gutter={[16, 8]}>
+                        <Col xs={24} md={12}>
+                          <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                            <div>
+                              <Text strong>Duration: </Text>
+                              <Text>{phase.duration || 'Not specified'}</Text>
+                            </div>
+                            <div>
+                              <Text strong>Phase Order: </Text>
+                              <Tag color="blue">{phase.phaseOrder || index + 1}</Tag>
+                            </div>
+                          </Space>
+                        </Col>
+                        <Col xs={24} md={12}>
+                          <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                            {phase.startDate && (
+                              <div>
+                                <Text strong>Start Date: </Text>
+                                <Text>
+                                  {new Date(phase.startDate).toLocaleDateString()}
+                                </Text>
+                              </div>
+                            )}
+                            {phase.endDate && (
+                              <div>
+                                <Text strong>End Date: </Text>
+                                <Text>
+                                  {new Date(phase.endDate).toLocaleDateString()}
+                                </Text>
+                              </div>
+                            )}
+                            {phase.status && (
+                              <div>
+                                <Text strong>Status: </Text>
+                                <Tag color={
+                                  phase.status === 'COMPLETED' ? 'green' :
+                                  phase.status === 'IN_PROGRESS' ? 'blue' :
+                                  phase.status === 'PENDING' ? 'orange' :
+                                  'default'
+                                }>
+                                  {phase.status}
+                                </Tag>
+                              </div>
+                            )}
+                          </Space>
+                        </Col>
+                      </Row>
+                      
+                      {phase.recommendGoal && (
+                        <div style={{ marginTop: 12 }}>
+                          <Text strong>Recommended Goal:</Text>
+                          <Paragraph style={{ marginTop: 4, marginBottom: 0 }}>
+                            {phase.recommendGoal}
+                          </Paragraph>
+                        </div>
+                      )}
+                      
+                      {phase.goal && (
+                        <div style={{ marginTop: 12 }}>
+                          <Text strong>Custom Goal:</Text>
+                          <Paragraph style={{ marginTop: 4, marginBottom: 0 }}>
+                            {phase.goal}
+                          </Paragraph>
+                        </div>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <Text type="secondary">No phases found for this quit plan</Text>
+                </div>
+              )}
+            </Card>
+
+            {selectedMemberPlan.additionalNotes && (
+              <Card size="small" title="Additional Notes" style={{ marginTop: 16 }}>
+                <Paragraph>{selectedMemberPlan.additionalNotes}</Paragraph>
+              </Card>
+            )}
+          </>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Text type="secondary">No quit plan found for this member</Text>
+          </div>
         )}
       </Modal>
     </div>

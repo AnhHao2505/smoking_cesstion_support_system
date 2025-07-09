@@ -15,7 +15,10 @@ import {
   Divider,
   Space,
   Spin,
-  message
+  message,
+  List,
+  Tag,
+  Steps
 } from 'antd';
 import {
   UserOutlined,
@@ -27,9 +30,10 @@ import {
   SaveOutlined,
   ArrowLeftOutlined
 } from '@ant-design/icons';
-import { createQuitPlan } from '../../services/quitPlanService';
+import { createQuitPlan, getNewestQuitPlan } from '../../services/quitPlanService';
 import { getAssignedMembers } from '../../services/coachManagementService';
 import { getCurrentUser } from '../../services/authService';
+import { getDefaultPhases, createGoalsOfPhases } from '../../services/quitPhaseService';
 import moment from 'moment';
 import '../../styles/QuitPlanCreation.css';
 
@@ -48,6 +52,11 @@ const QuitPlanCreation = () => {
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
+  const [createdPlanId, setCreatedPlanId] = useState(null);
+  const [showPhaseCreation, setShowPhaseCreation] = useState(false);
+  const [defaultPhases, setDefaultPhases] = useState([]);
+  const [phaseGoals, setPhaseGoals] = useState({});
+  const [loadingPhases, setLoadingPhases] = useState(false);
 
   const user = getCurrentUser();
   const coachId = user?.userId;
@@ -80,6 +89,244 @@ const QuitPlanCreation = () => {
     }
   };
 
+  const fetchDefaultPhases = async (addictionLevel) => {
+    setLoadingPhases(true);
+    try {
+      console.log('Fetching default phases for addiction level:', addictionLevel);
+      const response = await getDefaultPhases(addictionLevel);
+      console.log('getDefaultPhases response:', response);
+      
+      // Check if response is in the expected format based on user requirements
+      let phasesData = [];
+      
+      if (response && Array.isArray(response)) {
+        // Direct array response
+        phasesData = response;
+      } else if (response && response.success && Array.isArray(response.data)) {
+        // Wrapped in success object
+        phasesData = response.data;
+      } else if (response && response.data && Array.isArray(response.data)) {
+        // Wrapped in data object
+        phasesData = response.data;
+      }
+      
+      // If no valid response data, create default phases
+      if (!phasesData || phasesData.length === 0) {
+        console.log('No default phases found or invalid response, creating default phases');
+        phasesData = [
+          {
+            "id": null,
+            "name": "Chuẩn bị bỏ thuốc",
+            "duration": "Ngày 1–5",
+            "recommendGoal": "Xác định lý do, chọn ngày bỏ thuốc, loại bỏ vật dụng liên quan",
+            "goal": null,
+            "phaseOrder": 1
+          },
+          {
+            "id": null,
+            "name": "Bắt đầu bỏ thuốc",
+            "duration": "Ngày 6–20",
+            "recommendGoal": "Không hút thuốc, ghi nhận cơn thèm, thay thế bằng hoạt động tích cực",
+            "goal": null,
+            "phaseOrder": 2
+          },
+          {
+            "id": null,
+            "name": "Duy trì",
+            "duration": "Ngày 21–90",
+            "recommendGoal": "Kiểm soát trigger, theo dõi thành quả, giữ vững quyết tâm",
+            "goal": null,
+            "phaseOrder": 3
+          }
+        ];
+      }
+      
+      console.log('Using phases data:', phasesData);
+      setDefaultPhases(phasesData);
+      
+      // Initialize phase goals with recommend goals or empty goals
+      const initialGoals = {};
+      phasesData.forEach((phase, index) => {
+        if (phase.recommendGoal && phase.recommendGoal.trim() !== '') {
+          // Use recommend goal as first goal
+          initialGoals[index] = [phase.recommendGoal, ''];
+        } else {
+          // Add at least 2 empty goals for each phase so inputs appear
+          initialGoals[index] = ['', ''];
+        }
+      });
+      setPhaseGoals(initialGoals);
+      
+    } catch (error) {
+      console.error('Error fetching default phases:', error);
+      message.error('Không thể tải phases mặc định, tạo phases trống');
+      
+      // Fallback: create default phases based on user's format
+      const defaultPhasesData = [
+        {
+          "id": null,
+          "name": "Chuẩn bị bỏ thuốc",
+          "duration": "Ngày 1–5",
+          "recommendGoal": "Xác định lý do, chọn ngày bỏ thuốc, loại bỏ vật dụng liên quan",
+          "goal": null,
+          "phaseOrder": 1
+        },
+        {
+          "id": null,
+          "name": "Bắt đầu bỏ thuốc",
+          "duration": "Ngày 6–20",
+          "recommendGoal": "Không hút thuốc, ghi nhận cơn thèm, thay thế bằng hoạt động tích cực",
+          "goal": null,
+          "phaseOrder": 2
+        },
+        {
+          "id": null,
+          "name": "Duy trì",
+          "duration": "Ngày 21–90",
+          "recommendGoal": "Kiểm soát trigger, theo dõi thành quả, giữ vững quyết tâm",
+          "goal": null,
+          "phaseOrder": 3
+        }
+      ];
+      
+      setDefaultPhases(defaultPhasesData);
+      
+      // Initialize with default goals for each phase
+      const initialGoals = {};
+      defaultPhasesData.forEach((phase, index) => {
+        initialGoals[index] = [phase.recommendGoal || '', ''];
+      });
+      setPhaseGoals(initialGoals);
+    } finally {
+      setLoadingPhases(false);
+    }
+  };
+
+  const createBlankPhases = () => {
+    return [
+      {
+        "id": null,
+        "name": "Chuẩn bị bỏ thuốc",
+        "duration": "Ngày 1–5",
+        "recommendGoal": "Xác định lý do, chọn ngày bỏ thuốc, loại bỏ vật dụng liên quan",
+        "goal": null,
+        "phaseOrder": 1
+      },
+      {
+        "id": null,
+        "name": "Bắt đầu bỏ thuốc",
+        "duration": "Ngày 6–20",
+        "recommendGoal": "Không hút thuốc, ghi nhận cơn thèm, thay thế bằng hoạt động tích cực",
+        "goal": null,
+        "phaseOrder": 2
+      },
+      {
+        "id": null,
+        "name": "Duy trì",
+        "duration": "Ngày 21–90",
+        "recommendGoal": "Kiểm soát trigger, theo dõi thành quả, giữ vững quyết tâm",
+        "goal": null,
+        "phaseOrder": 3
+      }
+    ];
+  };
+
+  const handlePhaseGoalChange = (phaseIndex, goalIndex, value) => {
+    setPhaseGoals(prev => ({
+      ...prev,
+      [phaseIndex]: prev[phaseIndex]?.map((goal, idx) => 
+        idx === goalIndex ? value : goal
+      ) || []
+    }));
+  };
+
+  const addPhaseGoal = (phaseIndex) => {
+    setPhaseGoals(prev => ({
+      ...prev,
+      [phaseIndex]: [...(prev[phaseIndex] || []), '']
+    }));
+  };
+
+  const removePhaseGoal = (phaseIndex, goalIndex) => {
+    setPhaseGoals(prev => ({
+      ...prev,
+      [phaseIndex]: prev[phaseIndex]?.filter((_, idx) => idx !== goalIndex) || []
+    }));
+  };
+
+  const handleCreatePhases = async () => {
+    if (!createdPlanId) {
+      message.error('Không tìm thấy ID kế hoạch');
+      return;
+    }
+
+    // Validate that each phase has at least one goal
+    const hasEmptyPhases = Object.keys(phaseGoals).some(phaseIndex => {
+      const goals = phaseGoals[phaseIndex]?.filter(goal => goal.trim() !== '') || [];
+      return goals.length === 0;
+    });
+
+    if (hasEmptyPhases) {
+      message.warning('⚠️ Mỗi giai đoạn cần có ít nhất một mục tiêu');
+      return;
+    }
+
+    setLoadingPhases(true);
+    try {
+      // Prepare phases data with goals using the correct format based on API response
+      const phasesData = defaultPhases.map((phase, index) => {
+        const goals = phaseGoals[index]?.filter(goal => goal.trim() !== '') || [];
+        return {
+          ...phase,
+          goals: goals
+        };
+      });
+
+      console.log('Creating phase goals with data:', phasesData);
+      console.log('Using planId:', createdPlanId);
+      
+      const response = await createGoalsOfPhases(createdPlanId, phasesData);
+      console.log('createGoalsOfPhases response:', response);
+
+      // Check for success in various response formats
+      const isSuccess = response && (
+        response.success === true || 
+        response === 'Goals created successfully' ||
+        typeof response === 'string' ||
+        response.message === 'Success'
+      );
+
+      if (isSuccess) {
+        message.success('🎉 Tạo phases thành công! Kế hoạch đã được hoàn thiện.');
+        
+        // Navigate back after short delay
+        setTimeout(() => {
+          navigate(-1);
+        }, 2000);
+      } else {
+        throw new Error(response?.message || 'Unexpected response format');
+      }
+
+    } catch (error) {
+      console.error('Error creating phases:', error);
+      
+      // Check if it's a plan ID not found error
+      if (error.message && error.message.includes('quitPlanId not found')) {
+        message.error('❌ ID kế hoạch không hợp lệ. Kế hoạch đã được tạo nhưng không thể thêm phases chi tiết.');
+        message.info('💡 Bạn có thể quay lại dashboard và chỉnh sửa kế hoạch để thêm phases sau.');
+      } else {
+        message.error('❌ Có lỗi xảy ra khi tạo phases: ' + (error.message || 'Lỗi không xác định'));
+      }
+      
+      // Still navigate back after error to avoid getting stuck
+      setTimeout(() => {
+        navigate(-1);
+      }, 3000);
+    } finally {
+      setLoadingPhases(false);
+    }
+  };
+
   const smokingStatusOptions = [
     { value: 'NONE', label: 'Không hút thuốc' },
     { value: 'LIGHT', label: 'Hút ít (1-10 điếu/ngày)' },
@@ -88,7 +335,17 @@ const QuitPlanCreation = () => {
   ];
 
   const handleFinish = async (values) => {
-    if (!selectedMemberId) {
+    console.log('=== HANDLE FINISH CALLED ===');
+    console.log('Form values received:', values);
+    console.log('selectedMemberId state:', selectedMemberId);
+    console.log('memberIdFromUrl:', memberIdFromUrl);
+    
+    // Get memberId from form values or state
+    const memberId = values.memberId || selectedMemberId;
+    console.log('Final memberId to use:', memberId);
+
+    if (!memberId) {
+      console.log('ERROR: No member ID found');
       message.error('Vui lòng chọn thành viên');
       return;
     }
@@ -99,6 +356,7 @@ const QuitPlanCreation = () => {
       return;
     }
 
+    console.log('Starting to create quit plan...');
     setLoading(true);
 
     try {
@@ -118,28 +376,62 @@ const QuitPlanCreation = () => {
       };
 
       console.log('Creating quit plan with data:', formData);
-      console.log('For member ID:', selectedMemberId);
+      console.log('For member ID:', memberId);
       console.log('currentSmokingStatus value:', values.currentSmokingStatus);
       console.log('Expected enum values: NONE, LIGHT, MEDIUM, SEVERE');
 
-      const response = await createQuitPlan(selectedMemberId, formData);
+      const response = await createQuitPlan(memberId, formData);
       console.log('createQuitPlan response:', response);
       
-      if (response.success) {
-        message.success('🎉 Tạo kế hoạch cai thuốc thành công! Thành viên sẽ được thông báo về kế hoạch mới.');
+      if (response && (response.success || response.data || response.id)) {
+        message.success('🎉 Tạo kế hoạch cai thuốc thành công!');
         
-        // Reset form after successful submission
-        form.resetFields();
-        
-        // Only reset member selection if it wasn't from URL
-        if (!memberIdFromUrl) {
-          setSelectedMemberId('');
+        // Extract plan ID from various possible response formats
+        let planId = null;
+        if (response.success && response.data) {
+          planId = response.data.id || response.data.planId || response.data.quitPlanId;
+        } else if (response.id) {
+          planId = response.id;
+        } else if (response.planId) {
+          planId = response.planId;
+        } else if (response.data) {
+          planId = response.data;
         }
         
-        // Navigate back to dashboard after a short delay
-        setTimeout(() => {
-          navigate(-1);
-        }, 2000);
+        console.log('Extracted plan ID:', planId);
+        
+        // If no plan ID found in response, try to get the newest plan for the member
+        if (!planId) {
+          try {
+            console.log('No plan ID in response, fetching newest plan for member:', memberId);
+            const newestPlanResponse = await getNewestQuitPlan(memberId);
+            console.log('Newest plan response:', newestPlanResponse);
+            
+            if (newestPlanResponse && newestPlanResponse.success && newestPlanResponse.data) {
+              planId = newestPlanResponse.data.id || newestPlanResponse.data.planId || newestPlanResponse.data.quitPlanId;
+              console.log('Got plan ID from newest plan:', planId);
+            } else if (newestPlanResponse && newestPlanResponse.id) {
+              planId = newestPlanResponse.id;
+              console.log('Got plan ID directly from newest plan response:', planId);
+            }
+          } catch (newestPlanError) {
+            console.warn('Could not fetch newest plan:', newestPlanError);
+          }
+        }
+        
+        if (planId) {
+          setCreatedPlanId(planId);
+          setShowPhaseCreation(true);
+          
+          // Fetch default phases based on smoking status
+          await fetchDefaultPhases(values.currentSmokingStatus);
+        } else {
+          // If no plan ID found, skip phase creation and navigate back
+          message.warning('⚠️ Kế hoạch đã được tạo nhưng không thể tạo phases chi tiết. Bạn có thể tạo phases sau.');
+          setTimeout(() => {
+            navigate(-1);
+          }, 2000);
+        }
       } else {
         message.error('❌ Có lỗi xảy ra khi tạo kế hoạch. Vui lòng thử lại.');
         console.error('API error:', response);
@@ -180,17 +472,18 @@ const QuitPlanCreation = () => {
           </Card>
 
           {/* Main Form */}
-          <Card>
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={handleFinish}
-              initialValues={{
-                currentSmokingStatus: 'NONE',
-                startDate: moment(),
-                endDate: moment().add(1, 'month')
-              }}
-            >
+          {!showPhaseCreation && (
+            <Card>
+              <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleFinish}
+                initialValues={{
+                  currentSmokingStatus: 'NONE',
+                  startDate: moment(),
+                  endDate: moment().add(1, 'month')
+                }}
+              >
               {/* Member Selection */}
               <Card type="inner" style={{ marginBottom: 24 }}>
                 <Title level={4} style={{ color: '#1890ff', marginBottom: 16 }}>
@@ -205,7 +498,11 @@ const QuitPlanCreation = () => {
                   <Select
                     placeholder={loadingMembers ? "🔄 Đang tải..." : "-- Chọn thành viên --"}
                     value={selectedMemberId}
-                    onChange={setSelectedMemberId}
+                    onChange={(value) => {
+                      console.log('Member selected:', value);
+                      setSelectedMemberId(value);
+                      form.setFieldsValue({ memberId: value });
+                    }}
                     disabled={!!memberIdFromUrl || loadingMembers}
                     loading={loadingMembers}
                     size="large"
@@ -412,6 +709,185 @@ const QuitPlanCreation = () => {
               </div>
             </Form>
           </Card>
+          )}
+
+          {/* Phase Creation Section */}
+          {showPhaseCreation && (
+            <Card>
+              <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                <Title level={3} style={{ color: '#1890ff' }}>
+                  🔄 Tạo Các Giai Đoạn Cai Thuốc
+                </Title>
+                <Paragraph>
+                  Tùy chỉnh các mục tiêu cho từng giai đoạn trong kế hoạch cai thuốc
+                </Paragraph>
+                
+                {/* Add button to create blank phases if needed */}
+                {defaultPhases.length === 0 && (                <Button 
+                  type="dashed" 
+                  onClick={() => {
+                    const blankPhases = createBlankPhases();
+                    setDefaultPhases(blankPhases);
+                    
+                    // Initialize with recommend goals as first goal
+                    const initialGoals = {};
+                    blankPhases.forEach((phase, index) => {
+                      if (phase.recommendGoal && phase.recommendGoal.trim() !== '') {
+                        initialGoals[index] = [phase.recommendGoal, ''];
+                      } else {
+                        initialGoals[index] = ['', ''];
+                      }
+                    });
+                    setPhaseGoals(initialGoals);
+                    
+                    message.info('Đã tạo 3 giai đoạn mặc định');
+                  }}
+                  style={{ marginBottom: 16 }}
+                >
+                  ➕ Tạo giai đoạn mặc định
+                </Button>
+                )}
+              </div>
+
+              {loadingPhases ? (
+                <div style={{ textAlign: 'center', padding: '50px 0' }}>
+                  <Spin size="large" />
+                  <p style={{ marginTop: 16 }}>Đang tải phases mặc định...</p>
+                </div>
+              ) : (
+                <div>
+                  {defaultPhases.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '50px 0' }}>
+                      <Text type="secondary" style={{ fontSize: 16 }}>
+                        � Chưa có phases nào được tải.
+                      </Text>
+                      <br />
+                      <Text type="secondary">
+                        Hãy nhấn nút "Tạo giai đoạn mặc định" ở trên để bắt đầu tạo phases cho kế hoạch.
+                      </Text>
+                    </div>
+                  ) : (
+                    <>
+                      <Steps 
+                        current={-1} 
+                        direction="vertical"
+                        style={{ marginBottom: 24 }}
+                      >
+                        {defaultPhases.map((phase, index) => (
+                          <Steps.Step
+                            key={index}
+                            title={`${phase.name} (${phase.duration || 'Không xác định'})`}
+                            description={phase.recommendGoal}
+                          />
+                        ))}
+                      </Steps>
+
+                      <Divider orientation="left">Tùy chỉnh mục tiêu cho từng giai đoạn</Divider>
+
+                      {defaultPhases.map((phase, phaseIndex) => (
+                        <Card 
+                          key={phaseIndex}
+                          type="inner" 
+                          style={{ marginBottom: 16 }}
+                          title={
+                            <Space>
+                              <Tag color="blue">{phase.phaseOrder}</Tag>
+                              <span>{phase.name}</span>
+                              <Text type="secondary">({phase.duration || 'Không xác định'})</Text>
+                            </Space>
+                          }
+                        >
+                          <div style={{ marginBottom: 12 }}>
+                            <Text strong>Mục tiêu đề xuất: </Text>
+                            <Text>{phase.recommendGoal}</Text>
+                          </div>
+
+                          <div>
+                            <Text strong>Các mục tiêu cụ thể:</Text>
+                            
+                            {/* Show message if no goals */}
+                            {(!phaseGoals[phaseIndex] || phaseGoals[phaseIndex].length === 0) ? (
+                              <div style={{ marginTop: 8, marginBottom: 8 }}>
+                                <Text type="secondary">Chưa có mục tiêu nào. Nhấn nút bên dưới để thêm.</Text>
+                              </div>
+                            ) : (
+                              <List
+                                size="small"
+                                style={{ marginTop: 8 }}
+                                dataSource={phaseGoals[phaseIndex] || []}
+                                renderItem={(goal, goalIndex) => (
+                                  <List.Item
+                                    actions={[
+                                      <Button 
+                                        type="text" 
+                                        danger 
+                                        size="small"
+                                        onClick={() => removePhaseGoal(phaseIndex, goalIndex)}
+                                      >
+                                        Xóa
+                                      </Button>
+                                    ]}
+                                  >
+                                    <Input
+                                      value={goal}
+                                      onChange={(e) => handlePhaseGoalChange(phaseIndex, goalIndex, e.target.value)}
+                                      placeholder={`Mục tiêu ${goalIndex + 1}...`}
+                                    />
+                                  </List.Item>
+                                )}
+                              />
+                            )}
+                            
+                            <Button 
+                              type="dashed" 
+                              onClick={() => addPhaseGoal(phaseIndex)}
+                              style={{ width: '100%', marginTop: 8 }}
+                            >
+                              + Thêm mục tiêu
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                    </>
+                  )}
+
+                  {/* Phase Creation Actions */}
+                  <Divider />
+                  <div style={{ textAlign: 'center' }}>
+                    <Space size="large">
+                      <Button 
+                        type="default" 
+                        size="large"
+                        onClick={() => setShowPhaseCreation(false)}
+                      >
+                        Quay lại chỉnh sửa kế hoạch
+                      </Button>
+                      <Button 
+                        size="large"
+                        onClick={() => {
+                          message.success('✅ Kế hoạch đã được tạo thành công!');
+                          setTimeout(() => navigate(-1), 1500);
+                        }}
+                      >
+                        ⏭️ Bỏ qua tạo phases chi tiết
+                      </Button>
+                      {defaultPhases.length > 0 && (
+                        <Button 
+                          type="primary" 
+                          size="large"
+                          loading={loadingPhases}
+                          onClick={handleCreatePhases}
+                          icon={<SaveOutlined />}
+                        >
+                          {loadingPhases ? 'Đang tạo phases...' : '🎯 Hoàn tất tạo phases'}
+                        </Button>
+                      )}
+                    </Space>
+                  </div>
+                </div>
+              )}
+            </Card>
+          )}
         </div>
       </Content>
     </Layout>

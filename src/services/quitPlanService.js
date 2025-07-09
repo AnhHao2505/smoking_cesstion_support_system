@@ -144,7 +144,10 @@ export const getNewestQuitPlan = async (memberId) => {
   }
 };
 
-// Get old plans of member with pagination - Updated to match new API
+/**
+ * Get old plans of a member (paginated)
+ * Member / Coach lấy danh sách kế hoạch cũ của member
+ */
 export const getOldPlansOfMember = async (memberId, page = 0, size = 10) => {
   try {
     const response = await axiosInstance.get('/api/quit-plans/olds', {
@@ -156,7 +159,6 @@ export const getOldPlansOfMember = async (memberId, page = 0, size = 10) => {
   }
 };
 
-// Coach finish a quit plan - Updated to match new API
 export const finishQuitPlan = async (planId, note = '') => {
   try {
     const response = await axiosInstance.patch('/api/quit-plans/finish', null, {
