@@ -126,15 +126,15 @@ const NavBar = () => {
         { key: '/coach/dashboard', label: 'Overview', path: '/coach/dashboard' }
       ]
     },
-    schedule: {
-      label: 'Schedule & Appointments',
-      icon: <CalendarOutlined />,
-      items: [
-        { key: '/coach/schedule', label: 'My Schedule', path: '/coach/schedule' }
-        // Remove appointments route as it doesn't exist
-        // { key: '/coach/appointments', label: 'Appointments', path: '/coach/appointments' }
-      ]
-    },
+    // schedule: {
+    //   label: 'Schedule & Appointments',
+    //   icon: <CalendarOutlined />,
+    //   items: [
+    //     { key: '/coach/schedule', label: 'My Schedule', path: '/coach/schedule' }
+    //     // Remove appointments route as it doesn't exist
+    //     // { key: '/coach/appointments', label: 'Appointments', path: '/coach/appointments' }
+    //   ]
+    // },
     management: {
       label: 'Plan Management',
       icon: <BarChartOutlined />,

@@ -315,7 +315,7 @@ const App = () => {
               <Route 
                 path="/coach/dashboard" 
                 element={
-                  <PrivateRoute allowedRoles={['COACH']}>
+                  <PrivateRoute allowedRoles={['COACH', 'ADMIN']}>
                     <CoachDashboard />
                   </PrivateRoute>
                 }

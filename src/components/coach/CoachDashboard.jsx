@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Layout,
   Typography,
@@ -54,6 +55,7 @@ const { TextArea } = Input;
 
 const CoachDashboard = () => {
   const { currentUser } = useAuth();
+  const [searchParams] = useSearchParams();
   const [coachProfile, setCoachProfile] = useState(null);
   const [assignedMembers, setAssignedMembers] = useState([]);
   const [unansweredQuestions, setUnansweredQuestions] = useState([]);
@@ -80,7 +82,12 @@ const CoachDashboard = () => {
 
   const [answerForm] = Form.useForm();
 
-  const coachId = currentUser?.userId;
+  // Get coachId from URL params or current user
+  const urlCoachId = searchParams.get('coachId');
+  const coachId = urlCoachId || currentUser?.userId;
+  
+  // Check if viewing own profile or another coach's profile
+  const isViewingOwnProfile = !urlCoachId || urlCoachId === currentUser?.userId?.toString();
 
   useEffect(() => {
     const fetchCoachDashboardData = async () => {
@@ -99,56 +106,71 @@ const CoachDashboard = () => {
           setCoachProfile(profileResponse.data);
         }
 
-        // Fetch assigned members using updated API
-        console.log('Fetching assigned members for coachId:', coachId);
-        const membersResponse = await getAssignedMembers(coachId);
-        console.log('Full assigned members response:', membersResponse);
+        // Only fetch detailed data if viewing own profile or if user has admin role
+        if (isViewingOwnProfile || currentUser?.role === 'ADMIN') {
+          // Fetch assigned members using updated API
+          console.log('Fetching assigned members for coachId:', coachId);
+          const membersResponse = await getAssignedMembers(coachId);
+          console.log('Full assigned members response:', membersResponse);
 
-        const members = membersResponse || [];
-        console.log('Assigned Members API Response:', members);
-        console.log('Number of assigned members:', members.length);
+          const members = membersResponse || [];
+          console.log('Assigned Members API Response:', members);
+          console.log('Number of assigned members:', members.length);
 
-        // Transform member data to match table structure based on new API response
-        const transformedMembers = members.map((member, index) => ({
-          user_id: member.memberId || index,
-          full_name: member.name || 'Unknown Member',
-          email: member.email,
-          photo_url: null, // Not provided in API response
-          current_phase: member.planId ? 'ACTIVE' : 'No Plan', // Based on whether planId exists
-          progress: Math.floor(Math.random() * 100), // Placeholder until real progress API
-          days_smoke_free: 0, // Not provided in API response
-          last_checkin: 'N/A', // Not provided in API response
-          status: member.planId ? true : false, // Active if has plan
-          planId: member.planId,
-          initialStatusId: member.initialStatusId
-        }));
+          // Transform member data to match table structure based on new API response
+          const transformedMembers = members.map((member, index) => ({
+            user_id: member.memberId || index,
+            full_name: member.name || 'Unknown Member',
+            email: member.email,
+            photo_url: null, // Not provided in API response
+            current_phase: member.planId ? 'ACTIVE' : 'No Plan', // Based on whether planId exists
+            progress: Math.floor(Math.random() * 100), // Placeholder until real progress API
+            days_smoke_free: 0, // Not provided in API response
+            last_checkin: 'N/A', // Not provided in API response
+            status: member.planId ? true : false, // Active if has plan
+            planId: member.planId,
+            initialStatusId: member.initialStatusId
+          }));
 
-        console.log('Transformed members for table:', transformedMembers);
-        setAssignedMembers(transformedMembers);
+          console.log('Transformed members for table:', transformedMembers);
+          setAssignedMembers(transformedMembers);
 
-        // Calculate performance metrics based on new data structure
-        const totalMembers = members.length;
-        const activeMembers = members.filter(m => m.planId).length; // Members with plans
-        const completedPlans = 0; // Cannot determine from current API response
-        const successRate = totalMembers > 0 ? Math.round((activeMembers / totalMembers) * 100) : 0;
+          // Calculate performance metrics based on new data structure
+          const totalMembers = members.length;
+          const activeMembers = members.filter(m => m.planId).length; // Members with plans
+          const completedPlans = 0; // Cannot determine from current API response
+          const successRate = totalMembers > 0 ? Math.round((activeMembers / totalMembers) * 100) : 0;
 
-        setPerformanceMetrics({
-          total_members: totalMembers,
-          active_members: activeMembers,
-          completed_successfully: completedPlans,
-          average_rating: profileResponse.data?.rating || 0,
-          success_rate: successRate
-        });
+          setPerformanceMetrics({
+            total_members: totalMembers,
+            active_members: activeMembers,
+            completed_successfully: completedPlans,
+            average_rating: profileResponse.data?.rating || 0,
+            success_rate: successRate
+          });
 
-        // Fetch unanswered questions using updated API
-        const questionsResponse = await getUnansweredQna(0, 10);
-        setUnansweredQuestions(questionsResponse.content || []);
+          // Fetch unanswered questions using updated API
+          const questionsResponse = await getUnansweredQna(0, 10);
+          setUnansweredQuestions(questionsResponse.content || []);
 
-        // Fetch feedback using updated API
-        const feedbackResponse = await getFeedbacksForCoach(coachId);
-        // Handle both array and object response formats
-        const feedbacks = feedbackResponse.content;
-        setRecentFeedback(feedbacks.slice(0, 10)); // Show recent 10 feedbacks
+          // Fetch feedback using updated API
+          const feedbackResponse = await getFeedbacksForCoach(coachId);
+          // Handle both array and object response formats
+          const feedbacks = feedbackResponse.content;
+          setRecentFeedback(feedbacks.slice(0, 10)); // Show recent 10 feedbacks
+        } else {
+          // If viewing another coach's profile, only show basic profile info
+          setAssignedMembers([]);
+          setUnansweredQuestions([]);
+          setRecentFeedback([]);
+          setPerformanceMetrics({
+            total_members: 0,
+            active_members: 0,
+            completed_successfully: 0,
+            average_rating: profileResponse.data?.rating || 0,
+            success_rate: 0
+          });
+        }
 
       } catch (error) {
         console.error("Error fetching coach dashboard data:", error);
@@ -159,11 +181,11 @@ const CoachDashboard = () => {
     };
 
     fetchCoachDashboardData();
-  }, [coachId]);
+  }, [coachId, isViewingOwnProfile, currentUser?.role]);
 
   // Individual refresh functions
   const refreshMembers = async () => {
-    if (!coachId) return;
+    if (!coachId || !isViewingOwnProfile) return;
 
     try {
       setMembersLoading(true);
@@ -208,7 +230,7 @@ const CoachDashboard = () => {
   };
 
   const refreshQuestions = async () => {
-    if (!coachId) return;
+    if (!coachId || !isViewingOwnProfile) return;
 
     try {
       setQuestionsLoading(true);
@@ -224,7 +246,7 @@ const CoachDashboard = () => {
   };
 
   const refreshFeedback = async () => {
-    if (!coachId) return;
+    if (!coachId || !isViewingOwnProfile) return;
 
     try {
       setFeedbackLoading(true);
@@ -499,6 +521,25 @@ const CoachDashboard = () => {
   return (
     <div className="dashboard coach-dashboard">
       <div className="container py-4">
+        {/* Alert when viewing another coach's profile */}
+        {!isViewingOwnProfile && (
+          <Alert
+            message="Viewing Another Coach's Profile"
+            description={`You are viewing the profile of coach ID ${coachId}. Some functions are restricted to protect privacy.`}
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+            action={
+              <Button 
+                size="small" 
+                onClick={() => window.location.href = '/coach/dashboard'}
+              >
+                Back to My Dashboard
+              </Button>
+            }
+          />
+        )}
+        
         {/* Coach Profile Overview */}
         <Card className="mb-4 coach-profile-card">
           <Row gutter={[24, 24]} align="middle">
@@ -568,29 +609,30 @@ const CoachDashboard = () => {
         </Card>
 
         {/* Main Dashboard Content */}
-        <Tabs defaultActiveKey="1" className="dashboard-tabs">
-          <TabPane tab={<span><TeamOutlined /> Assigned Members</span>} key="1">
-            <Card
-              title="Member Progress"
-              extra={
-                <Button
-                  size="small"
-                  onClick={refreshMembers}
+        {isViewingOwnProfile ? (
+          <Tabs defaultActiveKey="1" className="dashboard-tabs">
+            <TabPane tab={<span><TeamOutlined /> Assigned Members</span>} key="1">
+              <Card
+                title="Member Progress"
+                extra={
+                  <Button
+                    size="small"
+                    onClick={refreshMembers}
+                    loading={membersLoading}
+                  >
+                    Refresh
+                  </Button>
+                }
+              >
+                <Table
+                  dataSource={assignedMembers}
+                  columns={memberColumns}
+                  rowKey="user_id"
+                  pagination={{ pageSize: 5 }}
                   loading={membersLoading}
-                >
-                  Refresh
-                </Button>
-              }
-            >
-              <Table
-                dataSource={assignedMembers}
-                columns={memberColumns}
-                rowKey="user_id"
-                pagination={{ pageSize: 5 }}
-                loading={membersLoading}
-              />
-            </Card>
-          </TabPane>
+                />
+              </Card>
+            </TabPane>
 
           <TabPane tab={
             <span>
@@ -825,6 +867,21 @@ const CoachDashboard = () => {
             </Row>
           </TabPane>
         </Tabs>
+        ) : (
+          // Limited view for other coaches' profiles
+          <Card title="Coach Profile View" style={{ marginTop: 16 }}>
+            <Alert
+              message="Limited Information"
+              description="You can only view basic profile information for other coaches. Member data and sensitive information are not available."
+              type="info"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+            <div className="text-center py-4">
+              <Text type="secondary">Profile information is displayed above. Additional details are restricted.</Text>
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* Answer Question Modal */}
