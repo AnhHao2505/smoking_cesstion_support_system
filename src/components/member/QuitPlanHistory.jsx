@@ -82,60 +82,48 @@ const QuitPlanHistory = () => {
         pagination.pageSize
       );
       
-      if (response.success) {
-        setPlans(response.data.content || []);
-        setPagination(prev => ({
-          ...prev,
-          total: response.data.totalElements || 0
-        }));
-      } else {
-        console.error('Failed to fetch quit plan history:', response.message);
-        // Fallback to mock data for development
-        const mockPlans = [
-          {
-            quit_plan_id: 1,
-            start_date: '2024-01-15',
-            end_date: '2024-04-15',
-            status: 'Completed',
-            success_rate: 85,
-            coach_name: 'Dr. Sarah Johnson',
-            coach_photo: 'https://randomuser.me/api/portraits/women/45.jpg',
-            strategies_used: 'Nicotine replacement therapy, Exercise',
-            outcome: 'Successfully completed',
-            days_completed: 90,
-            total_days: 90,
-            circumstances: 'Work stress',
-            created_at: '2024-01-10'
-          }
-        ];
-        setPlans(mockPlans);
-      }
+      // Ensure response is an array
+      const plansArray = Array.isArray(response.content) ? response.content : [];
+      setPlans(plansArray);
+      console.log(plans)
+      setPagination(prev => ({
+        ...prev,
+        total: plansArray.length
+      }));
     } catch (error) {
       console.error('Error fetching quit plan history:', error);
       message.error('Failed to load quit plan history');
+      setPlans([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
   };
 
   const filterPlans = () => {
+    // Ensure plans is an array before filtering
+    if (!Array.isArray(plans)) {
+      setFilteredPlans([]);
+      return;
+    }
+
     let filtered = plans;
 
     if (searchTerm) {
       filtered = filtered.filter(plan =>
-        plan.coach_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        plan.strategies_used.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        plan.circumstances.toLowerCase().includes(searchTerm.toLowerCase())
+        (plan.coachName && plan.coachName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (plan.copingStrategies && plan.copingStrategies.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (plan.smokingTriggersToAvoid && plan.smokingTriggersToAvoid.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (plan.motivation && plan.motivation.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(plan => plan.status === statusFilter);
+      filtered = filtered.filter(plan => plan.quitPlanStatus === statusFilter);
     }
 
     if (dateRange.length === 2) {
       filtered = filtered.filter(plan => {
-        const planDate = moment(plan.start_date);
+        const planDate = moment(plan.startDate);
         return planDate.isBetween(dateRange[0], dateRange[1], 'day', '[]');
       });
     }
@@ -150,18 +138,20 @@ const QuitPlanHistory = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Completed': return 'green';
-      case 'Failed': return 'red';
-      case 'Incomplete': return 'orange';
+      case 'COMPLETED': return 'green';
+      case 'FAILED': return 'red';
+      case 'PENDING': return 'orange';
+      case 'ACTIVE': return 'blue';
       default: return 'default';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'Completed': return <CheckCircleOutlined />;
-      case 'Failed': return <CloseCircleOutlined />;
-      case 'Incomplete': return <ClockCircleOutlined />;
+      case 'COMPLETED': return <CheckCircleOutlined />;
+      case 'FAILED': return <CloseCircleOutlined />;
+      case 'PENDING': return <ClockCircleOutlined />;
+      case 'ACTIVE': return <ClockCircleOutlined />;
       default: return <ClockCircleOutlined />;
     }
   };
@@ -176,18 +166,40 @@ const QuitPlanHistory = () => {
     return end.diff(start, 'days');
   };
 
+  const calculateProgress = (plan) => {
+    const now = moment();
+    const start = moment(plan.startDate);
+    const end = moment(plan.endDate);
+    const totalDays = end.diff(start, 'days');
+    
+    if (plan.quitPlanStatus === 'COMPLETED') {
+      return 100;
+    }
+    
+    if (now.isBefore(start)) {
+      return 0;
+    }
+    
+    if (now.isAfter(end)) {
+      return 100;
+    }
+    
+    const daysPassed = now.diff(start, 'days');
+    return Math.round((daysPassed / totalDays) * 100);
+  };
+
   const columns = [
     {
       title: 'Plan Period',
       key: 'period',
       render: (_, record) => (
         <div>
-          <Text strong>{formatDate(record.start_date)}</Text>
+          <Text strong>{formatDate(record.startDate)}</Text>
           <br />
-          <Text type="secondary">to {formatDate(record.end_date)}</Text>
+          <Text type="secondary">to {formatDate(record.endDate)}</Text>
           <br />
           <Text type="secondary">
-            ({calculateDuration(record.start_date, record.end_date)} days)
+            ({calculateDuration(record.startDate, record.endDate)} days)
           </Text>
         </div>
       )
@@ -197,31 +209,37 @@ const QuitPlanHistory = () => {
       key: 'coach',
       render: (_, record) => (
         <Space>
-          <Avatar src={record.coach_photo} icon={<UserOutlined />} />
-          <Text>{record.coach_name}</Text>
+          <Avatar icon={<UserOutlined />} />
+          <Text>{record.coachName}</Text>
         </Space>
       )
     },
     {
       title: 'Progress',
       key: 'progress',
-      render: (_, record) => (
-        <div>
-          <Progress 
-            percent={Math.round((record.days_completed / record.total_days) * 100)}
-            size="small"
-            strokeColor={getStatusColor(record.status)}
-          />
-          <Text type="secondary">
-            {record.days_completed}/{record.total_days} days
-          </Text>
-        </div>
-      )
+      render: (_, record) => {
+        const progress = calculateProgress(record);
+        const totalDays = calculateDuration(record.startDate, record.endDate);
+        const daysPassed = moment().diff(moment(record.startDate), 'days');
+        
+        return (
+          <div>
+            <Progress 
+              percent={progress}
+              size="small"
+              strokeColor={getStatusColor(record.quitPlanStatus)}
+            />
+            <Text type="secondary">
+              {Math.max(0, Math.min(daysPassed, totalDays))}/{totalDays} days
+            </Text>
+          </div>
+        );
+      }
     },
     {
       title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      dataIndex: 'quitPlanStatus',
+      key: 'quitPlanStatus',
       render: (status) => (
         <Tag 
           color={getStatusColor(status)} 
@@ -232,19 +250,26 @@ const QuitPlanHistory = () => {
       )
     },
     {
-      title: 'Success Rate',
-      dataIndex: 'success_rate',
-      key: 'success_rate',
-      render: (rate) => (
-        <Statistic
-          value={rate}
-          suffix="%"
-          valueStyle={{ 
-            fontSize: '14px',
-            color: rate >= 70 ? '#52c41a' : rate >= 40 ? '#faad14' : '#ff4d4f'
-          }}
-        />
-      )
+      title: 'Smoking Status',
+      dataIndex: 'currentSmokingStatus',
+      key: 'currentSmokingStatus',
+      render: (status) => {
+        const getSmokingStatusColor = (status) => {
+          switch (status) {
+            case 'NONE': return 'green';
+            case 'LIGHT': return 'orange';
+            case 'MEDIUM': return 'red';
+            case 'HEAVY': return 'volcano';
+            default: return 'default';
+          }
+        };
+        
+        return (
+          <Tag color={getSmokingStatusColor(status)}>
+            {status}
+          </Tag>
+        );
+      }
     },
     {
       title: 'Actions',
@@ -262,12 +287,10 @@ const QuitPlanHistory = () => {
   ];
 
   const overallStats = {
-    totalPlans: plans.length,
-    completedPlans: plans.filter(p => p.status === 'Completed').length,
-    averageSuccessRate: plans.length > 0 
-      ? Math.round(plans.reduce((sum, p) => sum + p.success_rate, 0) / plans.length)
-      : 0,
-    totalDaysAttempted: plans.reduce((sum, p) => sum + p.days_completed, 0)
+    totalPlans: Array.isArray(plans) ? plans.length : 0,
+    completedPlans: Array.isArray(plans) ? plans.filter(p => p.quitPlanStatus === 'COMPLETED').length : 0,
+    activePlans: Array.isArray(plans) ? plans.filter(p => p.quitPlanStatus === 'ACTIVE').length : 0,
+    pendingPlans: Array.isArray(plans) ? plans.filter(p => p.quitPlanStatus === 'PENDING').length : 0
   };
 
   return (
@@ -302,21 +325,20 @@ const QuitPlanHistory = () => {
           <Col xs={24} sm={6}>
             <Card>
               <Statistic
-                title="Average Success Rate"
-                value={overallStats.averageSuccessRate}
-                suffix="%"
+                title="Active Plans"
+                value={overallStats.activePlans}
                 prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: '#faad14' }}
+                valueStyle={{ color: '#1890ff' }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={6}>
             <Card>
               <Statistic
-                title="Total Days Attempted"
-                value={overallStats.totalDaysAttempted}
+                title="Pending Plans"
+                value={overallStats.pendingPlans}
                 prefix={<ClockCircleOutlined />}
-                valueStyle={{ color: '#722ed1' }}
+                valueStyle={{ color: '#faad14' }}
               />
             </Card>
           </Col>
@@ -327,7 +349,7 @@ const QuitPlanHistory = () => {
           <Row gutter={[16, 16]}>
             <Col xs={24} md={8}>
               <Search
-                placeholder="Search by coach, strategies, or circumstances..."
+                placeholder="Search by coach, strategies, triggers, or motivation..."
                 allowClear
                 enterButton={<SearchOutlined />}
                 onSearch={setSearchTerm}
@@ -342,9 +364,10 @@ const QuitPlanHistory = () => {
                 onChange={setStatusFilter}
               >
                 <Option value="all">All Status</Option>
-                <Option value="Completed">Completed</Option>
-                <Option value="Failed">Failed</Option>
-                <Option value="Incomplete">Incomplete</Option>
+                <Option value="COMPLETED">Completed</Option>
+                <Option value="FAILED">Failed</Option>
+                <Option value="PENDING">Pending</Option>
+                <Option value="ACTIVE">Active</Option>
               </Select>
             </Col>
             <Col xs={24} md={8}>
@@ -363,7 +386,7 @@ const QuitPlanHistory = () => {
           <Table
             dataSource={filteredPlans}
             columns={columns}
-            rowKey="quit_plan_id"
+            rowKey="id"
             loading={loading}
             pagination={{
               ...pagination,
@@ -381,7 +404,7 @@ const QuitPlanHistory = () => {
           title={
             <Space>
               <HistoryOutlined />
-              Plan Details - {selectedPlan && formatDate(selectedPlan.start_date)}
+              Plan Details - {selectedPlan && formatDate(selectedPlan.startDate)}
             </Space>
           }
           open={detailModalVisible}
@@ -401,70 +424,87 @@ const QuitPlanHistory = () => {
                     <div>
                       <Text strong>Duration:</Text>
                       <br />
-                      <Text>{formatDate(selectedPlan.start_date)} - {formatDate(selectedPlan.end_date)}</Text>
+                      <Text>{formatDate(selectedPlan.startDate)} - {formatDate(selectedPlan.endDate)}</Text>
                     </div>
                     <div>
                       <Text strong>Coach:</Text>
                       <br />
                       <Space>
-                        <Avatar src={selectedPlan.coach_photo} icon={<UserOutlined />} />
-                        <Text>{selectedPlan.coach_name}</Text>
+                        <Avatar icon={<UserOutlined />} />
+                        <Text>{selectedPlan.coachName}</Text>
                       </Space>
                     </div>
                     <div>
-                      <Text strong>Main Trigger:</Text>
+                      <Text strong>Current Smoking Status:</Text>
                       <br />
-                      <Tag color="blue">{selectedPlan.circumstances}</Tag>
+                      <Tag color="blue">{selectedPlan.currentSmokingStatus}</Tag>
                     </div>
                     <div>
-                      <Text strong>Strategies Used:</Text>
+                      <Text strong>Smoking Triggers to Avoid:</Text>
                       <br />
-                      <Text>{selectedPlan.strategies_used}</Text>
+                      <Text>{selectedPlan.smokingTriggersToAvoid}</Text>
+                    </div>
+                    <div>
+                      <Text strong>Coping Strategies:</Text>
+                      <br />
+                      <Text>{selectedPlan.copingStrategies}</Text>
+                    </div>
+                    <div>
+                      <Text strong>Medications:</Text>
+                      <br />
+                      <Text>{selectedPlan.medicationsToUse}</Text>
+                    </div>
+                    <div>
+                      <Text strong>Instructions:</Text>
+                      <br />
+                      <Text>{selectedPlan.medicationInstructions}</Text>
                     </div>
                   </Space>
                 </Card>
               </Col>
               <Col xs={24} md={12}>
-                <Card size="small" title="Results">
+                <Card size="small" title="Results & Motivation">
                   <Space direction="vertical" style={{ width: '100%' }}>
                     <div>
-                      <Text strong>Final Status:</Text>
+                      <Text strong>Status:</Text>
                       <br />
                       <Tag 
-                        color={getStatusColor(selectedPlan.status)} 
-                        icon={getStatusIcon(selectedPlan.status)}
+                        color={getStatusColor(selectedPlan.quitPlanStatus)} 
+                        icon={getStatusIcon(selectedPlan.quitPlanStatus)}
                       >
-                        {selectedPlan.status}
+                        {selectedPlan.quitPlanStatus}
                       </Tag>
                     </div>
                     <div>
                       <Text strong>Progress:</Text>
                       <br />
                       <Progress 
-                        percent={Math.round((selectedPlan.days_completed / selectedPlan.total_days) * 100)}
-                        strokeColor={getStatusColor(selectedPlan.status)}
+                        percent={calculateProgress(selectedPlan)}
+                        strokeColor={getStatusColor(selectedPlan.quitPlanStatus)}
                       />
                       <Text type="secondary">
-                        {selectedPlan.days_completed} out of {selectedPlan.total_days} days
+                        {calculateDuration(selectedPlan.startDate, selectedPlan.endDate)} days total
                       </Text>
                     </div>
                     <div>
-                      <Text strong>Success Rate:</Text>
+                      <Text strong>Motivation:</Text>
                       <br />
-                      <Statistic
-                        value={selectedPlan.success_rate}
-                        suffix="%"
-                        valueStyle={{ 
-                          fontSize: '24px',
-                          color: selectedPlan.success_rate >= 70 ? '#52c41a' : 
-                                selectedPlan.success_rate >= 40 ? '#faad14' : '#ff4d4f'
-                        }}
-                      />
+                      <Text>{selectedPlan.motivation}</Text>
                     </div>
                     <div>
-                      <Text strong>Outcome:</Text>
+                      <Text strong>Reward Plan:</Text>
                       <br />
-                      <Text>{selectedPlan.outcome}</Text>
+                      <Text>{selectedPlan.rewardPlan}</Text>
+                    </div>
+                    <div>
+                      <Text strong>Support Resources:</Text>
+                      <br />
+                      <Text>{selectedPlan.supportResources}</Text>
+                    </div>
+                    <div>
+                      <Text strong>Additional Notes:</Text>
+                      <br />
+                      <Text>{selectedPlan.additionalNotes}</Text>
                     </div>
                   </Space>
                 </Card>

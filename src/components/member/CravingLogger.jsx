@@ -63,17 +63,30 @@ const CravingLogger = () => {
         getLatestMemberSmokingStatus(userId)
       ]);
 
-      // Generate mock craving history
-      const mockCravings = generateMockCravingHistory();
-      setCravingHistory(mockCravings);
+      console.log('API Records:', records);
+
+      // Transform API data to craving data if available
+      let cravingHistory = [];
+      if (records && Array.isArray(records) && records.length > 0) {
+        // Transform API records to craving entries
+        cravingHistory = transformApiDataToCravings(records);
+      } 
       
-      const todaysCravings = mockCravings.filter(c => 
+      // If no real data or need more entries, supplement with mock data
+      if (cravingHistory.length < 10) {
+        const mockCravings = generateMockCravingHistory();
+        cravingHistory = [...cravingHistory, ...mockCravings];
+      }
+      
+      setCravingHistory(cravingHistory);
+      
+      const todaysCravings = cravingHistory.filter(c => 
         moment(c.timestamp).isSame(moment(), 'day')
       );
       setTodayCravings(todaysCravings);
 
       // Calculate stats
-      const stats = calculateCravingStats(mockCravings);
+      const stats = calculateCravingStats(cravingHistory);
       setCravingStats(stats);
 
       setLoading(false);
@@ -81,6 +94,67 @@ const CravingLogger = () => {
       console.error('Error fetching craving data:', error);
       setLoading(false);
     }
+  };
+
+  // Transform API data to craving entries
+  const transformApiDataToCravings = (apiData) => {
+    const cravingEntries = [];
+    
+    apiData.forEach(record => {
+      const date = moment(record.date);
+      
+      // Map craving levels to numeric values (1-10)
+      const getCravingLevel = (level) => {
+        switch(level?.toLowerCase()) {
+          case 'thấp': return 2;
+          case 'trung bình': return 5;
+          case 'cao': return 8;
+          default: return 3;
+        }
+      };
+
+      const morningCraving = getCravingLevel(record.morningCravingLevel);
+      const eveningCraving = getCravingLevel(record.eveningCravingLevel);
+
+      // Create morning craving entry if exists
+      if (record.morningCravingLevel && morningCraving > 1) {
+        cravingEntries.push({
+          id: `${record.id}-morning`,
+          timestamp: date.clone().hour(9).minute(0).toISOString(),
+          intensity: morningCraving,
+          duration: Math.floor(morningCraving * 2), // Estimate duration based on intensity
+          trigger: record.cigarettesConsumed > 0 ? 'stress' : 'habit',
+          location: 'home',
+          successfully_resisted: record.cigarettesConsumed === 0,
+          strategies_used: [
+            record.morningWaterDrinked && 'drink_water',
+            record.consumedMedicine && 'medication',
+            record.goOutsideForFreshAir && 'exercise'
+          ].filter(Boolean),
+          notes: record.positiveAffirmation || 'From daily state record'
+        });
+      }
+
+      // Create evening craving entry if exists
+      if (record.eveningCravingLevel && eveningCraving > 1) {
+        cravingEntries.push({
+          id: `${record.id}-evening`,
+          timestamp: date.clone().hour(19).minute(0).toISOString(),
+          intensity: eveningCraving,
+          duration: Math.floor(eveningCraving * 2),
+          trigger: record.cigarettesConsumed > 0 ? 'stress' : 'habit',
+          location: 'home',
+          successfully_resisted: record.cigarettesConsumed === 0,
+          strategies_used: [
+            record.noonAlternativeActivity && 'distraction',
+            record.goOutsideForFreshAir && 'exercise'
+          ].filter(Boolean),
+          notes: record.prideToday || 'From daily state record'
+        });
+      }
+    });
+
+    return cravingEntries;
   };
 
   const generateMockCravingHistory = () => {

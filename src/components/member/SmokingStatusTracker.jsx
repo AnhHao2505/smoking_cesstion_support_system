@@ -46,6 +46,95 @@ const SmokingStatusTracker = () => {
     applyFilters();
   }, [records, filterPeriod, filterStatus, dateRange]);
 
+  // Transform API data to match component's expected structure
+  const transformApiDataToRecords = (apiData) => {
+    return apiData.map(record => {
+      const date = moment(record.date);
+      
+      // Map craving levels to numeric values (1-10)
+      const getCravingLevel = (level) => {
+        switch(level?.toLowerCase()) {
+          case 'thấp': return 2;
+          case 'trung bình': return 5;
+          case 'cao': return 8;
+          default: return 3;
+        }
+      };
+
+      // Map emotions to mood scores
+      const getMoodFromEmotion = (emotion) => {
+        switch(emotion?.toLowerCase()) {
+          case 'rất tốt': return 'very_good';
+          case 'tốt': return 'good';
+          case 'bình thường': return 'normal';
+          case 'không tốt': return 'bad';
+          case 'rất không tốt': return 'very_bad';
+          default: return 'normal';
+        }
+      };
+
+      // Calculate average craving intensity from morning and evening levels
+      const morningCraving = getCravingLevel(record.morningCravingLevel);
+      const eveningCraving = getCravingLevel(record.eveningCravingLevel);
+      const avgCraving = Math.round((morningCraving + eveningCraving) / 2);
+
+      // Determine smoking status based on cigarettes consumed
+      const smokingStatus = (record.cigarettesConsumed || 0) === 0 ? 'smoke_free' : 
+                           (record.cigarettesConsumed <= 5) ? 'reduced' : 'normal';
+
+      // Calculate stress level based on craving and cigarette consumption
+      let stressLevel = avgCraving;
+      if (record.cigarettesConsumed > 0) {
+        stressLevel = Math.min(10, stressLevel + 2); // Higher stress if smoking
+      }
+
+      // Count strategies used
+      const strategiesUsed = [
+        record.morningWaterDrinked && 'water_drinking',
+        record.consumedMedicine && 'medication',
+        record.goOutsideForFreshAir && 'fresh_air',
+        record.noonAlternativeActivity && 'alternative_activity'
+      ].filter(Boolean);
+
+      // Determine craving frequency based on craving intensity
+      const cravingFrequency = avgCraving <= 3 ? 'rare' : 
+                              avgCraving <= 6 ? 'occasional' : 'frequent';
+
+      // Create notes from available data
+      const notes = [
+        record.positiveAffirmation && `Khẳng định: ${record.positiveAffirmation}`,
+        record.prideToday && `Tự hào: ${record.prideToday}`,
+        record.noonAlternativeActivity && `Hoạt động thay thế: ${record.noonAlternativeActivity}`
+      ].filter(Boolean).join(' | ') || 'Không có ghi chú';
+
+      return {
+        id: record.id,
+        record_date: record.date,
+        smoking_status: smokingStatus,
+        cigarettes_count: record.cigarettesConsumed || 0,
+        mood: getMoodFromEmotion(record.noonEmotion),
+        stress_level: stressLevel,
+        craving_intensity: avgCraving,
+        craving_frequency: cravingFrequency,
+        strategies_used: strategiesUsed.join(','),
+        notes: notes,
+        // Additional fields from API
+        morningCravingLevel: record.morningCravingLevel,
+        eveningCravingLevel: record.eveningCravingLevel,
+        noonEmotion: record.noonEmotion,
+        morningWaterDrinked: record.morningWaterDrinked,
+        consumedMedicine: record.consumedMedicine,
+        goOutsideForFreshAir: record.goOutsideForFreshAir,
+        noonAlternativeActivity: record.noonAlternativeActivity,
+        positiveAffirmation: record.positiveAffirmation,
+        prideToday: record.prideToday,
+        cigarettesTomorrowTarget: record.cigarettesTomorrowTarget,
+        phaseId: record.phaseId,
+        phaseName: record.phaseName
+      };
+    });
+  };
+
   const fetchSmokingData = async () => {
     try {
       setLoading(true);
@@ -53,52 +142,59 @@ const SmokingStatusTracker = () => {
         getDailyStateRecords(userId, 30), // Get last 30 days
         getLatestMemberSmokingStatus(userId)
       ]);
-console.log(recordsData)
-      // Use real records data if available, otherwise use mock data
-      const actualRecords = recordsData && Array.isArray(recordsData) ? recordsData : [];
       
-      // Mock data structure to match the expected format (for demonstration)
-      const mockRecords = [
-        {
-          id: 1,
-          record_date: moment().subtract(1, 'day').format('YYYY-MM-DD'),
-          smoking_status: 'smoke_free',
-          cigarettes_count: 0,
-          mood: 'good',
-          stress_level: 3,
-          craving_intensity: 2,
-          craving_frequency: 'rare',
-          strategies_used: 'deep_breathing,exercise',
-          notes: 'Ngày tốt, không có cơn thèm mạnh'
-        },
-        {
-          id: 2,
-          record_date: moment().subtract(2, 'days').format('YYYY-MM-DD'),
-          smoking_status: 'reduced',
-          cigarettes_count: 3,
-          mood: 'normal',
-          stress_level: 6,
-          craving_intensity: 7,
-          craving_frequency: 'frequent',
-          strategies_used: 'meditation,distraction',
-          notes: 'Ngày khó khăn, có stress từ công việc'
-        },
-        {
-          id: 3,
-          record_date: moment().subtract(3, 'days').format('YYYY-MM-DD'),
-          smoking_status: 'smoke_free',
-          cigarettes_count: 0,
-          mood: 'very_good',
-          stress_level: 2,
-          craving_intensity: 1,
-          craving_frequency: 'none',
-          strategies_used: 'exercise,positive_thinking',
-          notes: 'Ngày tuyệt vời, cảm thấy tự tin'
-        }
-      ];
+      console.log('API Response:', recordsData);
+      
+      // Use real records data if available, otherwise use mock data
+      let finalRecords = [];
+      
+      if (recordsData && Array.isArray(recordsData) && recordsData.length > 0) {
+        // Transform API data to match component expectations
+        finalRecords = transformApiDataToRecords(recordsData);
+        console.log('Transformed records:', finalRecords);
+      } else {
+        // Mock data structure to match the expected format (for demonstration)
+        const mockRecords = [
+          {
+            id: 1,
+            record_date: moment().subtract(1, 'day').format('YYYY-MM-DD'),
+            smoking_status: 'smoke_free',
+            cigarettes_count: 0,
+            mood: 'good',
+            stress_level: 3,
+            craving_intensity: 2,
+            craving_frequency: 'rare',
+            strategies_used: 'deep_breathing,exercise',
+            notes: 'Ngày tốt, không có cơn thèm mạnh'
+          },
+          {
+            id: 2,
+            record_date: moment().subtract(2, 'days').format('YYYY-MM-DD'),
+            smoking_status: 'reduced',
+            cigarettes_count: 3,
+            mood: 'normal',
+            stress_level: 6,
+            craving_intensity: 7,
+            craving_frequency: 'frequent',
+            strategies_used: 'meditation,distraction',
+            notes: 'Ngày khó khăn, có stress từ công việc'
+          },
+          {
+            id: 3,
+            record_date: moment().subtract(3, 'days').format('YYYY-MM-DD'),
+            smoking_status: 'smoke_free',
+            cigarettes_count: 0,
+            mood: 'very_good',
+            stress_level: 2,
+            craving_intensity: 1,
+            craving_frequency: 'none',
+            strategies_used: 'exercise,positive_thinking',
+            notes: 'Ngày tuyệt vời, cảm thấy tự tin'
+          }
+        ];
+        finalRecords = mockRecords;
+      }
 
-      // Use actual records if available, fallback to mock data
-      const finalRecords = actualRecords.length > 0 ? actualRecords : mockRecords;
       setRecords(finalRecords);
 
       // Handle latestData - it contains initial status info, not daily records
