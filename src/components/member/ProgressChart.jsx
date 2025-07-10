@@ -50,10 +50,23 @@ const ProgressChart = () => {
     try {
       setLoading(true);
       
+      // Calculate days needed based on date range
+      const days = dateRange[1].diff(dateRange[0], 'days') + 1;
+      
       // Try to get real data from the API first
-      const apiData = await getDailyStateRecords(userId);
+      const apiData = await getDailyStateRecords(userId, Math.max(days, 30)); // Get at least 30 days or requested range
       if (apiData && apiData.length > 0) {
-        setRecords(apiData);
+        // Transform API data to match component expectations
+        let transformedData = transformApiData(apiData);
+        
+        // Filter data by date range
+        const startDate = dateRange[0].format('YYYY-MM-DD');
+        const endDate = dateRange[1].format('YYYY-MM-DD');
+        transformedData = transformedData.filter(record => 
+          record.date >= startDate && record.date <= endDate
+        );
+        
+        setRecords(transformedData);
       } else {
         // Fallback to mock data for demonstration
         const mockData = generateMockData();
@@ -68,6 +81,81 @@ const ProgressChart = () => {
       setRecords(mockData);
       setLoading(false);
     }
+  };
+
+  // Transform API data to match component's expected structure
+  const transformApiData = (apiData) => {
+    return apiData.map(record => {
+      const date = moment(record.date);
+      
+      // Map craving levels to numeric values (1-10)
+      const getCravingLevel = (level) => {
+        switch(level?.toLowerCase()) {
+          case 'thấp': return 2;
+          case 'trung bình': return 5;
+          case 'cao': return 8;
+          default: return 3;
+        }
+      };
+
+      // Map emotions to mood scores (1-5)
+      const getMoodScore = (emotion) => {
+        switch(emotion?.toLowerCase()) {
+          case 'rất tốt': return 5;
+          case 'tốt': return 4;
+          case 'bình thường': return 3;
+          case 'không tốt': return 2;
+          case 'rất không tốt': return 1;
+          default: return 3;
+        }
+      };
+
+      // Calculate average craving intensity from morning and evening levels
+      const morningCraving = getCravingLevel(record.morningCravingLevel);
+      const eveningCraving = getCravingLevel(record.eveningCravingLevel);
+      const avgCraving = Math.round((morningCraving + eveningCraving) / 2);
+
+      // Determine smoking status: 1 for smoke-free (0 cigarettes), 0 for smoking
+      const smokingStatus = (record.cigarettesConsumed || 0) === 0 ? 1 : 0;
+
+      // Calculate stress level based on craving and cigarette consumption
+      let stressLevel = avgCraving;
+      if (record.cigarettesConsumed > 0) {
+        stressLevel = Math.min(10, stressLevel + 2); // Higher stress if smoking
+      }
+
+      return {
+        id: record.id,
+        date: record.date,
+        displayDate: date.format('DD/MM'),
+        fullDate: date.format('DD/MM/YYYY'),
+        smoking_status: smokingStatus,
+        cigarettes_count: record.cigarettesConsumed || 0,
+        stress_level: stressLevel,
+        craving_intensity: avgCraving,
+        mood_score: getMoodScore(record.noonEmotion),
+        strategies_count: [
+          record.morningWaterDrinked,
+          record.consumedMedicine,
+          record.goOutsideForFreshAir,
+          record.noonAlternativeActivity
+        ].filter(Boolean).length, // Count implemented strategies
+        week: date.format('w'),
+        month: date.format('MM'),
+        dayOfWeek: date.format('dddd'),
+        // Additional fields from API
+        morningWaterDrinked: record.morningWaterDrinked,
+        consumedMedicine: record.consumedMedicine,
+        positiveAffirmation: record.positiveAffirmation,
+        noonEmotion: record.noonEmotion,
+        goOutsideForFreshAir: record.goOutsideForFreshAir,
+        noonAlternativeActivity: record.noonAlternativeActivity,
+        prideToday: record.prideToday,
+        cigarettesTomorrowTarget: record.cigarettesTomorrowTarget,
+        phaseId: record.phaseId,
+        phaseName: record.phaseName
+      };
+    });
   };
 
   const generateMockData = () => {
@@ -359,14 +447,7 @@ const ProgressChart = () => {
           <Title level={2}>
             <LineChartOutlined /> Biểu đồ tiến độ
           </Title>
-          <Space>
-            <Button icon={<DownloadOutlined />}>
-              Xuất báo cáo
-            </Button>
-            <Button icon={<CalendarOutlined />}>
-              Lên lịch báo cáo
-            </Button>
-          </Space>
+          
         </div>
 
         {/* Statistics Overview */}
