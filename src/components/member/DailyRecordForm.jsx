@@ -1,51 +1,71 @@
 import React, { useState } from 'react';
 import { 
   Form, Input, Button, Card, Radio, Slider, InputNumber, 
-  Typography, message, Row, Col, Select
+  Typography, message, Row, Col, Select, Switch
 } from 'antd';
 import { 
   SaveOutlined, BarChartOutlined, MedicineBoxOutlined, 
-  SmileOutlined, FireOutlined
+  SmileOutlined, FireOutlined, HeartOutlined
 } from '@ant-design/icons';
-import { addDailyRecord } from '../../services/quitProgressService';
+import { createDailyLog } from '../../services/dailylogService';
 
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-const DailyRecordForm = ({ userId, onSuccess }) => {
+const DailyRecordForm = ({ userId, onSuccess, phaseId }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
 
-  const healthOptions = [
-    { value: 'good', label: 'Good', color: '#52c41a' },
-    { value: 'normal', label: 'Normal', color: '#1890ff' },
-    { value: 'poor', label: 'Poor', color: '#faad14' },
-    { value: 'very_poor', label: 'Very Poor', color: '#f5222d' }
+  const cravingLevelOptions = [
+    { value: 'none', label: 'None' },
+    { value: 'low', label: 'Low' },
+    { value: 'moderate', label: 'Moderate' },
+    { value: 'high', label: 'High' },
+    { value: 'very_high', label: 'Very High' }
   ];
 
-  const activityOptions = [
-    { value: 'good', label: 'Good (30+ minutes)', color: '#52c41a' },
-    { value: 'average', label: 'Average (10-30 minutes)', color: '#1890ff' },
-    { value: 'poor', label: 'Poor (Less than 10 minutes)', color: '#faad14' }
+  const emotionOptions = [
+    { value: 'very_happy', label: 'Very Happy' },
+    { value: 'happy', label: 'Happy' },
+    { value: 'neutral', label: 'Neutral' },
+    { value: 'sad', label: 'Sad' },
+    { value: 'anxious', label: 'Anxious' },
+    { value: 'stressed', label: 'Stressed' }
   ];
 
   const handleSubmit = async (values) => {
     setSubmitting(true);
     try {
-      const response = await addDailyRecord(userId, values);
+      const logData = {
+        morningWaterDrinked: values.morningWaterDrinked || false,
+        consumedMedicine: values.consumedMedicine || false,
+        positiveAffirmation: values.positiveAffirmation || "",
+        morningCravingLevel: values.morningCravingLevel || "none",
+        noonEmotion: values.noonEmotion || "neutral",
+        noonWaterDrinked: values.noonWaterDrinked || false,
+        goOutsideForFreshAir: values.goOutsideForFreshAir || false,
+        noonAlternativeActivity: values.noonAlternativeActivity || "",
+        prideToday: values.prideToday || "",
+        eveningCravingLevel: values.eveningCravingLevel || "none",
+        cigarettesConsumed: values.cigarettesConsumed || 0,
+        cigarettesTomorrowTarget: values.cigarettesTomorrowTarget || 0,
+        phaseId: phaseId || 0
+      };
+
+      const response = await createDailyLog(logData);
       if (response.success) {
-        message.success(response.message);
+        message.success(response.message || "Daily log saved successfully");
         form.resetFields();
         if (onSuccess) {
           onSuccess(response);
         }
       } else {
-        message.error(response.message || "Failed to save record");
+        message.error(response.message || "Failed to save daily log");
       }
     } catch (error) {
-      console.error("Error submitting daily record:", error);
-      message.error("An error occurred while saving your record");
+      console.error("Error submitting daily log:", error);
+      message.error("An error occurred while saving your daily log");
     } finally {
       setSubmitting(false);
     }
@@ -63,174 +83,206 @@ const DailyRecordForm = ({ userId, onSuccess }) => {
         layout="vertical"
         onFinish={handleSubmit}
         initialValues={{
-          daily_cigarette_consumed: 0,
-          stress_level: 5,
-          cravings_intensity: 5,
-          overall_health: 'normal',
-          mental_wellbeing_score: 5,
-          physical_activity_duration: 'average',
-          sleep_duration: 7
+          morningWaterDrinked: false,
+          consumedMedicine: false,
+          positiveAffirmation: '',
+          morningCravingLevel: 'none',
+          noonEmotion: 'neutral',
+          noonWaterDrinked: false,
+          goOutsideForFreshAir: false,
+          noonAlternativeActivity: '',
+          prideToday: '',
+          eveningCravingLevel: 'none',
+          cigarettesConsumed: 0,
+          cigarettesTomorrowTarget: 0
         }}
       >
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="daily_cigarette_consumed"
-              label="Cigarettes Smoked Today"
-              rules={[{ required: true, message: 'Please enter number of cigarettes' }]}
-            >
-              <InputNumber 
-                min={0} 
-                max={100} 
-                style={{ width: '100%' }}
-                prefix={<FireOutlined />}
-              />
-            </Form.Item>
-          </Col>
+        {/* Morning Section */}
+        <Card type="inner" title="Morning Check-in" style={{ marginBottom: 16 }}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="morningWaterDrinked"
+                label="Did you drink water this morning?"
+                valuePropName="checked"
+              >
+                <Switch checkedChildren="Yes" unCheckedChildren="No" />
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="overall_health"
-              label="Overall Health Today"
-              rules={[{ required: true, message: 'Please select your overall health' }]}
-            >
-              <Radio.Group buttonStyle="solid" style={{ width: '100%' }}>
-                {healthOptions.map(option => (
-                  <Radio.Button 
-                    key={option.value} 
-                    value={option.value}
-                    style={{ width: '25%', textAlign: 'center' }}
-                  >
-                    {option.label}
-                  </Radio.Button>
-                ))}
-              </Radio.Group>
-            </Form.Item>
-          </Col>
-        </Row>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="consumedMedicine"
+                label="Did you take your medicine?"
+                valuePropName="checked"
+              >
+                <Switch checkedChildren="Yes" unCheckedChildren="No" />
+              </Form.Item>
+            </Col>
+          </Row>
 
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="stress_level"
-              label="Stress Level (1-10)"
-              rules={[{ required: true, message: 'Please rate your stress level' }]}
-            >
-              <Slider
-                min={1}
-                max={10}
-                marks={{
-                  1: '1',
-                  5: '5',
-                  10: '10'
-                }}
-              />
-            </Form.Item>
-          </Col>
+          <Row gutter={[16, 16]}>
+            <Col xs={24}>
+              <Form.Item
+                name="positiveAffirmation"
+                label="Positive Affirmation for Today"
+                rules={[{ required: true, message: 'Please enter your positive affirmation' }]}
+              >
+                <Input.TextArea 
+                  rows={3} 
+                  placeholder="Write a positive affirmation to start your day..."
+                  prefix={<HeartOutlined />}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
 
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="cravings_intensity"
-              label="Cravings Intensity (1-10)"
-              rules={[{ required: true, message: 'Please rate your cravings' }]}
-            >
-              <Slider
-                min={1}
-                max={10}
-                marks={{
-                  1: '1',
-                  5: '5',
-                  10: '10'
-                }}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="morningCravingLevel"
+                label="Morning Craving Level"
+                rules={[{ required: true, message: 'Please select your morning craving level' }]}
+              >
+                <Select placeholder="How strong are your cravings this morning?">
+                  {cravingLevelOptions.map(option => (
+                    <Select.Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
 
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="mental_wellbeing_score"
-              label="Mental Wellbeing (1-10)"
-              rules={[{ required: true, message: 'Please rate your mental wellbeing' }]}
-            >
-              <Slider
-                min={1}
-                max={10}
-                marks={{
-                  1: '1',
-                  5: '5',
-                  10: '10'
-                }}
-              />
-            </Form.Item>
-          </Col>
+        {/* Noon Section */}
+        <Card type="inner" title="Noon Check-in" style={{ marginBottom: 16 }}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="noonEmotion"
+                label="How are you feeling at noon?"
+                rules={[{ required: true, message: 'Please select your noon emotion' }]}
+              >
+                <Select placeholder="Select your emotion">
+                  {emotionOptions.map(option => (
+                    <Select.Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
 
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="physical_activity_duration"
-              label="Physical Activity Today"
-              rules={[{ required: true, message: 'Please select your activity level' }]}
-            >
-              <Select>
-                {activityOptions.map(option => (
-                  <Option key={option.value} value={option.value}>
-                    {option.label}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="noonWaterDrinked"
+                label="Did you drink water at noon?"
+                valuePropName="checked"
+              >
+                <Switch checkedChildren="Yes" unCheckedChildren="No" />
+              </Form.Item>
+            </Col>
+          </Row>
 
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="sleep_duration"
-              label="Hours of Sleep Last Night"
-              rules={[{ required: true, message: 'Please enter sleep duration' }]}
-            >
-              <InputNumber min={0} max={24} style={{ width: '100%' }} />
-            </Form.Item>
-          </Col>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="goOutsideForFreshAir"
+                label="Did you go outside for fresh air?"
+                valuePropName="checked"
+              >
+                <Switch checkedChildren="Yes" unCheckedChildren="No" />
+              </Form.Item>
+            </Col>
+          </Row>
 
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="diet_quality"
-              label="Diet Quality Today"
-            >
-              <Select placeholder="How was your diet today?">
-                <Option value="healthy">Healthy</Option>
-                <Option value="moderate">Moderate</Option>
-                <Option value="poor">Poor</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
+          <Row gutter={[16, 16]}>
+            <Col xs={24}>
+              <Form.Item
+                name="noonAlternativeActivity"
+                label="Alternative Activity at Noon"
+              >
+                <Input.TextArea 
+                  rows={2} 
+                  placeholder="What alternative activity did you do instead of smoking?"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
 
-        <Form.Item
-          name="physical_symptoms"
-          label="Physical Symptoms (if any)"
-        >
-          <Input placeholder="Headache, coughing, etc." prefix={<MedicineBoxOutlined />} />
-        </Form.Item>
+        {/* Evening Section */}
+        <Card type="inner" title="Evening Reflection" style={{ marginBottom: 16 }}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24}>
+              <Form.Item
+                name="prideToday"
+                label="What are you proud of today?"
+                rules={[{ required: true, message: 'Please share what you are proud of today' }]}
+              >
+                <Input.TextArea 
+                  rows={3} 
+                  placeholder="Reflect on your achievements today..."
+                />
+              </Form.Item>
+            </Col>
+          </Row>
 
-        <Form.Item
-          name="self_reflection"
-          label="Self-Reflection"
-        >
-          <TextArea 
-            rows={4} 
-            placeholder="How are you feeling about your quit journey today? Any challenges or victories to note?"
-          />
-        </Form.Item>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="eveningCravingLevel"
+                label="Evening Craving Level"
+                rules={[{ required: true, message: 'Please select your evening craving level' }]}
+              >
+                <Select placeholder="How strong are your cravings this evening?">
+                  {cravingLevelOptions.map(option => (
+                    <Select.Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
 
-        <Form.Item
-          name="additional_notes"
-          label="Additional Notes"
-        >
-          <TextArea rows={2} placeholder="Any additional notes..." />
-        </Form.Item>
+        {/* Daily Summary */}
+        <Card type="inner" title="Daily Summary" style={{ marginBottom: 16 }}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="cigarettesConsumed"
+                label="Cigarettes Consumed Today"
+                rules={[{ required: true, message: 'Please enter number of cigarettes consumed' }]}
+              >
+                <InputNumber 
+                  min={0} 
+                  max={100} 
+                  style={{ width: '100%' }}
+                  prefix={<FireOutlined />}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="cigarettesTomorrowTarget"
+                label="Target for Tomorrow"
+                rules={[{ required: true, message: 'Please set your target for tomorrow' }]}
+              >
+                <InputNumber 
+                  min={0} 
+                  max={100} 
+                  style={{ width: '100%' }}
+                  placeholder="Goal for tomorrow"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
 
         <Form.Item>
           <Button 
@@ -239,8 +291,9 @@ const DailyRecordForm = ({ userId, onSuccess }) => {
             icon={<SaveOutlined />}
             loading={submitting}
             block
+            size="large"
           >
-            Save Today's Record
+            Save Today's Daily Log
           </Button>
         </Form.Item>
       </Form>

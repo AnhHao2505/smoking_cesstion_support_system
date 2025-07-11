@@ -51,15 +51,15 @@ const NavBar = () => {
 
   // Member-specific dropdown menus
   const memberDropdownMenus = {
-    dashboard: {
-      label: 'Bảng điều khiển',
-      icon: <DashboardOutlined />,
-      items: [
-        // { key: '/member/dashboard', label: 'Tổng quan', path: '/member/dashboard' }
-        // Remove quit-progress route as it doesn't exist
-        // { key: '/member/quit-progress', label: 'Tiến trình của tôi', path: '/member/quit-progress' }
-      ]
-    },
+    // dashboard: {
+    //   label: 'Bảng điều khiển',
+    //   icon: <DashboardOutlined />,
+    //   items: [
+    //     // { key: '/member/dashboard', label: 'Tổng quan', path: '/member/dashboard' }
+    //     // Remove quit-progress route as it doesn't exist
+    //     // { key: '/member/quit-progress', label: 'Tiến trình của tôi', path: '/member/quit-progress' }
+    //   ]
+    // },
     quitPlan: {
       label: 'Kế hoạch cai thuốc',
       icon: <FileTextOutlined />,
