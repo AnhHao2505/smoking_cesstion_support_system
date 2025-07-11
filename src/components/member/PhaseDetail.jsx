@@ -480,7 +480,7 @@ const PhaseDetail = () => {
 
             {/* Coach Information */}
             {quitPlan?.coach_name && (
-              <Card title="Coach hỗ trợ">
+              <Card title="Huấn luyện viên hỗ trợ">
                 <div className="coach-card text-center">
                   <Avatar 
                     size={64} 

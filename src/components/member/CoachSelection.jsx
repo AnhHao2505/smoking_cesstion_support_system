@@ -163,11 +163,11 @@ const CoachSelection = () => {
     <div className="coach-selection">
       <div className="container py-4">
         <Title level={2}>
-          <UserOutlined /> Choose Your Coach
+          <UserOutlined /> Chọn Huấn Luyện Viên
         </Title>
         <Paragraph>
-          Select a qualified coach to guide you through your smoking cessation journey. 
-          Each coach brings unique expertise and approaches to help you succeed.
+          Chọn một huấn luyện viên có trình độ để hướng dẫn bạn trong hành trình cai thuốc lá. 
+          Mỗi huấn luyện viên mang đến chuyên môn và phương pháp độc đáo để giúp bạn thành công.
         </Paragraph>
 
         {/* Search and Filters */}
@@ -175,7 +175,7 @@ const CoachSelection = () => {
           <Row gutter={[16, 16]}>
             <Col xs={24} md={8}>
               <Search
-                placeholder="Search coaches by name, specialty..."
+                placeholder="Tìm kiếm huấn luyện viên theo tên, chuyên môn..."
                 allowClear
                 enterButton={<SearchOutlined />}
                 value={searchTerm}
@@ -184,40 +184,40 @@ const CoachSelection = () => {
             </Col>
             <Col xs={24} md={5}>
               <Select
-                placeholder="Specialty"
+                placeholder="Chuyên môn"
                 style={{ width: '100%' }}
                 value={filters.specialty}
                 onChange={(value) => setFilters({ ...filters, specialty: value })}
               >
-                <Option value="all">All Specialties</Option>
-                <Option value="Behavioral Therapy">Behavioral Therapy</Option>
-                <Option value="Medical Support">Medical Support</Option>
-                <Option value="Nutritional Counseling">Nutritional Counseling</Option>
-                <Option value="Stress Management">Stress Management</Option>
+                <Option value="all">Tất cả chuyên môn</Option>
+                <Option value="Behavioral Therapy">Trị liệu hành vi</Option>
+                <Option value="Medical Support">Hỗ trợ y tế</Option>
+                <Option value="Nutritional Counseling">Tư vấn dinh dưỡng</Option>
+                <Option value="Stress Management">Quản lý căng thẳng</Option>
               </Select>
             </Col>
             <Col xs={24} md={5}>
               <Select
-                placeholder="Rating"
+                placeholder="Đánh giá"
                 style={{ width: '100%' }}
                 value={filters.rating}
                 onChange={(value) => setFilters({ ...filters, rating: value })}
               >
-                <Option value="all">All Ratings</Option>
-                <Option value="4.5">4.5+ Stars</Option>
-                <Option value="4.0">4.0+ Stars</Option>
-                <Option value="3.5">3.5+ Stars</Option>
+                <Option value="all">Tất cả đánh giá</Option>
+                <Option value="4.5">4.5+ Sao</Option>
+                <Option value="4.0">4.0+ Sao</Option>
+                <Option value="3.5">3.5+ Sao</Option>
               </Select>
             </Col>
             <Col xs={24} md={6}>
               <Select
-                placeholder="Availability"
+                placeholder="Tình trạng"
                 style={{ width: '100%' }}
                 value={filters.availability}
                 onChange={(value) => setFilters({ ...filters, availability: value })}
               >
-                <Option value="all">All Coaches</Option>
-                <Option value="available">Available Now</Option>
+                <Option value="all">Tất cả huấn luyện viên</Option>
+                <Option value="available">Có sẵn ngay</Option>
               </Select>
             </Col>
           </Row>
@@ -308,8 +308,8 @@ const CoachSelection = () => {
 
         {filteredCoaches.length === 0 && (
           <div className="text-center py-5">
-            <Title level={4}>No coaches found</Title>
-            <Paragraph>Try adjusting your filters to see more coaches.</Paragraph>
+            <Title level={4}>Không tìm thấy huấn luyện viên</Title>
+            <Paragraph>Hãy thử điều chỉnh bộ lọc để xem thêm huấn luyện viên.</Paragraph>
           </div>
         )}
 

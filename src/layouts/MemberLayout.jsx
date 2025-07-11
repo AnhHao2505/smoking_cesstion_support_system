@@ -156,18 +156,18 @@ const MemberLayout = () => {
     {
       key: 'coach',
       icon: <TeamOutlined />,
-      label: 'Coach',
+      label: 'Huấn luyện viên',
       children: [
         {
           key: '/member/coach-selection',
-          label: <Link to="/member/coach-selection">Chọn Coach</Link>,
+          label: <Link to="/member/coach-selection">Chọn huấn luyện viên</Link>,
         }
       ]
     },
     {
       key: 'qa-forum',
       icon: <QuestionCircleOutlined />,
-      label: <Link to="/qa-forum">Q&A Forum</Link>,
+      label: <Link to="/qa-forum">Diễn đàn Q&A</Link>,
     },
     {
       key: 'account',

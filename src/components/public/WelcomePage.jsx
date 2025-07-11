@@ -11,26 +11,26 @@ const WelcomePage = () => {
       <Content style={{ padding: '50px', textAlign: 'center' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
           <Title level={1} style={{ color: '#1890ff' }}>
-            Welcome to Smoking Cessation Support System
+            Chào mừng đến với Hệ thống hỗ trợ cai thuốc lá
           </Title>
           <Paragraph style={{ fontSize: '18px', marginBottom: '30px' }}>
-            Your journey to a smoke-free life starts here. Join our supportive community 
-            and get professional guidance to help you quit smoking successfully.
+            Hành trình đến cuộc sống không khói thuốc của bạn bắt đầu từ đây. Tham gia cộng đồng 
+            hỗ trợ của chúng tôi và nhận hướng dẫn chuyên nghiệp để giúp bạn cai thuốc lá thành công.
           </Paragraph>
           <Space size="large">
             <Link to="/login">
               <Button type="primary" size="large">
-                Login
+                Đăng nhập
               </Button>
             </Link>
             <Link to="/register">
               <Button size="large">
-                Register
+                Đăng ký
               </Button>
             </Link>
             <Link to="/blog">
               <Button size="large">
-                Read Articles
+                Đọc bài viết
               </Button>
             </Link>
           </Space>

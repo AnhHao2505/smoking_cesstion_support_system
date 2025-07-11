@@ -117,8 +117,8 @@ const LandingPage = () => {
           <Col xs={24} md={8}>
             <Title level={4}>Liên hệ</Title>
             <Paragraph>
-              Email: contact@caithoucla.com<br />
-              Điện thoại: 123-456-7890
+              Email: hotro@caithoucla.com<br />
+              Điện thoại: (024) 3825-1234
             </Paragraph>
           </Col>
           <Col xs={24} md={8}>
@@ -131,7 +131,7 @@ const LandingPage = () => {
           </Col>
         </Row>
         <Divider />
-        <Text>© 2025 Hệ thống hỗ trợ cai thuốc lá. All rights reserved.</Text>
+        <Text>© 2025 Hệ thống hỗ trợ cai thuốc lá. Bảo lưu mọi quyền.</Text>
       </Footer>
     </Layout>
   );

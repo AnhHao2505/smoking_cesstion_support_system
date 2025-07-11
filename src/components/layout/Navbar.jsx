@@ -52,48 +52,48 @@ const NavBar = () => {
   // Member-specific dropdown menus
   const memberDropdownMenus = {
     dashboard: {
-      label: 'Dashboard',
+      label: 'Bảng điều khiển',
       icon: <DashboardOutlined />,
       items: [
-        // { key: '/member/dashboard', label: 'Overview', path: '/member/dashboard' }
+        // { key: '/member/dashboard', label: 'Tổng quan', path: '/member/dashboard' }
         // Remove quit-progress route as it doesn't exist
-        // { key: '/member/quit-progress', label: 'My Progress', path: '/member/quit-progress' }
+        // { key: '/member/quit-progress', label: 'Tiến trình của tôi', path: '/member/quit-progress' }
       ]
     },
     quitPlan: {
-      label: 'Quit Plan',
+      label: 'Kế hoạch cai thuốc',
       icon: <FileTextOutlined />,
       items: [
-        { key: '/member/quit-plan', label: 'Current Plan', path: '/member/quit-plan' },
-        { key: '/member/quit-plan-flow', label: 'Quit Journey', path: '/member/quit-plan-flow' },
-        { key: '/member/quit-plan-creation', label: 'Create New Plan', path: '/member/quit-plan-creation' },
-        { key: '/member/quit-plan-history', label: 'Plan History', path: '/member/quit-plan-history' }
+        { key: '/member/quit-plan', label: 'Kế hoạch hiện tại', path: '/member/quit-plan' },
+        { key: '/member/quit-plan-flow', label: 'Hành trình cai thuốc', path: '/member/quit-plan-flow' },
+        { key: '/member/quit-plan-creation', label: 'Tạo kế hoạch mới', path: '/member/quit-plan-creation' },
+        { key: '/member/quit-plan-history', label: 'Lịch sử kế hoạch', path: '/member/quit-plan-history' }
       ]
     },
     tracking: {
-      label: 'Daily Tracking',
+      label: 'Theo dõi hàng ngày',
       icon: <HeartOutlined />,
       items: [
-        { key: '/member/daily-checkin', label: 'Daily Check-in', path: '/member/daily-checkin' },
-        { key: '/member/daily-record', label: 'Daily Log', path: '/member/daily-record' },
-        { key: '/member/craving-logger', label: 'Craving Logger', path: '/member/craving-logger' },
-        { key: '/member/smoking-status', label: 'Smoking Status', path: '/member/smoking-status' }
+        { key: '/member/daily-checkin', label: 'Điểm danh hàng ngày', path: '/member/daily-checkin' },
+        { key: '/member/daily-record', label: 'Nhật ký hàng ngày', path: '/member/daily-record' },
+        { key: '/member/craving-logger', label: 'Ghi nhận cơn thèm', path: '/member/craving-logger' },
+        { key: '/member/smoking-status', label: 'Tình trạng hút thuốc', path: '/member/smoking-status' }
       ]
     },
     progress: {
-      label: 'Progress & Analytics',
+      label: 'Tiến độ & Thống kê',
       icon: <BarChartOutlined />,
       items: [
-        { key: '/member/progress-chart', label: 'Progress Charts', path: '/member/progress-chart' }
+        { key: '/member/progress-chart', label: 'Biểu đồ tiến độ', path: '/member/progress-chart' }
       ]
     },
     support: {
-      label: 'Support & Coaching',
+      label: 'Hỗ trợ & Huấn luyện',
       icon: <UserOutlined />,
       items: [
-        { key: '/member/appointments', label: 'Appointments', path: '/member/appointments' },
-        // { key: '/member/coach-selection', label: 'Coach Selection', path: '/member/coach-selection' },
-        // { key: '/member/reminders', label: 'Reminders', path: '/member/reminders' }
+        { key: '/member/appointments', label: 'Cuộc hẹn', path: '/member/appointments' },
+        // { key: '/member/coach-selection', label: 'Chọn huấn luyện viên', path: '/member/coach-selection' },
+        // { key: '/member/reminders', label: 'Nhắc nhở', path: '/member/reminders' }
       ]
     }
     // Remove phases dropdown since it has no valid routes
@@ -120,36 +120,36 @@ const NavBar = () => {
   // Coach-specific dropdown menus
   const coachDropdownMenus = {
     dashboard: {
-      label: 'Dashboard',
+      label: 'Bảng điều khiển',
       icon: <DashboardOutlined />,
       items: [
-        { key: '/coach/dashboard', label: 'Overview', path: '/coach/dashboard' }
+        { key: '/coach/dashboard', label: 'Tổng quan', path: '/coach/dashboard' }
       ]
     },
     // schedule: {
-    //   label: 'Schedule & Appointments',
+    //   label: 'Lịch trình & Cuộc hẹn',
     //   icon: <CalendarOutlined />,
     //   items: [
-    //     { key: '/coach/schedule', label: 'My Schedule', path: '/coach/schedule' }
+    //     { key: '/coach/schedule', label: 'Lịch trình của tôi', path: '/coach/schedule' }
     //     // Remove appointments route as it doesn't exist
-    //     // { key: '/coach/appointments', label: 'Appointments', path: '/coach/appointments' }
+    //     // { key: '/coach/appointments', label: 'Cuộc hẹn', path: '/coach/appointments' }
     //   ]
     // },
     management: {
-      label: 'Plan Management',
+      label: 'Quản lý kế hoạch',
       icon: <BarChartOutlined />,
       items: [
-        { key: '/coach/create-quit-plan', label: 'Create Quit Plan', path: '/coach/create-quit-plan' },
-        { key: '/coach/quit-plan-approval', label: 'Plan Approvals', path: '/coach/quit-plan-approval' },
-        { key: '/coach/member-management', label: 'Member Management', path: '/coach/member-management' }
+        { key: '/coach/create-quit-plan', label: 'Tạo kế hoạch cai thuốc', path: '/coach/create-quit-plan' },
+        { key: '/coach/quit-plan-approval', label: 'Phê duyệt kế hoạch', path: '/coach/quit-plan-approval' },
+        { key: '/coach/member-management', label: 'Quản lý thành viên', path: '/coach/member-management' }
       ]
     },
     community: {
-      label: 'Community',
+      label: 'Cộng đồng',
       icon: <QuestionCircleOutlined />,
       items: [
-        { key: '/coach/qna', label: 'Answer Questions', path: '/coach/qna' },
-        { key: '/qa-forum', label: 'Q&A Forum', path: '/qa-forum' }
+        { key: '/coach/qna', label: 'Trả lời câu hỏi', path: '/coach/qna' },
+        { key: '/qa-forum', label: 'Diễn đàn hỏi đáp', path: '/qa-forum' }
       ]
     }
   };
@@ -158,16 +158,16 @@ const NavBar = () => {
   const renderNavLinks = () => {
     // Public links available to all users
     const publicLinks = [
-      { path: '/', label: 'Home' },
-      // { path: '/blog', label: 'Articles' }
-      // { path: '/about', label: 'About' },
-      // { path: '/contact', label: 'Contact' }
+      { path: '/', label: 'Trang chủ' },
+      // { path: '/blog', label: 'Bài viết' }
+      // { path: '/about', label: 'Giới thiệu' },
+      // { path: '/contact', label: 'Liên hệ' }
     ];
 
     // Admin-specific links
     const adminLinks = [
-      { path: '/admin/dashboard', label: 'Admin Panel' },
-      { path: '/admin/coaches', label: 'Coach Management' } // Added Coach Management link
+      { path: '/admin/dashboard', label: 'Bảng điều khiển Admin' },
+      { path: '/admin/coaches', label: 'Quản lý huấn luyện viên' } // Added Coach Management link
     ];
 
     // Determine which links to show based on user role
@@ -178,7 +178,7 @@ const NavBar = () => {
       const userRole = user.role?.toLowerCase();
       if (userRole === 'member') {
         // Add Q&A Forum link for members
-        links.push({ path: '/qa-forum', label: 'Q&A Forum' });
+        links.push({ path: '/qa-forum', label: 'Diễn đàn hỏi đáp' });
       } else if (userRole === 'coach') {
         // Coaches will use dropdown menus instead of links
         links = [...publicLinks];
@@ -249,15 +249,15 @@ const NavBar = () => {
       return (
         <div className="d-flex align-items-center">
           <span className="me-3 text-white">{user.fullName}</span>
-          <Link to="/profile" className="btn btn-outline-light me-2">Profile</Link>
-          <button onClick={handleLogout} className="btn btn-outline-danger">Logout</button>
+          <Link to="/profile" className="btn btn-outline-light me-2">Hồ sơ</Link>
+          <button onClick={handleLogout} className="btn btn-outline-danger">Đăng xuất</button>
         </div>
       );
     } else {
       return (
         <div className="d-flex">
-          <Link to="/login" className="btn btn-outline-light me-2">Login</Link>
-          <Link to="/register" className="btn btn-success">Register</Link>
+          <Link to="/login" className="btn btn-outline-light me-2">Đăng nhập</Link>
+          <Link to="/register" className="btn btn-success">Đăng ký</Link>
         </div>
       );
     }
@@ -268,7 +268,7 @@ const NavBar = () => {
       <div className="container">
         <Link to="/" className="navbar-brand d-flex align-items-center">
           <img src="/logo.svg" alt="Logo" height="32" className="me-2" />
-          <span>Smoking Cessation</span>
+          <span>Cai thuốc lá</span>
         </Link>
 
         <button 
@@ -277,7 +277,7 @@ const NavBar = () => {
           onClick={toggleMenu}
           aria-controls="navbarNav" 
           aria-expanded={isOpen ? "true" : "false"} 
-          aria-label="Toggle navigation"
+          aria-label="Chuyển đổi điều hướng"
         >
           <span className="navbar-toggler-icon"></span>
         </button>

@@ -86,8 +86,8 @@ const AboutPage = () => {
                   Có câu hỏi hoặc phản hồi? Chúng tôi rất mong được nghe từ bạn!
                 </Paragraph>
                 <Paragraph>
-                  <Text strong>Email:</Text> support@smokingcessation.com<br />
-                  <Text strong>Điện thoại:</Text> (024) 3825-xxxx
+                  <Text strong>Email:</Text> hotro@caithoucla.com<br />
+                  <Text strong>Điện thoại:</Text> (024) 3825-1234
                 </Paragraph>
               </Space>
             </Typography>
