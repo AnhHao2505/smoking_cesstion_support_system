@@ -7,7 +7,7 @@ import {
   UserOutlined, MailOutlined, PhoneOutlined, 
   TrophyOutlined, EditOutlined, SaveOutlined, CrownOutlined
 } from '@ant-design/icons';
-import { getMemberProfile, updateMemberProfile } from '../../services/memberProfileService';
+import { getMyProfile, updateMemberProfile } from '../../services/memberProfileService';
 import { getCurrentUser } from '../../services/authService';
 import { upgradeToPremium } from '../../services/userService';
 
@@ -32,7 +32,8 @@ const MemberProfile = () => {
     const fetchMemberProfile = async () => {
       try {
         setLoading(true);
-        const profile = await getMemberProfile(memberId);
+        // Use getMyProfile since we're getting current user's profile
+        const profile = await getMyProfile();
         
         if (profile) {
           setMemberProfile(profile);
@@ -52,6 +53,7 @@ const MemberProfile = () => {
       }
     };
 
+    // Only fetch if user is authenticated
     if (memberId) {
       fetchMemberProfile();
     }

@@ -266,7 +266,9 @@ const NavBar = () => {
           )}
           
           <span className="me-3 ms-2 text-white">{user.fullName}</span>
-          <Link to="/profile" className="btn btn-outline-light me-2">Hồ sơ</Link>
+          {user.role !== 'ADMIN' && (
+            <Link to="/profile" className="btn btn-outline-light me-2">Hồ sơ</Link>
+          )}
           <button onClick={handleLogout} className="btn btn-outline-danger">Đăng xuất</button>
         </div>
       );

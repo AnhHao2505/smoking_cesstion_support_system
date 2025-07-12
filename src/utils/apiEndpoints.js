@@ -34,7 +34,6 @@ export const API_ENDPOINTS = {
   // Profile Management
   PROFILE: {
     ME: '/profile/me',
-    MEMBER: '/profile/member',
     COACH: '/profile/coach',
   },
 

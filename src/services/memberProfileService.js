@@ -12,13 +12,13 @@ export const getMyProfile = async () => {
   }
 };
 
-// Get member profile by ID - Updated to match new API
+// Get member profile by ID - This endpoint doesn't exist in API spec
+// Use getMyProfile() for current user's profile instead
 export const getMemberProfile = async (memberId) => {
   try {
-    const response = await axiosInstance.get('/profile/member', {
-      params: { memberId }
-    });
-    return handleApiResponse(response);
+    // Since /profile/member doesn't exist, use /profile/me for current user
+    console.warn('getMemberProfile: /profile/member endpoint does not exist. Use getMyProfile() for current user profile.');
+    return await getMyProfile();
   } catch (error) {
     throw handleApiError(error);
   }

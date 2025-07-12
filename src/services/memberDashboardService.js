@@ -1,12 +1,12 @@
 import axiosInstance from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Get member profile data - Updated to use new API endpoint
+// Get member profile data - Updated to use correct API endpoint
 export const getMemberProfile = async (memberId) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.PROFILE.MEMBER, {
-      params: { memberId }
-    });
+    // Since /profile/member doesn't exist, use /profile/me for current user
+    console.warn('getMemberProfile: /profile/member endpoint does not exist. Using /profile/me instead.');
+    const response = await axiosInstance.get(API_ENDPOINTS.PROFILE.ME);
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
