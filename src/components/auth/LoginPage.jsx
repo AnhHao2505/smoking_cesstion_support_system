@@ -1,5 +1,5 @@
 import React, { use, useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Form, Input, Button, Checkbox, Typography, Row, Col, Card, Alert, Divider } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
@@ -9,10 +9,13 @@ const { Title, Text } = Typography;
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loginError, setLoginError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [form] = Form.useForm();
   const [testUsers, setTestUsers] = useState({});
+  
   useEffect(() => {
     const fetchTestUsers = async () => {
       const response = await authService.getTesters();
@@ -22,6 +25,15 @@ const LoginPage = () => {
     
     fetchTestUsers();
   }, [])
+
+  useEffect(() => {
+    // Check for success message from password reset
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear the state after showing the message
+      navigate('/login', { replace: true });
+    }
+  }, [location.state, navigate]);
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
@@ -61,6 +73,17 @@ const LoginPage = () => {
         <Col xs={22} sm={20} md={16} lg={12} xl={8}>
           <Card className="auth-card" bordered={false}>
             <Title level={2} className="text-center">Login</Title>
+            
+            {successMessage && (
+              <Alert 
+                message={successMessage} 
+                type="success" 
+                showIcon 
+                className="mb-4" 
+                closable
+                onClose={() => setSuccessMessage('')}
+              />
+            )}
             
             {loginError && (
               <Alert 

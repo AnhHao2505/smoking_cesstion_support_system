@@ -14,6 +14,9 @@ import Navbar from './layout/Navbar';
 // Auth pages
 import LoginPage from './auth/LoginPage';
 import RegisterPage from './auth/RegisterPage';
+import ForgotPasswordPage from './auth/ForgotPasswordPage';
+import ResetPasswordOtpPage from './auth/ResetPasswordOtpPage';
+import ResetPasswordPage from './auth/ResetPasswordPage';
 
 // Dashboard pages
 import MemberDashboard from './member/MemberDashboard';
@@ -128,6 +131,9 @@ const App = () => {
               {/* Auth Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password-otp" element={<ResetPasswordOtpPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               
               {/* Payment Routes */}
               <Route 
