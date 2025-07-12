@@ -31,6 +31,7 @@ import QuitPlanHistory from './member/QuitPlanHistory';
 import PhaseDetail from './member/PhaseDetail';
 import PhaseProgress from './member/PhaseProgress';
 import PhaseTaskManager from './member/PhaseTaskManager';
+import ChatPage from './member/ChatPage';
 
 // Reminder components
 import ReminderSettings from './member/ReminderSettings';
@@ -233,6 +234,15 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
                     <CoachSelection />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/member/chat" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <ChatPage />
                   </PrivateRoute>
                 }
               />

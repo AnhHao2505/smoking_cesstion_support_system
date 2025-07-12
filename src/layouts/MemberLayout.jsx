@@ -21,7 +21,8 @@ import {
   PlusOutlined,
   HeartOutlined,
   BarChartOutlined,
-  AimOutlined
+  AimOutlined,
+  MessageOutlined
 } from '@ant-design/icons';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -161,6 +162,10 @@ const MemberLayout = () => {
         {
           key: '/member/coach-selection',
           label: <Link to="/member/coach-selection">Chọn huấn luyện viên</Link>,
+        },
+        {
+          key: '/member/chat',
+          label: <Link to="/member/chat">Chat với Coach</Link>,
         }
       ]
     },

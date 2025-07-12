@@ -92,6 +92,7 @@ const NavBar = () => {
       icon: <UserOutlined />,
       items: [
         { key: '/member/appointments', label: 'Cuộc hẹn', path: '/member/appointments' },
+        { key: '/member/chat', label: 'Tin nhắn', path: '/member/chat' },
         // { key: '/member/coach-selection', label: 'Chọn huấn luyện viên', path: '/member/coach-selection' },
         // { key: '/member/reminders', label: 'Nhắc nhở', path: '/member/reminders' }
       ]
