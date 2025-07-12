@@ -198,6 +198,10 @@ const MemberLayout = () => {
         {
           key: '/member/premium-upgrade',
           label: <Link to="/member/premium-upgrade">Nâng cấp Premium</Link>,
+        },
+        {
+          key: '/member/transaction-history',
+          label: <Link to="/member/transaction-history">Lịch sử giao dịch</Link>,
         }
       ]
     }

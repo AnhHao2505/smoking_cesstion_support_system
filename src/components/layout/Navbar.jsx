@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Dropdown, Menu, Button } from 'antd';
-import { DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined, CrownOutlined } from '@ant-design/icons';
+import { SettingOutlined, DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined, CrownOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import NotificationBell from '../notifications/NotificationBell';
 import PaymentModal from '../payment/PaymentModal';
@@ -107,6 +107,13 @@ const NavBar = () => {
         { key: '/member/appointments', label: 'Cuộc hẹn', path: '/member/appointments' },
         { key: '/member/chat', label: 'Tin nhắn', path: '/member/chat' }
       ]
+    },
+    account: {
+      label: 'Tài khoản',
+      icon: <SettingOutlined />,
+      items: [
+        { key: '/member/transactions', label: 'Lịch sử giao dịch', path: '/member/transactions' }
+      ]
     }
   };
 
@@ -154,7 +161,7 @@ const NavBar = () => {
         { key: '/admin/coach-management', label: 'Quản lý huấn luyện viên', path: '/admin/coach-management' },
         { key: '/admin/coach-list', label: 'Danh sách huấn luyện viên', path: '/admin/coach-list' },
         { key: '/admin/coach-assignment', label: 'Phân công huấn luyện viên', path: '/admin/coach-assignment' },
-        { key: '/admin/coach-performance', label: 'Hiệu suất huấn luyện viên', path: '/admin/coach-performance' }
+        { key: '/admin/coach-performance', label: 'Hiệu suất huấn luyện viên', path: '/admin/coach-performance' },
       ]
     }
   };
@@ -215,7 +222,6 @@ const NavBar = () => {
       
       return (
         <div className="d-flex align-items-center">
-          <NotificationBell />
           
           {/* Upgrade button for non-premium members */}
           {!isPremium && user.role === 'MEMBER' && (
@@ -236,6 +242,7 @@ const NavBar = () => {
               Nâng cấp Premium
             </Button>
           )}
+          <NotificationBell />
           
           {/* Premium badge for premium members */}
           {isPremium && (

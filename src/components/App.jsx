@@ -62,6 +62,7 @@ import CoachManagement from './admin/CoachManagement';
 import CoachList from './admin/CoachList';
 import CoachAssignment from './admin/CoachAssignment';
 import CoachPerformance from './admin/CoachPerformance';
+import TransactionHistory from './admin/TransactionHistory';
 
 // Import new components
 import PremiumUpgrade from './member/PremiumUpgrade';
@@ -345,6 +346,16 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
                     <ReminderCalendar />
+                  </PrivateRoute>
+                }
+              />
+              
+              {/* Transaction History Route */}
+              <Route 
+                path="/member/transactions" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <TransactionHistory />
                   </PrivateRoute>
                 }
               />

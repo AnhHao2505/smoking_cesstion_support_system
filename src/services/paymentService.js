@@ -24,3 +24,15 @@ export const handleVNPayReturn = async (params) => {
     throw handleApiError(error);
   }
 };
+
+// Get user transaction history with pagination
+export const getMyTransactions = async (page = 1, size = 10) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.PAYMENT.MY_TRANSACTIONS, {
+      params: { page, size }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};

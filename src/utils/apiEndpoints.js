@@ -124,6 +124,7 @@ export const API_ENDPOINTS = {
   PAYMENT: {
     CREATE_PAYMENT: '/vn-pay/create-payment',
     VNPAY_RETURN: '/vn-pay/return',
+    MY_TRANSACTIONS: '/my-transactions',
   },
 };
 
