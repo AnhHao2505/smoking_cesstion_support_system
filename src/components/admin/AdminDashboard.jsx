@@ -925,21 +925,6 @@ const AdminDashboard = () => {
             </Card>
           </Col>
           
-          <Col xs={24} sm={12} md={6}>
-            <Card className="stat-card">
-              <Statistic 
-                title="Avg Phases per Plan"
-                value={dashboardStats.averagePhasesPerQuitPlan || 0}
-                prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: '#faad14' }}
-              />
-              <div className="stat-footer">
-                <Text type="secondary">
-                  Per quit plan
-                </Text>
-              </div>
-            </Card>
-          </Col>
         </Row>
         
         <Tabs defaultActiveKey="1" className="dashboard-tabs">
