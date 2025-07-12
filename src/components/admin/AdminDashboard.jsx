@@ -263,6 +263,25 @@ const AdminDashboard = () => {
     }
   };
 
+  // Handle user re-enable
+  const handleUserReEnable = async (record) => {
+    try {
+      if (record.role === 'ADMIN') {
+        message.warning('Admin users cannot be re-enabled');
+        return;
+      }
+
+      const response = await userService.reEnableUser(record.id);
+      
+        message.success('User re-enabled successfully');
+        // Refresh users data to show updated status
+        fetchUsersData(currentPage - 1, pageSize);
+    } catch (error) {
+      console.error('Error re-enabling user:', error);
+      message.error('Failed to re-enable user');
+    }
+  };
+
   // Handle feedback approval
   const handleFeedbackApproval = async (feedbackId) => {
     try {
@@ -451,16 +470,34 @@ const AdminDashboard = () => {
       key: 'action',
       render: (_, record) => (
         <Space>
-          <Button type="link" size="small">View</Button>
-          {record.role !== 'ADMIN' && (
+          {record.role !== 'ADMIN' && record.status && (
             <Button 
               type="link" 
               size="small" 
-              danger={record.status}
+              danger
               onClick={() => handleUserDisableToggle(record)}
             >
-              {record.status ? 'Disable' : 'Enable'}
+              Disable
             </Button>
+          )}
+          {record.role !== 'ADMIN' && !record.status && (
+            <>
+              <Button 
+                type="link" 
+                size="small" 
+                onClick={() => handleUserDisableToggle(record)}
+              >
+                Enable
+              </Button>
+              <Button 
+                type="link" 
+                size="small" 
+                style={{ color: '#52c41a' }}
+                onClick={() => handleUserReEnable(record)}
+              >
+                Re-enable
+              </Button>
+            </>
           )}
           {record.role === 'ADMIN' && (
             <Tooltip title="Admin users cannot be disabled">

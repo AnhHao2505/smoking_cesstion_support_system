@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
     CURRENT_ASSIGNMENT: '/user/member/current-assignment',
     UPGRADE_PREMIUM: '/user/upgrade-premium',
     DISABLE: '/user/disable',
+    RE_ENABLE: '/user/re-enable',
   },
 
   // Coach Management

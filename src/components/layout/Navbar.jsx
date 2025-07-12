@@ -319,10 +319,6 @@ const NavBar = () => {
             {renderRoleSpecificDropdowns()}
 
             <li className="nav-item">
-              <Link to="/blog" className="nav-link">Blog</Link>
-            </li>
-            
-            <li className="nav-item">
               <Link to="/qna" className="nav-link">
                 <QuestionCircleOutlined className="me-1" />
                 Q&A

@@ -57,6 +57,18 @@ export const disableUser = async (userId) => {
   }
 };
 
+// Re-enable user (admin function)
+export const reEnableUser = async (userId) => {
+  try {
+    const response = await axiosInstance.patch(API_ENDPOINTS.USER.RE_ENABLE, null, {
+      params: { userId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
 // Note: The following functions are not available in the current API specification
 // They have been removed to match the actual available endpoints:
 // - getUserProfile, updateUserProfile, uploadAvatar
