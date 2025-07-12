@@ -77,6 +77,10 @@ import WelcomePage from './public/WelcomePage';
 
 // Import demo components
 import NotificationDemo from './demo/NotificationDemo';
+
+// Import payment components
+import PaymentCallback from './payment/PaymentCallback';
+
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = authService.isAuthenticated();
@@ -123,6 +127,16 @@ const App = () => {
               {/* Auth Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              
+              {/* Payment Routes */}
+              <Route 
+                path="/payment/callback" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <PaymentCallback />
+                  </PrivateRoute>
+                }
+              />
               
               {/* Member Routes */}
               <Route 

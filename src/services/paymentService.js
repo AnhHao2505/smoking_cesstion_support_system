@@ -24,13 +24,3 @@ export const handleVNPayReturn = async (params) => {
     throw handleApiError(error);
   }
 };
-
-// Upgrade user to premium (after successful payment)
-export const upgradeToPremium = async () => {
-  try {
-    const response = await axiosInstance.post(API_ENDPOINTS.USER.UPGRADE_PREMIUM);
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
-};

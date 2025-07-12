@@ -1,0 +1,196 @@
+/* Payment Modal Styles */
+.payment-modal .ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.payment-modal .ant-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom: none;
+}
+
+.payment-modal .ant-modal-title {
+  color: white;
+  font-weight: bold;
+}
+
+.package-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.package-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.package-card.selected {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(24, 144, 255, 0.3);
+}
+
+.package-card.popular {
+  border: 2px solid #ff4d4f;
+}
+
+.package-card.popular::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ff4d4f, #ff7875);
+}
+
+/* Premium Badge Styles */
+.premium-badge {
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  color: #000;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+/* Upgrade Button Styles */
+.upgrade-button {
+  background: linear-gradient(45deg, #FFD700, #FFA500) !important;
+  border-color: #FFD700 !important;
+  color: #000 !important;
+  font-weight: bold !important;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.upgrade-button:hover {
+  background: linear-gradient(45deg, #FFA500, #FFD700) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4) !important;
+}
+
+/* Payment Result Styles */
+.payment-result-card {
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.payment-success-icon {
+  color: #52c41a;
+  font-size: 64px;
+}
+
+.payment-error-icon {
+  color: #ff4d4f;
+  font-size: 64px;
+}
+
+/* Transaction Info Styles */
+.transaction-info {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.transaction-info h4 {
+  margin-bottom: 12px;
+  color: #1890ff;
+  font-weight: bold;
+}
+
+.transaction-info p {
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.transaction-info strong {
+  color: #333;
+}
+
+/* Loading Animation */
+.payment-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
+.payment-loading .ant-spin {
+  margin-bottom: 16px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .payment-modal .ant-modal {
+    margin: 0;
+    padding: 16px;
+  }
+  
+  .package-card {
+    margin-bottom: 12px;
+  }
+  
+  .premium-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+  
+  .upgrade-button {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+}
+
+/* Animation for premium badge */
+@keyframes premium-glow {
+  0% {
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.5);
+  }
+  100% {
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+  }
+}
+
+.premium-badge {
+  animation: premium-glow 2s ease-in-out infinite;
+}
+
+/* Success confetti effect */
+.payment-success {
+  position: relative;
+  overflow: hidden;
+}
+
+.payment-success::before {
+  content: '🎉';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 20px;
+  animation: confetti 3s ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes confetti {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}

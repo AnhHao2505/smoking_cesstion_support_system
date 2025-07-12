@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Dropdown, Menu } from 'antd';
-import { DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined } from '@ant-design/icons';
+import { Dropdown, Menu, Button } from 'antd';
+import { DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined, CrownOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import NotificationBell from '../notifications/NotificationBell';
+import PaymentModal from '../payment/PaymentModal';
 import '../../styles/Navbar.css';
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -48,6 +50,25 @@ const NavBar = () => {
     
     // Fallback to user object
     return user.isPremiumMembership === true;
+  };
+
+  // Handle upgrade button click
+  const handleUpgradeClick = () => {
+    setPaymentModalVisible(true);
+  };
+
+  // Handle payment modal close
+  const handlePaymentModalClose = () => {
+    setPaymentModalVisible(false);
+  };
+
+  // Handle payment success
+  const handlePaymentSuccess = () => {
+    setPaymentModalVisible(false);
+    // Refresh user data
+    if (authService.isAuthenticated()) {
+      setUser(authService.getCurrentUser());
+    }
   };
 
   // Member-specific dropdown menus
@@ -190,9 +211,53 @@ const NavBar = () => {
   // Render authentication section (login/register buttons or user info)
   const renderAuthSection = () => {
     if (user) {
+      const isPremium = checkIfPremiumMember();
+      
       return (
         <div className="d-flex align-items-center">
           <NotificationBell />
+          
+          {/* Upgrade button for non-premium members */}
+          {!isPremium && user.role === 'MEMBER' && (
+            <Button
+              type="primary"
+              icon={<CrownOutlined />}
+              onClick={handleUpgradeClick}
+              style={{
+                background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                borderColor: '#FFD700',
+                color: '#000',
+                fontWeight: 'bold',
+                marginRight: '12px',
+                boxShadow: '0 2px 8px rgba(255, 215, 0, 0.3)'
+              }}
+              size="small"
+            >
+              Nâng cấp Premium
+            </Button>
+          )}
+          
+          {/* Premium badge for premium members */}
+          {isPremium && (
+            <div
+              style={{
+                background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                color: '#000',
+                padding: '4px 12px',
+                borderRadius: '16px',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                marginRight: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <CrownOutlined />
+              PREMIUM
+            </div>
+          )}
+          
           <span className="me-3 ms-2 text-white">{user.fullName}</span>
           <Link to="/profile" className="btn btn-outline-light me-2">Hồ sơ</Link>
           <button onClick={handleLogout} className="btn btn-outline-danger">Đăng xuất</button>
@@ -264,9 +329,18 @@ const NavBar = () => {
             )}
           </ul>
 
-          {renderAuthSection()}
+          <div className="d-flex align-items-center">
+            {renderAuthSection()}
+          </div>
         </div>
       </div>
+      
+      {/* Payment Modal */}
+      <PaymentModal
+        visible={paymentModalVisible}
+        onClose={handlePaymentModalClose}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </nav>
   );
 };
