@@ -387,6 +387,76 @@ class WebSocketService {
   }
 
   /**
+   * Subscribe to user notifications
+   * @param {function} notificationCallback - Callback function for received notifications
+   */
+  subscribeToNotifications(notificationCallback) {
+    if (!this.connected || !this.stompClient) {
+      console.error('❌ Cannot subscribe: WebSocket not connected');
+      return;
+    }
+
+    const destination = '/user/queue/notifications';
+    console.log('📨 Subscribing to notifications:', destination);
+
+    try {
+      const subscription = this.stompClient.subscribe(destination, (message) => {
+        console.log('📩 Received notification:', message);
+        try {
+          const notification = JSON.parse(message.body);
+          notificationCallback(notification);
+        } catch (error) {
+          console.error('❌ Error parsing notification:', error);
+        }
+      });
+
+      this.subscriptions.set(destination, subscription);
+      this.messageCallbacks.set(destination, notificationCallback);
+      
+      console.log('✅ Successfully subscribed to notifications:', destination);
+      return subscription;
+    } catch (error) {
+      console.error('❌ Error subscribing to notifications:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Subscribe to user reminders
+   * @param {function} reminderCallback - Callback function for received reminders
+   */
+  subscribeToReminders(reminderCallback) {
+    if (!this.connected || !this.stompClient) {
+      console.error('❌ Cannot subscribe: WebSocket not connected');
+      return;
+    }
+
+    const destination = '/user/queue/reminders';
+    console.log('📨 Subscribing to reminders:', destination);
+
+    try {
+      const subscription = this.stompClient.subscribe(destination, (message) => {
+        console.log('📩 Received reminder:', message);
+        try {
+          const reminder = JSON.parse(message.body);
+          reminderCallback(reminder);
+        } catch (error) {
+          console.error('❌ Error parsing reminder:', error);
+        }
+      });
+
+      this.subscriptions.set(destination, subscription);
+      this.messageCallbacks.set(destination, reminderCallback);
+      
+      console.log('✅ Successfully subscribed to reminders:', destination);
+      return subscription;
+    } catch (error) {
+      console.error('❌ Error subscribing to reminders:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Unsubscribe from a destination
    * @param {string} destination - The destination to unsubscribe from
    */
@@ -415,6 +485,22 @@ class WebSocketService {
    */
   unsubscribeFromCommunityChat(roomId) {
     const destination = `/topic/community/${roomId}`;
+    this.unsubscribe(destination);
+  }
+
+  /**
+   * Unsubscribe from notifications
+   */
+  unsubscribeFromNotifications() {
+    const destination = '/user/queue/notifications';
+    this.unsubscribe(destination);
+  }
+
+  /**
+   * Unsubscribe from reminders
+   */
+  unsubscribeFromReminders() {
+    const destination = '/user/queue/reminders';
     this.unsubscribe(destination);
   }
 
@@ -485,5 +571,9 @@ export const {
   onConnectionChange,
   removeConnectionCallback,
   isConnected,
-  getActiveSubscriptions
+  getActiveSubscriptions,
+  subscribeToNotifications,
+  subscribeToReminders,
+  unsubscribeFromNotifications,
+  unsubscribeFromReminders
 } = webSocketService;

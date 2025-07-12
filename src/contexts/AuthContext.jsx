@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as authService from '../services/authService';
+import webSocketService from '../services/websocketService';
 
 // Create the context
 const AuthContext = createContext(null);
@@ -36,6 +37,16 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.login(email, password);
       if (response.success) {
         setCurrentUser(response.user);
+        
+        // Connect to WebSocket after successful login
+        try {
+          await webSocketService.connect();
+          console.log('✅ WebSocket connected after login');
+        } catch (wsError) {
+          console.warn('⚠️ WebSocket connection failed after login:', wsError);
+          // Don't throw error here, just log it - user can still use the app
+        }
+        
         return response.user;
       }
       throw new Error(response.message || 'Login failed');
@@ -57,6 +68,10 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = async () => {
     try {
+      // Disconnect WebSocket before logout
+      webSocketService.disconnect();
+      console.log('🔌 WebSocket disconnected before logout');
+      
       await authService.logout();
       setCurrentUser(null);
     } catch (error) {

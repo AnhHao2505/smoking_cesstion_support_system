@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import * as authService from '../services/authService';
 
 // Layout components
@@ -73,6 +74,9 @@ import { QAForumPage, AskQuestionPage, QuestionListPage, AnswerQuestionPage } fr
 
 import LandingPage from './public/LandingPage';
 import WelcomePage from './public/WelcomePage';
+
+// Import demo components
+import NotificationDemo from './demo/NotificationDemo';
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = authService.isAuthenticated();
@@ -95,16 +99,26 @@ const App = () => {
   return (
     <Router>
       <AuthProvider>
-        <div className="d-flex flex-column min-vh-100">
-          <Navbar />
-          <main className="flex-grow-1">
+        <NotificationProvider>
+          <div className="d-flex flex-column min-vh-100">
+            <Navbar />
+            <main className="flex-grow-1">
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<WelcomePage />} />
               <Route path="/home" element={<LandingPage />} />
-              {/* <Route path="/" element={<div>Welcome to Smoking Cessation Support</div>} /> */}
               <Route path="/blog" element={<BlogListPage />} />
               <Route path="/blog/:id" element={<BlogDetailPage />} />
+              
+              {/* Demo Routes */}
+              <Route 
+                path="/demo/notifications" 
+                element={
+                  <PrivateRoute>
+                    <NotificationDemo />
+                  </PrivateRoute>
+                }
+              />
               
               {/* Auth Routes */}
               <Route path="/login" element={<LoginPage />} />
@@ -456,6 +470,7 @@ const App = () => {
           </main>
           {/* <Footer /> */}
         </div>
+        </NotificationProvider>
       </AuthProvider>
     </Router>
   );
