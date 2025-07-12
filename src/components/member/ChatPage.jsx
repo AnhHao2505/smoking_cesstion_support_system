@@ -284,6 +284,7 @@ const ChatPage = () => {
     setSendingMessage(true);
     try {
       // Prepare message data
+      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const messageData = {
         content: newMessage.trim(),
         type: 'text',
@@ -291,28 +292,54 @@ const ChatPage = () => {
         senderName: currentUser.fullName || currentUser.name || 'You',
         receiverId: selectedCoach?.coachId || null,
         receiverName: selectedCoach?.name || '',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        tempId: tempId
       };
+
+      // Add message to local state immediately with "sending" status
+      const tempMessage = {
+        id: tempId,
+        ...messageData,
+        status: 'sending' // sending, sent, failed
+      };
+      
+      setMessages(prev => [...prev, tempMessage]);
+      setNewMessage('');
 
       // Send via WebSocket if connected
       if (wsConnected) {
         try {
-          webSocketService.sendPrivateMessage(selectedChatRoom.roomId, messageData);
+          // Use the Promise-based sendPrivateMessage
+          const confirmedMessage = await webSocketService.sendPrivateMessage(selectedChatRoom.roomId, messageData);
           
-          // Add message to local state immediately for better UX
-          const newMsg = {
-            id: Date.now(),
-            ...messageData
-          };
-          
-          setMessages(prev => [...prev, newMsg]);
-          setNewMessage('');
+          // Update message status to "sent" when confirmed
+          setMessages(prev => prev.map(msg => 
+            msg.tempId === tempId 
+              ? { ...msg, status: 'sent', id: confirmedMessage.messageId || confirmedMessage.id || tempId }
+              : msg
+          ));
+
+          console.log('✅ Message sent and confirmed:', confirmedMessage);
           
         } catch (error) {
-          console.error('Failed to send via WebSocket:', error);
-          message.error('Không thể gửi tin nhắn qua WebSocket. Vui lòng thử lại.');
+          console.error('❌ Failed to send via WebSocket:', error);
+          
+          // Update message status to "failed"
+          setMessages(prev => prev.map(msg => 
+            msg.tempId === tempId 
+              ? { ...msg, status: 'failed' }
+              : msg
+          ));
+          
+          message.error(`Không thể gửi tin nhắn: ${error.message}`);
         }
       } else {
+        // Update status to failed if not connected
+        setMessages(prev => prev.map(msg => 
+          msg.tempId === tempId 
+            ? { ...msg, status: 'failed' }
+            : msg
+        ));
         message.warning('WebSocket chưa kết nối. Vui lòng đợi kết nối.');
       }
       
@@ -344,6 +371,89 @@ const ChatPage = () => {
       setSelectingCoach(false);
     }
   };
+
+  // Handle retry failed message
+  const handleRetryMessage = async (failedMessage) => {
+    if (!selectedChatRoom?.roomId) {
+      message.warning('Vui lòng chọn một phòng chat trước');
+      return;
+    }
+
+    // Update message status to sending
+    setMessages(prev => prev.map(msg => 
+      msg.id === failedMessage.id || msg.tempId === failedMessage.tempId
+        ? { ...msg, status: 'sending' }
+        : msg
+    ));
+
+    try {
+      if (wsConnected) {
+        const messageData = {
+          content: failedMessage.content,
+          type: failedMessage.type || 'text',
+          senderId: currentUser.userId,
+          senderName: currentUser.fullName || currentUser.name || 'You',
+          receiverId: selectedCoach?.coachId || null,
+          receiverName: selectedCoach?.name || '',
+          timestamp: new Date().toISOString(),
+          tempId: failedMessage.tempId || failedMessage.id
+        };
+
+        const confirmedMessage = await webSocketService.sendPrivateMessage(selectedChatRoom.roomId, messageData);
+        
+        // Update message status to "sent" when confirmed
+        setMessages(prev => prev.map(msg => 
+          (msg.id === failedMessage.id || msg.tempId === failedMessage.tempId)
+            ? { ...msg, status: 'sent', id: confirmedMessage.messageId || confirmedMessage.id || failedMessage.id }
+            : msg
+        ));
+
+        message.success('Tin nhắn đã được gửi lại thành công');
+        
+      } else {
+        // Update status to failed if not connected
+        setMessages(prev => prev.map(msg => 
+          (msg.id === failedMessage.id || msg.tempId === failedMessage.tempId)
+            ? { ...msg, status: 'failed' }
+            : msg
+        ));
+        message.warning('WebSocket chưa kết nối. Vui lòng đợi kết nối.');
+      }
+    } catch (error) {
+      console.error('❌ Failed to retry message:', error);
+      
+      // Update message status to "failed"
+      setMessages(prev => prev.map(msg => 
+        (msg.id === failedMessage.id || msg.tempId === failedMessage.tempId)
+          ? { ...msg, status: 'failed' }
+          : msg
+      ));
+      
+      message.error(`Không thể gửi lại tin nhắn: ${error.message}`);
+    }
+  };
+
+  // Debug function to check message confirmation
+  const debugMessageStatus = () => {
+    console.log('🔍 Debug: Current messages with status:', messages.map(msg => ({
+      id: msg.id,
+      tempId: msg.tempId,
+      content: msg.content.substring(0, 20) + '...',
+      status: msg.status,
+      timestamp: msg.timestamp
+    })));
+    
+    if (webSocketService.pendingMessages) {
+      console.log('🔍 Debug: Pending messages:', Array.from(webSocketService.pendingMessages.keys()));
+    }
+  };
+
+  // Call debug function when messages change (for development)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      debugMessageStatus();
+    }
+  }, [messages]);
 
   const filteredChatRooms = chatRooms.filter(room =>
     room.roomName?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -671,9 +781,37 @@ const ChatPage = () => {
                             fontSize: '11px', 
                             opacity: 0.7,
                             marginTop: '4px',
-                            textAlign: 'right'
+                            textAlign: 'right',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
                           }}>
-                            {formatMessageTime(msg.timestamp)}
+                            <span>{formatMessageTime(msg.timestamp)}</span>
+                            {msg.senderId === currentUser.userId && (
+                              <span style={{ marginLeft: '8px' }}>
+                                {msg.status === 'sending' && (
+                                  <Tag color="orange" size="small" style={{ fontSize: '10px', margin: 0 }}>
+                                    Đang gửi...
+                                  </Tag>
+                                )}
+                                {msg.status === 'sent' && (
+                                  <Tag color="green" size="small" style={{ fontSize: '10px', margin: 0 }}>
+                                    ✓ Đã gửi
+                                  </Tag>
+                                )}
+                                {msg.status === 'failed' && (
+                                  <Tag 
+                                    color="red" 
+                                    size="small" 
+                                    style={{ fontSize: '10px', margin: 0, cursor: 'pointer' }}
+                                    onClick={() => handleRetryMessage(msg)}
+                                    title="Click để gửi lại"
+                                  >
+                                    ✗ Thất bại (Gửi lại)
+                                  </Tag>
+                                )}
+                              </span>
+                            )}
                           </div>
                         </Card>
                       </div>

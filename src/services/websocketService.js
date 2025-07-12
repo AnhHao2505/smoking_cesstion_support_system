@@ -15,6 +15,79 @@ class WebSocketService {
     this.reconnectDelay = 3000;
   }
 
+  /**
+   * Send message to private chat
+   * @param {string} roomId - The room ID to send message to
+   * @param {object} messageData - The message data to send
+   * @returns {Promise} Promise that resolves when message is confirmed by server
+   */
+  sendPrivateMessage(roomId, messageData) {
+    return new Promise((resolve, reject) => {
+      if (!this.connected || !this.stompClient) {
+        reject(new Error('WebSocket not connected'));
+        return;
+      }
+
+      const destination = `/app/chat/coach/${roomId}`;
+      console.log('📤 Sending private message to:', destination, messageData);
+
+      try {
+        // Generate unique message ID for tracking
+        const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const messageWithId = {
+          ...messageData,
+          messageId: messageId,
+          tempId: messageData.tempId || messageId,
+          timestamp: new Date().toISOString()
+        };
+
+        // Set timeout for send confirmation
+        const timeout = setTimeout(() => {
+          if (this.pendingMessages && this.pendingMessages.has(messageId)) {
+            this.pendingMessages.delete(messageId);
+            reject(new Error('Message send timeout - no confirmation received'));
+          }
+        }, 10000); // 10 seconds timeout
+
+        // Store the resolve/reject functions for this message
+        if (!this.pendingMessages) {
+          this.pendingMessages = new Map();
+        }
+        
+        this.pendingMessages.set(messageId, {
+          resolve: (confirmedMessage) => {
+            clearTimeout(timeout);
+            console.log('✅ Message confirmed:', messageId);
+            resolve(confirmedMessage || messageWithId);
+          },
+          reject: (error) => {
+            clearTimeout(timeout);
+            console.error('❌ Message failed:', messageId, error);
+            reject(error);
+          },
+          timeout,
+          originalMessage: messageWithId
+        });
+
+        // Send message with receipt header for confirmation
+        this.stompClient.publish({
+          destination: destination,
+          body: JSON.stringify(messageWithId),
+          headers: {
+            'content-type': 'application/json',
+            'receipt': messageId // Request receipt for this message
+          }
+        });
+
+        console.log('✅ Message published to WebSocket with receipt:', messageId);
+
+      } catch (error) {
+        console.error('❌ Error publishing message:', error);
+        reject(error);
+      }
+    });
+  }
+
   connect() {
     return new Promise((resolve, reject) => {
       try {
@@ -80,6 +153,9 @@ class WebSocketService {
           this.connected = true;
           this.reconnectAttempts = 0;
           
+          // Set up receipt handler for message confirmation
+          this.stompClient.onStompError = this.stompClient.onStompError; // Keep existing error handler
+          
           // Notify connection callbacks
           this.connectionCallbacks.forEach(callback => {
             try {
@@ -90,6 +166,19 @@ class WebSocketService {
           });
 
           resolve(frame);
+        };
+
+        // Handle receipts for message confirmation
+        this.stompClient.onStompReceipt = (receipt) => {
+          console.log('📨 Received receipt:', receipt);
+          const receiptId = receipt.receiptId;
+          
+          if (this.pendingMessages && this.pendingMessages.has(receiptId)) {
+            const pendingMessage = this.pendingMessages.get(receiptId);
+            pendingMessage.resolve(pendingMessage.originalMessage);
+            this.pendingMessages.delete(receiptId);
+            console.log('✅ Message delivery confirmed via receipt:', receiptId);
+          }
         };
 
         this.stompClient.onStompError = (frame) => {
@@ -217,6 +306,16 @@ class WebSocketService {
         console.log('📩 Received message from private chat:', message);
         try {
           const parsedMessage = JSON.parse(message.body);
+          
+          // Check if this is a confirmation for a pending message
+          if (parsedMessage.messageId && this.pendingMessages && this.pendingMessages.has(parsedMessage.messageId)) {
+            console.log('✅ Received server confirmation for message:', parsedMessage.messageId);
+            const pendingMessage = this.pendingMessages.get(parsedMessage.messageId);
+            pendingMessage.resolve(parsedMessage);
+            this.pendingMessages.delete(parsedMessage.messageId);
+          }
+          
+          // Always call the message callback for UI updates
           messageCallback(parsedMessage);
         } catch (error) {
           console.error('❌ Error parsing message:', error);
@@ -265,35 +364,6 @@ class WebSocketService {
       console.log('✅ Successfully subscribed to community chat:', destination);
     } catch (error) {
       console.error('❌ Error subscribing to community chat:', error);
-    }
-  }
-
-  /**
-   * Send message to private chat
-   * @param {string} roomId - The room ID to send message to
-   * @param {object} messageData - The message data to send
-   */
-  sendPrivateMessage(roomId, messageData) {
-    if (!this.connected || !this.stompClient) {
-      console.error('❌ Cannot send message: WebSocket not connected');
-      throw new Error('WebSocket not connected');
-    }
-
-    const destination = `/app/chat/coach/${roomId}`;
-    console.log('📤 Sending private message to:', destination, messageData);
-
-    try {
-      this.stompClient.publish({
-        destination: destination,
-        body: JSON.stringify(messageData),
-        headers: {
-          'content-type': 'application/json'
-        }
-      });
-      console.log('✅ Message sent successfully');
-    } catch (error) {
-      console.error('❌ Error sending message:', error);
-      throw error;
     }
   }
 
