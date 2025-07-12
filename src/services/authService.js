@@ -94,14 +94,13 @@ export const login = async (email, password) => {
 };
 
 // Registration function - Updated to match new API specification
-export const register = async (name, email, password, contact_number) => {
+export const register = async (name, email, password) => {
   try {
     // Exact request body structure as specified in API
     const requestBody = {
       name: name,
       email: email,
-      password: password,
-      contact_number: contact_number
+      password: password
     };
 
     const response = await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, requestBody);

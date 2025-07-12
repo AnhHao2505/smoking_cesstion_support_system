@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Form, Input, Button, Select, Checkbox, Typography, Row, Col, Card, Alert } from 'antd';
-import { UserOutlined, MailOutlined, LockOutlined, PhoneOutlined } from '@ant-design/icons';
+import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import '../../styles/global.css';
 
@@ -22,9 +22,9 @@ const RegisterPage = () => {
     
     try {
       // Extract only the required fields for the API
-      const { name, email, password, contact_number } = values;
+      const { name, email, password } = values;
       
-      const response = await authService.register(name, email, password, contact_number);
+      const response = await authService.register(name, email, password);
       setIsLoading(false);
       setRegisterSuccess(response.message || 'Registration successful! You can now log in.');
       
@@ -139,20 +139,6 @@ const RegisterPage = () => {
                 <Input.Password 
                   prefix={<LockOutlined />} 
                   placeholder="Confirm your password"
-                  size="large" 
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="contact_number"
-                label="Contact Number"
-                rules={[
-                  { required: true, message: 'Please input your phone number!' }
-                ]}
-              >
-                <Input 
-                  prefix={<PhoneOutlined />} 
-                  placeholder="Enter your phone number"
                   size="large" 
                 />
               </Form.Item>
