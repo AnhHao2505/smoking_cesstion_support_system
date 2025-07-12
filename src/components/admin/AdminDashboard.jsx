@@ -1256,7 +1256,6 @@ const AdminDashboard = () => {
                 <Select.Option value="HEALTH_BENEFITS">Health Benefits</Select.Option>
                 <Select.Option value="MOTIVATIONAL_QUOTES">Motivational Quotes</Select.Option>
                 <Select.Option value="TIPS_AND_TRICKS">Tips and Tricks</Select.Option>
-                <Select.Option value="MILESTONE_CELEBRATIONS">Milestone Celebrations</Select.Option>
                 <Select.Option value="SMOKING_FACTS">Smoking Facts</Select.Option>
               </Select>
             </Form.Item>
