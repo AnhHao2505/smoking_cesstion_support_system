@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Dropdown, Menu } from 'antd';
-import { DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined } from '@ant-design/icons';
+import { Dropdown, Menu, Badge, Button, Typography, Empty, Tabs, Divider, Spin } from 'antd';
+import { DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined, BellOutlined, CheckOutlined, ReloadOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
+import * as notificationService from '../../services/notificationService';
 import '../../styles/Navbar.css';
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadNotifications, setUnreadNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationLoading, setNotificationLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('unread');
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -15,10 +21,71 @@ const NavBar = () => {
     // Check if user is authenticated
     if (authService.isAuthenticated()) {
       setUser(authService.getCurrentUser());
+      // Fetch notifications when user is authenticated
+      fetchNotifications();
     } else {
       setUser(null);
+      setNotifications([]);
+      setUnreadCount(0);
     }
   }, [location]); // Re-check when location changes
+
+  // Fetch notifications
+  const fetchNotifications = async () => {
+    try {
+      setNotificationLoading(true);
+      const [allNotifications, unreadNotifications] = await Promise.all([
+        notificationService.getAllNotifications(0, 20),
+        notificationService.getUnreadNotifications(0, 20)
+      ]);
+      
+      if (allNotifications.success) {
+        setNotifications(allNotifications.data.content || []);
+      } else if (allNotifications.content) {
+        setNotifications(allNotifications.content);
+      }
+      
+      if (unreadNotifications.success) {
+        setUnreadNotifications(unreadNotifications.data.content || []);
+        setUnreadCount(unreadNotifications.data.totalElements || 0);
+      } else if (unreadNotifications.content) {
+        setUnreadNotifications(unreadNotifications.content);
+        setUnreadCount(unreadNotifications.totalElements || unreadNotifications.content.length);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setNotificationLoading(false);
+    }
+  };
+
+  // Handle notification click (mark as read)
+  const handleNotificationClick = async (notificationId, isRead) => {
+    if (!isRead) {
+      try {
+        await notificationService.markAsRead(notificationId);
+        // Refresh notifications
+        fetchNotifications();
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+      }
+    }
+  };
+
+  // Format notification time
+  const formatNotificationTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return 'Vừa xong';
+    if (minutes < 60) return `${minutes} phút trước`;
+    if (hours < 24) return `${hours} giờ trước`;
+    return `${days} ngày trước`;
+  };
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -244,12 +311,235 @@ const NavBar = () => {
     ));
   };
 
+  // Render notification bell dropdown
+  const renderNotificationBell = () => {
+    if (!user) return null;
+
+    const { Text } = Typography;
+    const { TabPane } = Tabs;
+
+    // Render notification item
+    const renderNotificationItem = (notification, index) => (
+      <div
+        key={notification.id || index}
+        onClick={() => handleNotificationClick(notification.id, notification.isRead)}
+        style={{
+          padding: '12px 16px',
+          backgroundColor: notification.isRead ? 'transparent' : '#f6ffed',
+          borderLeft: notification.isRead ? 'none' : '4px solid #52c41a',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          borderBottom: '1px solid #f0f0f0'
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.backgroundColor = notification.isRead ? '#fafafa' : '#f0f9ff';
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.backgroundColor = notification.isRead ? 'transparent' : '#f6ffed';
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ flex: 1, marginRight: '8px' }}>
+            <div style={{
+              fontWeight: notification.isRead ? 'normal' : '600',
+              marginBottom: '4px',
+              fontSize: '14px',
+              color: notification.isRead ? '#666' : '#262626',
+              lineHeight: '1.4'
+            }}>
+              {notification.title || 'Thông báo mới'}
+            </div>
+            <div style={{
+              color: '#8c8c8c',
+              fontSize: '12px',
+              marginBottom: '6px',
+              lineHeight: '1.4'
+            }}>
+              {notification.content || notification.message || 'Nội dung thông báo'}
+            </div>
+            <div style={{
+              color: '#bfbfbf',
+              fontSize: '11px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}>
+              <ClockCircleOutlined />
+              {formatNotificationTime(notification.createdAt || notification.timestamp)}
+            </div>
+          </div>
+          {!notification.isRead && (
+            <div style={{
+              width: '8px',
+              height: '8px',
+              backgroundColor: '#52c41a',
+              borderRadius: '50%',
+              marginTop: '4px'
+            }} />
+          )}
+        </div>
+      </div>
+    );
+
+    // Notification content component
+    const NotificationContent = () => (
+      <div style={{ width: 380, maxHeight: 500 }}>
+        {/* Header */}
+        <div style={{
+          padding: '16px',
+          borderBottom: '1px solid #f0f0f0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: '#fafafa'
+        }}>
+          <Text strong style={{ fontSize: '16px', color: '#262626' }}>
+            Thông báo
+          </Text>
+          <Button
+            type="text"
+            size="small"
+            icon={<ReloadOutlined />}
+            onClick={fetchNotifications}
+            loading={notificationLoading}
+            style={{ color: '#1890ff' }}
+          >
+            Làm mới
+          </Button>
+        </div>
+
+        {/* Tabs */}
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          style={{ margin: 0 }}
+          tabBarStyle={{ margin: 0, padding: '0 16px', backgroundColor: '#fafafa' }}
+        >
+          <TabPane
+            tab={
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Chưa đọc
+                {unreadCount > 0 && (
+                  <Badge count={unreadCount} size="small" style={{ backgroundColor: '#ff4d4f' }} />
+                )}
+              </span>
+            }
+            key="unread"
+          >
+            <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+              {notificationLoading ? (
+                <div style={{ padding: '40px', textAlign: 'center' }}>
+                  <Spin />
+                </div>
+              ) : unreadNotifications.length === 0 ? (
+                <div style={{ padding: '40px', textAlign: 'center' }}>
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={
+                      <Text type="secondary" style={{ fontSize: '14px' }}>
+                        Không có thông báo chưa đọc
+                      </Text>
+                    }
+                    style={{ margin: 0 }}
+                  />
+                </div>
+              ) : (
+                unreadNotifications.map((notification, index) =>
+                  renderNotificationItem(notification, index)
+                )
+              )}
+            </div>
+          </TabPane>
+
+          <TabPane tab="Tất cả" key="all">
+            <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+              {notificationLoading ? (
+                <div style={{ padding: '40px', textAlign: 'center' }}>
+                  <Spin />
+                </div>
+              ) : notifications.length === 0 ? (
+                <div style={{ padding: '40px', textAlign: 'center' }}>
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={
+                      <Text type="secondary" style={{ fontSize: '14px' }}>
+                        Không có thông báo nào
+                      </Text>
+                    }
+                    style={{ margin: 0 }}
+                  />
+                </div>
+              ) : (
+                notifications.map((notification, index) =>
+                  renderNotificationItem(notification, index)
+                )
+              )}
+            </div>
+          </TabPane>
+        </Tabs>
+
+        {/* Footer */}
+        {(notifications.length > 0 || unreadNotifications.length > 0) && (
+          <div style={{
+            padding: '12px 16px',
+            borderTop: '1px solid #f0f0f0',
+            textAlign: 'center',
+            backgroundColor: '#fafafa'
+          }}>
+            <Button type="link" size="small" style={{ color: '#1890ff', fontWeight: '500' }}>
+              Xem tất cả thông báo
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+
+    return (
+      <Dropdown
+        overlay={<div />}
+        dropdownRender={() => <NotificationContent />}
+        trigger={['click']}
+        placement="bottomRight"
+        overlayClassName="notification-dropdown"
+        onVisibleChange={(visible) => {
+          if (visible && unreadCount > 0) {
+            setActiveTab('unread');
+          }
+        }}
+      >
+        <Badge count={unreadCount} size="small" offset={[-5, 5]}>
+          <Button
+            type="text"
+            icon={<BellOutlined />}
+            style={{
+              color: 'white',
+              border: 'none',
+              fontSize: '18px',
+              height: '40px',
+              width: '40px',
+              borderRadius: '50%',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+            }}
+            onClick={(e) => e.preventDefault()}
+          />
+        </Badge>
+      </Dropdown>
+    );
+  };
+
   // Render authentication section (login/register buttons or user info)
   const renderAuthSection = () => {
     if (user) {
       return (
         <div className="d-flex align-items-center">
-          <span className="me-3 text-white">{user.fullName}</span>
+          {renderNotificationBell()}
+          <span className="me-3 ms-2 text-white">{user.fullName}</span>
           <Link to="/profile" className="btn btn-outline-light me-2">Hồ sơ</Link>
           <button onClick={handleLogout} className="btn btn-outline-danger">Đăng xuất</button>
         </div>

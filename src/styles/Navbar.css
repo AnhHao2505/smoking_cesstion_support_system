@@ -140,6 +140,132 @@
   border-color: #2FBC2F;
 }
 
+/* Notification dropdown styles */
+.notification-dropdown {
+  z-index: 1050 !important;
+}
+
+.notification-dropdown .ant-dropdown-menu {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+  padding: 0 !important;
+  border: 1px solid #e8e8e8 !important;
+  overflow: hidden !important;
+}
+
+.notification-dropdown .ant-dropdown-menu-item {
+  padding: 0 !important;
+  line-height: normal !important;
+  height: auto !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  margin: 0 !important;
+}
+
+.notification-dropdown .ant-dropdown-menu-item:hover {
+  background-color: transparent !important;
+}
+
+.notification-dropdown .ant-dropdown-menu-item-disabled {
+  color: inherit !important;
+}
+
+.notification-dropdown .ant-dropdown-menu-item-disabled:hover {
+  background-color: transparent !important;
+  cursor: default !important;
+}
+
+/* Notification tabs customization */
+.notification-dropdown .ant-tabs {
+  margin: 0 !important;
+}
+
+.notification-dropdown .ant-tabs-tab {
+  padding: 12px 16px !important;
+  margin: 0 !important;
+  font-weight: 500 !important;
+  color: #8c8c8c !important;
+}
+
+.notification-dropdown .ant-tabs-tab-active {
+  color: #1890ff !important;
+  font-weight: 600 !important;
+}
+
+.notification-dropdown .ant-tabs-ink-bar {
+  background: #1890ff !important;
+  height: 3px !important;
+}
+
+.notification-dropdown .ant-tabs-content-holder {
+  padding: 0 !important;
+}
+
+.notification-dropdown .ant-tabs-tabpane {
+  padding: 0 !important;
+}
+
+.notification-dropdown .ant-tabs-nav {
+  margin: 0 !important;
+}
+
+/* Notification bell badge styles */
+.ant-badge-count {
+  background-color: #ff4d4f !important;
+  box-shadow: 0 0 0 2px #007bff !important;
+  border: none !important;
+  font-size: 10px !important;
+  min-width: 16px !important;
+  height: 16px !important;
+  line-height: 14px !important;
+  font-weight: 600 !important;
+}
+
+.ant-btn-text:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 50% !important;
+}
+
+/* Notification item hover effects */
+.notification-item {
+  transition: all 0.2s ease-in-out !important;
+  cursor: pointer !important;
+}
+
+.notification-item:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Custom scrollbar for notification content */
+.notification-dropdown ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notification-dropdown ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.notification-dropdown ::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.notification-dropdown ::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Loading spinner customization */
+.notification-dropdown .ant-spin {
+  color: #1890ff !important;
+}
+
+/* Empty state customization */
+.notification-dropdown .ant-empty-description {
+  color: #8c8c8c !important;
+}
+
 /* Mobile styles */
 @media screen and (max-width: 1200px) {
   .nav-menu {
@@ -225,6 +351,17 @@
   .login-button, .register-button {
     width: 100%;
     text-align: center;
+  }
+
+  /* Notification dropdown mobile styles */
+  .notification-dropdown .ant-dropdown-menu {
+    width: 300px !important;
+    max-width: 90vw !important;
+  }
+  
+  .notification-dropdown .ant-tabs-tab {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
   }
 }
 
