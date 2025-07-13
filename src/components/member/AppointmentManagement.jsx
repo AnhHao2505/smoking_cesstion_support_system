@@ -14,7 +14,7 @@ import {
   getAllCoaches,
   chooseCoach
 } from '../../services/coachManagementService';
-import { submitFeedbackToPlatform } from '../../services/feebackService';
+import { submitFeedbackToCoach, submitFeedbackToPlatform } from '../../services/feebackService';
 import { useAuth } from '../../contexts/AuthContext';
 
 const { Title, Text, Paragraph } = Typography;
@@ -113,7 +113,7 @@ const AppointmentManagement = () => {
         star: values.star
       };
 
-      const response = await submitFeedbackToPlatform(feedbackData);
+      const response = await submitFeedbackToCoach(feedbackData);
       
       if (response.success) {
         message.success(`Cảm ơn bạn đã gửi phản hồi về huấn luyện viên ${feedbackCoach.name}!`);
