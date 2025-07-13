@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
-import { Layout, Typography, Button, Row, Col, Card, Divider, Space, message } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Layout, Typography, Button, Row, Col, Card, Divider, Space, message, Rate, Spin } from 'antd';
 import { Link } from 'react-router-dom';
-import { ArrowRightOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, StarFilled } from '@ant-design/icons';
 import * as authService from '../../services/authService';
+import { getPublishedFeedbacks } from '../../services/feebackService';
 // import heroImage from '../assets/images/hero-image.png';
 import '../../styles/LandingPage.css'; // Ensure you have the appropriate CSS file
 
@@ -30,6 +31,9 @@ const toastStyles = `
 `;
 
 const LandingPage = () => {
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [loadingFeedbacks, setLoadingFeedbacks] = useState(true);
+
   useEffect(() => {
     // Inject custom styles for toast positioning
     const styleElement = document.createElement('style');
@@ -82,6 +86,33 @@ const LandingPage = () => {
         styleElement.parentNode.removeChild(styleElement);
       }
     };
+  }, []);
+
+  // Fetch published feedbacks
+  useEffect(() => {
+    const fetchPublishedFeedbacks = async () => {
+      try {
+        setLoadingFeedbacks(true);
+        const response = await getPublishedFeedbacks();
+        console.log('Published feedbacks response:', response);
+        
+        if (response && Array.isArray(response)) {
+          setFeedbacks(response);
+        } else if (response && response.data && Array.isArray(response.data)) {
+          setFeedbacks(response.data);
+        } else {
+          setFeedbacks([]);
+        }
+      } catch (error) {
+        console.error('Error fetching published feedbacks:', error);
+        message.error('Không thể tải phản hồi từ người dùng');
+        setFeedbacks([]);
+      } finally {
+        setLoadingFeedbacks(false);
+      }
+    };
+
+    fetchPublishedFeedbacks();
   }, []);
 
   return (
@@ -145,35 +176,93 @@ const LandingPage = () => {
           </Row>
         </section>
 
-        {/* Testimonials Section */}
+        {/* Testimonials Section - Dynamic Feedbacks */}
         <section className="testimonials-section">
           <Title level={2} className="section-title">Phản hồi từ người dùng</Title>
-          <Row gutter={[24, 24]}>
-            <Col xs={24} md={8}>
-              <Card className="testimonial-card">
-                <Paragraph>
-                  "Ứng dụng này đã giúp tôi cai thuốc lá thành công sau nhiều lần thất bại. Cảm ơn đội ngũ phát triển!"
-                </Paragraph>
-                <Text strong>Nguyễn Văn A</Text>
-              </Card>
-            </Col>
-            <Col xs={24} md={8}>
-              <Card className="testimonial-card">
-                <Paragraph>
-                  "Cộng đồng hỗ trợ tuyệt vời và các tính năng theo dõi giúp tôi có động lực mỗi ngày."
-                </Paragraph>
-                <Text strong>Trần Thị B</Text>
-              </Card>
-            </Col>
-            <Col xs={24} md={8}>
-              <Card className="testimonial-card">
-                <Paragraph>
-                  "Sau 10 năm hút thuốc, tôi đã cai được nhờ vào hệ thống này. Thật sự khuyến khích mọi người thử!"
-                </Paragraph>
-                <Text strong>Lê Văn C</Text>
-              </Card>
-            </Col>
-          </Row>
+          
+          {loadingFeedbacks ? (
+            <div style={{ textAlign: 'center', padding: '50px 0' }}>
+              <Spin size="large" />
+              <div style={{ marginTop: 16 }}>
+                <Text>Đang tải phản hồi từ người dùng...</Text>
+              </div>
+            </div>
+          ) : feedbacks.length > 0 ? (
+            <Row gutter={[24, 24]}>
+              {feedbacks.slice(0, 6).map((feedback, index) => (
+                <Col xs={24} md={12} lg={8} key={feedback.id || index}>
+                  <Card className="testimonial-card" style={{ height: '100%' }}>
+                    <div style={{ marginBottom: 16 }}>
+                      <Rate 
+                        disabled 
+                        defaultValue={feedback.star || 5} 
+                        style={{ fontSize: 16, color: '#faad14' }}
+                      />
+                    </div>
+                    <Paragraph 
+                      style={{ 
+                        minHeight: 80, 
+                        marginBottom: 16,
+                        fontSize: 14,
+                        lineHeight: 1.6 
+                      }}
+                    >
+                      "{feedback.content || feedback.feedback_content || 'Phản hồi tích cực từ người dùng'}"
+                    </Paragraph>
+                    <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 12 }}>
+                      <Text strong style={{ color: '#1890ff' }}>
+                        {feedback.memberName || feedback.user_name || feedback.authorName || 'Người dùng ẩn danh'}
+                      </Text>
+                      {feedback.createdAt && (
+                        <div style={{ marginTop: 4 }}>
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            {new Date(feedback.createdAt).toLocaleDateString('vi-VN')}
+                          </Text>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          ) : (
+            // Fallback static testimonials when no API data
+            <Row gutter={[24, 24]}>
+              <Col xs={24} md={8}>
+                <Card className="testimonial-card">
+                  <div style={{ marginBottom: 16 }}>
+                    <Rate disabled defaultValue={5} style={{ fontSize: 16, color: '#faad14' }} />
+                  </div>
+                  <Paragraph>
+                    "Ứng dụng này đã giúp tôi cai thuốc lá thành công sau nhiều lần thất bại. Cảm ơn đội ngũ phát triển!"
+                  </Paragraph>
+                  <Text strong style={{ color: '#1890ff' }}>Nguyễn Văn A</Text>
+                </Card>
+              </Col>
+              <Col xs={24} md={8}>
+                <Card className="testimonial-card">
+                  <div style={{ marginBottom: 16 }}>
+                    <Rate disabled defaultValue={5} style={{ fontSize: 16, color: '#faad14' }} />
+                  </div>
+                  <Paragraph>
+                    "Cộng đồng hỗ trợ tuyệt vời và các tính năng theo dõi giúp tôi có động lực mỗi ngày."
+                  </Paragraph>
+                  <Text strong style={{ color: '#1890ff' }}>Trần Thị B</Text>
+                </Card>
+              </Col>
+              <Col xs={24} md={8}>
+                <Card className="testimonial-card">
+                  <div style={{ marginBottom: 16 }}>
+                    <Rate disabled defaultValue={4} style={{ fontSize: 16, color: '#faad14' }} />
+                  </div>
+                  <Paragraph>
+                    "Sau 10 năm hút thuốc, tôi đã cai được nhờ vào hệ thống này. Thật sự khuyến khích mọi người thử!"
+                  </Paragraph>
+                  <Text strong style={{ color: '#1890ff' }}>Lê Văn C</Text>
+                </Card>
+              </Col>
+            </Row>
+          )}
         </section>
       </Content>
 

@@ -44,6 +44,31 @@
 
 .testimonial-card {
   height: 100%;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.testimonial-card .ant-card-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.testimonial-card .ant-rate {
+  margin-bottom: 16px;
+}
+
+.testimonial-card .ant-typography {
+  flex: 1;
+  margin-bottom: 16px;
+}
+
+.testimonial-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
 }
 
 .testimonial-content {
@@ -150,6 +175,17 @@
   color: #fff;
 }
 
+/* Loading state for testimonials */
+.testimonials-loading {
+  text-align: center;
+  padding: 60px 0;
+}
+
+.testimonials-loading .ant-spin {
+  margin-bottom: 16px;
+}
+
+/* Responsive improvements for feedback cards */
 @media (max-width: 768px) {
   .hero {
     padding: 3rem 0;
@@ -168,5 +204,13 @@
   .features-section,
   .testimonials-section {
     padding: 40px 20px;
+  }
+  
+  .testimonial-card .ant-card-body {
+    padding: 20px;
+  }
+  
+  .testimonial-card .ant-rate {
+    text-align: center;
   }
 }
