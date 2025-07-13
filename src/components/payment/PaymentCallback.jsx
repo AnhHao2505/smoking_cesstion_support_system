@@ -24,12 +24,17 @@ const PaymentCallback = () => {
           params[key] = value;
         }
 
+        console.log('VNPay callback received with params:', params);
+
         // Handle VNPay return
         const result = await handleVNPayReturn(params);
+        
+        console.log('VNPay verification result:', result);
         
         if (result && result.success) {
           // Payment successful, upgrade user to premium
           try {
+            console.log('Upgrading user to premium...');
             await upgradeToPremium();
             
             // Update user data in localStorage and context
@@ -41,6 +46,7 @@ const PaymentCallback = () => {
                 premiumMembership: true
               };
               localStorage.setItem('user', JSON.stringify(updatedUser));
+              console.log('User upgraded to premium successfully');
             }
             
             setPaymentResult({
@@ -49,6 +55,12 @@ const PaymentCallback = () => {
               transactionId: result.transactionId || params.vnp_TxnRef,
               amount: result.amount || params.vnp_Amount
             });
+            
+            // Save result to localStorage for other tabs
+            localStorage.setItem('vnpay_payment_result', JSON.stringify({
+              success: true,
+              message: 'Thanh toán thành công! Tài khoản của bạn đã được nâng cấp lên Premium.'
+            }));
           } catch (upgradeError) {
             console.error('Error upgrading to premium:', upgradeError);
             setPaymentResult({
@@ -65,6 +77,12 @@ const PaymentCallback = () => {
             message: result.message || 'Thanh toán thất bại. Vui lòng thử lại.',
             transactionId: params.vnp_TxnRef
           });
+          
+          // Save result to localStorage for other tabs
+          localStorage.setItem('vnpay_payment_result', JSON.stringify({
+            success: false,
+            message: result.message || 'Thanh toán thất bại. Vui lòng thử lại.'
+          }));
         }
       } catch (error) {
         console.error('Payment callback error:', error);

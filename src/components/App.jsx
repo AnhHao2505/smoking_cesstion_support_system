@@ -103,6 +103,11 @@ const PrivateRoute = ({ children, allowedRoles = [] }) => {
   return children;
 };
 
+// Load VNPay test helpers in development
+if (process.env.NODE_ENV === 'development') {
+  import('../utils/vnpayTestHelper');
+}
+
 const App = () => {
   return (
     <Router>

@@ -42,27 +42,75 @@ const PaymentModal = ({ visible, onClose, onPaymentSuccess }) => {
         throw new Error('Không tìm thấy gói được chọn');
       }
 
-      // Create VNPay payment
-      const paymentResponse = await createVNPayPayment(
+      console.log('Initiating payment for package:', selectedPkg);
+
+      // Validate amount
+      if (!selectedPkg.price || selectedPkg.price <= 0) {
+        throw new Error('Giá gói không hợp lệ');
+      }
+
+      // Create VNPay payment with proper error handling
+      const response = await createVNPayPayment(
         selectedPkg.price,
         values.language || 'vn'
       );
 
-      if (paymentResponse && paymentResponse.data) {
-        // Redirect to VNPay payment page
-        window.location.href = paymentResponse.data;
-      } else {
-        throw new Error('Không thể tạo liên kết thanh toán');
+      console.log('Payment response:', response);
+
+      // Check if response contains payment URL
+      if (!response || !response.data) {
+        throw new Error('Không nhận được URL thanh toán từ server');
       }
+
+      // Validate payment URL
+      const paymentUrl = response.data;
+      if (!paymentUrl.includes('vnpay') && !paymentUrl.includes('sandbox.vnpayment.vn')) {
+        throw new Error('URL thanh toán không hợp lệ');
+      }
+
+      console.log('Opening VNPay in new tab:', paymentUrl);
+      
+      // Save payment session to localStorage for tracking
+      localStorage.setItem('vnpay_payment_session', JSON.stringify({
+        amount: selectedPkg.price,
+        packageId: selectedPkg.id,
+        timestamp: Date.now()
+      }));
+      
+      // Open VNPay in new tab instead of redirecting current page
+      window.open(paymentUrl, '_blank', 'noopener,noreferrer');
+      
+      // Close modal after opening payment page
+      onClose();
 
     } catch (error) {
       console.error('Payment error:', error);
+      
+      let errorMessage = 'Có lỗi xảy ra khi tạo thanh toán. Vui lòng thử lại.';
+      
+      // Handle specific error cases
+      if (error.message.includes('timeout') || error.message.includes('quá thời gian')) {
+        errorMessage = 'Kết nối bị timeout. Vui lòng kiểm tra mạng và thử lại.';
+      } else if (error.message.includes('amount') || error.message.includes('giá')) {
+        errorMessage = 'Số tiền thanh toán không hợp lệ.';
+      } else if (error.response?.status === 400) {
+        errorMessage = 'Thông tin thanh toán không hợp lệ.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Lỗi server. Vui lòng thử lại sau.';
+      }
+      
       Modal.error({
         title: 'Lỗi thanh toán',
-        content: error.message || 'Có lỗi xảy ra khi tạo thanh toán. Vui lòng thử lại.',
+        content: error.message || errorMessage,
+        onOk: () => {
+          setLoading(false);
+        }
       });
     } finally {
-      setLoading(false);
+      // Only set loading false if modal is still open (error case)
+      if (document.querySelector('.ant-modal-wrap')) {
+        setLoading(false);
+      }
     }
   };
 
