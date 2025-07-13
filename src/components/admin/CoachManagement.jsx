@@ -31,12 +31,15 @@ import {
   PlusOutlined,
   CalendarOutlined,
   PhoneOutlined,
-  MailOutlined
+  MailOutlined,
+  EyeOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons';
 import {
   getAllCoaches,
   createCoach,
-  getCoachSpecialties
+  getCoachSpecialties,
+  getCoachProfile
 } from '../../services/coachManagementService';
 import moment from 'moment';
 
@@ -49,6 +52,9 @@ const CoachManagement = () => {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [selectedCoach, setSelectedCoach] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [form] = Form.useForm();
   const [workingHoursForm] = Form.useForm();
   const [specialties, setSpecialties] = useState([]);
@@ -118,6 +124,11 @@ const CoachManagement = () => {
     setModalVisible(true);
   };
 
+  const showProfileModal = (coach) => {
+    setSelectedCoach(coach);
+    setProfileModalVisible(true);
+  };
+
   const addWorkingHour = () => {
     workingHoursForm.validateFields()
       .then(values => {
@@ -185,6 +196,63 @@ const CoachManagement = () => {
     } finally {
       setCreating(false);
     }
+  };
+
+  const fetchCoachProfile = async (coachId) => {
+    try {
+      setProfileLoading(true);
+      const response = await getCoachProfile(coachId);
+      const profileData = response.data || response; // Handle both response formats
+      
+      // Populate the form with coach profile data
+      form.setFieldsValue({
+        name: profileData.name,
+        email: profileData.email,
+        contact_number: profileData.contactNumber || profileData.contact_number,
+        certificates: profileData.certificates,
+        bio: profileData.bio,
+        specialty: profileData.specialty
+      });
+      
+      setWorkingHours(profileData.workingHour || profileData.workingHours || []);
+    } catch (error) {
+      console.error("Error fetching coach profile:", error);
+      message.error("Failed to load coach profile. Please try again later.");
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleViewProfile = async (coachId) => {
+    try {
+      setProfileLoading(true);
+      setProfileModalVisible(true);
+      
+      const response = await getCoachProfile(coachId);
+      const profileData = response.data || response; // Handle both response formats
+      
+      // Map API response to expected format
+      const mappedProfile = {
+        ...profileData,
+        contact_number: profileData.contactNumber || profileData.contact_number,
+        workingHours: profileData.workingHour || profileData.workingHours || [],
+        currentMemberAssignedCount: profileData.currentMemberAssignedCount || 0,
+        full: profileData.full || false
+      };
+      
+      setSelectedCoach(mappedProfile);
+    } catch (error) {
+      console.error("Error fetching coach profile:", error);
+      message.error("Failed to load coach profile. Please try again.");
+      setProfileModalVisible(false);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const closeProfileModal = () => {
+    setProfileModalVisible(false);
+    setSelectedCoach(null);
   };
 
   const getWorkingHoursDisplay = (workingHours) => {
@@ -315,6 +383,23 @@ const CoachManagement = () => {
         const status = getAvailabilityStatus(record);
         return status.text.toLowerCase().includes(value);
       }
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          <Button 
+            type="primary"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => handleViewProfile(record.coachId)}
+          >
+            View Profile
+          </Button>
+        </Space>
+      ),
+      width: 120
     }
   ];
 
@@ -408,7 +493,7 @@ const CoachManagement = () => {
               showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} coaches`,
             }}
             onChange={handleTableChange}
-            scroll={{ x: 1200 }}
+            scroll={{ x: 1320 }}
           />
         </Card>
         
@@ -579,6 +664,120 @@ const CoachManagement = () => {
               )}
             </div>
           </Form>
+        </Modal>
+
+        {/* Coach Profile View Modal */}
+        <Modal
+          title={
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <InfoCircleOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+              Coach Profile Details
+            </div>
+          }
+          visible={profileModalVisible}
+          onCancel={closeProfileModal}
+          footer={[
+            <Button key="close" onClick={closeProfileModal}>
+              Close
+            </Button>
+          ]}
+          width={800}
+        >
+          {profileLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+              <Spin size="large" />
+            </div>
+          ) : selectedCoach ? (
+            <div>
+              {/* Coach Header */}
+              <Row gutter={24} style={{ marginBottom: 24 }}>
+                <Col span={6}>
+                  <Avatar size={80} icon={<UserOutlined />} />
+                </Col>
+                <Col span={18}>
+                  <Title level={3} style={{ marginBottom: 8 }}>{selectedCoach.name}</Title>
+                  <Space direction="vertical" size={4}>
+                    <Text><MailOutlined /> {selectedCoach.email}</Text>
+                    <Text><PhoneOutlined /> {selectedCoach.contactNumber || selectedCoach.contact_number}</Text>
+                    <Tag color="blue">{selectedCoach.specialty}</Tag>
+                  </Space>
+                </Col>
+              </Row>
+
+              {/* Coach Details */}
+              <Row gutter={24}>
+                <Col span={12}>
+                  <Card size="small" title="Professional Information">
+                    <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                      <div>
+                        <Text strong>Certificates:</Text>
+                        <br />
+                        <Text>{selectedCoach.certificates || 'Not specified'}</Text>
+                      </div>
+                      <div>
+                        <Text strong>Specialty:</Text>
+                        <br />
+                        <Text>{selectedCoach.specialty}</Text>
+                      </div>
+                      <div>
+                        <Text strong>Current Members:</Text>
+                        <br />
+                        <Text>{selectedCoach.currentMemberAssignedCount || 0}/20</Text>
+                      </div>
+                      <div>
+                        <Text strong>Status:</Text>
+                        <br />
+                        <Badge 
+                          status={selectedCoach.full ? 'error' : 'success'} 
+                          text={selectedCoach.full ? 'At Capacity' : 'Available'} 
+                        />
+                      </div>
+                    </Space>
+                  </Card>
+                </Col>
+                <Col span={12}>
+                  <Card size="small" title="Working Hours">
+                    {selectedCoach.workingHours && selectedCoach.workingHours.length > 0 ? (
+                      <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                        {selectedCoach.workingHours.map((schedule, index) => (
+                          <div key={index}>
+                            <ClockCircleOutlined style={{ marginRight: 8 }} />
+                            <Text>
+                              {schedule.dayOfWeek}: {schedule.startTime} - {schedule.endTime}
+                            </Text>
+                          </div>
+                        ))}
+                      </Space>
+                    ) : (selectedCoach.workingHour && selectedCoach.workingHour.length > 0 ? (
+                      <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                        {selectedCoach.workingHour.map((schedule, index) => (
+                          <div key={index}>
+                            <ClockCircleOutlined style={{ marginRight: 8 }} />
+                            <Text>
+                              {schedule.dayOfWeek}: {schedule.startTime} - {schedule.endTime}
+                            </Text>
+                          </div>
+                        ))}
+                      </Space>
+                    ) : (
+                      <Text type="secondary">No working hours specified</Text>
+                    ))}
+                  </Card>
+                </Col>
+              </Row>
+
+              {/* Biography */}
+              {selectedCoach.bio && (
+                <Card size="small" title="Biography" style={{ marginTop: 16 }}>
+                  <Text>{selectedCoach.bio}</Text>
+                </Card>
+              )}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <Text type="secondary">No coach profile data available</Text>
+            </div>
+          )}
         </Modal>
       </div>
     </div>
