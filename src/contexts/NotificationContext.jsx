@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import webSocketService from '../services/websocketService';
 import { useAuth } from './AuthContext';
+import * as authService from '../services/authService';
 
 // Create the context
 const NotificationContext = createContext(null);
@@ -73,6 +74,39 @@ export const NotificationProvider = ({ children }) => {
     console.log(`🔔 ${type}:`, data.content || data.message);
   };
 
+  // Load saved reminders from various sources
+  const loadSavedReminders = useCallback(async () => {
+    if (!currentUser) return;
+
+    try {
+      const savedReminders = [];
+
+      // Load login reminder if exists
+      const loginReminder = authService.getLoginReminder();
+      if (loginReminder) {
+        savedReminders.push({
+          id: 'login-reminder',
+          content: loginReminder,
+          message: loginReminder,
+          type: 'login',
+          category: 'system',
+          timestamp: new Date().toISOString(),
+          source: 'login'
+        });
+      }
+
+      // Update reminders state with saved reminders
+      setReminders(prev => {
+        // Remove old saved reminders and keep only WebSocket reminders
+        const webSocketReminders = prev.filter(r => r.source !== 'login' && r.source !== 'user');
+        return [...savedReminders, ...webSocketReminders];
+      });
+
+    } catch (error) {
+      console.error('Error loading saved reminders:', error);
+    }
+  }, [currentUser]);
+
   // Handle WebSocket connection status
   const handleConnectionChange = useCallback((connected) => {
     setIsConnected(connected);
@@ -94,6 +128,9 @@ export const NotificationProvider = ({ children }) => {
     if (isAuthenticated() && currentUser) {
       console.log('🔌 Initializing notification system for user:', currentUser.id);
       
+      // Load saved reminders first
+      loadSavedReminders();
+
       // Request notification permission
       if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission().then(permission => {
@@ -117,15 +154,19 @@ export const NotificationProvider = ({ children }) => {
         // Already connected, just subscribe
         handleConnectionChange(true);
       }
-
-      // Cleanup function
-      return () => {
-        webSocketService.removeConnectionCallback(handleConnectionChange);
-        webSocketService.unsubscribeFromNotifications();
-        webSocketService.unsubscribeFromReminders();
-      };
     }
-  }, [isAuthenticated, currentUser, handleConnectionChange]);
+
+    // Cleanup function
+    return () => {
+      if (webSocketService.isConnected()) {
+        try {
+          webSocketService.disconnect();
+        } catch (error) {
+          console.error('❌ Error disconnecting WebSocket:', error);
+        }
+      }
+    };
+  }, [isAuthenticated, currentUser, handleConnectionChange, loadSavedReminders]);
 
   // Mark notification as read
   const markNotificationAsRead = useCallback((notificationId) => {
@@ -160,9 +201,15 @@ export const NotificationProvider = ({ children }) => {
     setReminders([]);
   }, []);
 
+  // Clear login reminder specifically
+  const clearLoginReminder = useCallback(() => {
+    authService.clearLoginReminder();
+    setReminders(prev => prev.filter(r => r.id !== 'login-reminder'));
+  }, []);
+
   // Get unread notifications
   const getUnreadNotifications = useCallback(() => {
-    return notifications.filter(n => !n.read);
+    return notifications.filter(notification => !notification.read);
   }, [notifications]);
 
   // Context value
@@ -176,6 +223,8 @@ export const NotificationProvider = ({ children }) => {
     clearAllNotifications,
     clearReminder,
     clearAllReminders,
+    clearLoginReminder,
+    loadSavedReminders,
     getUnreadNotifications,
     showToast
   };

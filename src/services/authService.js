@@ -65,10 +65,16 @@ export const login = async (email, password) => {
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('user', JSON.stringify(user));
       
+      // Store reminder if present for displaying in toast
+      if (data.reminder) {
+        localStorage.setItem('loginReminder', data.reminder);
+      }
+      
       return {
         success: true,
         user: user,
         token: data.token,
+        reminder: data.reminder || null,
         message: 'Login successful'
       };
     } else {
@@ -304,6 +310,16 @@ export const getTesters = async () => {
     console.error('Error fetching testers:', error);
     throw handleApiError(error);
   }
+};
+
+// Get login reminder from localStorage
+export const getLoginReminder = () => {
+  return localStorage.getItem('loginReminder');
+};
+
+// Clear login reminder from localStorage
+export const clearLoginReminder = () => {
+  localStorage.removeItem('loginReminder');
 };
 
 // Export JWT parsing function for use in other modules

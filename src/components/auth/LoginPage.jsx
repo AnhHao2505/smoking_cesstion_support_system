@@ -1,6 +1,6 @@
 import React, { use, useEffect, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Form, Input, Button, Checkbox, Typography, Row, Col, Card, Alert, Divider } from 'antd';
+import { Form, Input, Button, Checkbox, Typography, Row, Col, Card, Alert, Divider, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import '../../styles/global.css';
@@ -47,18 +47,23 @@ const LoginPage = () => {
       const response = await authService.login(email, password);
       
       if (response.success) {
-        const { user } = response;
+        const { user, reminder } = response;
         const role = user.role?.toLowerCase();
         
-        // Redirect based on user role
-        if (role === 'member') {
-          navigate('/member/dashboard');
-        } else if (role === 'coach') {
-          navigate('/coach/dashboard');
-        } else if (role === 'admin') {
-          navigate('/admin/dashboard');
+        // If there's a reminder, show it as a toast and navigate to home
+        if (reminder) {
+          navigate('/home');
         } else {
-          navigate('/');
+          // Redirect based on user role if no reminder
+          if (role === 'member') {
+            navigate('/member/dashboard');
+          } else if (role === 'coach') {
+            navigate('/coach/dashboard');
+          } else if (role === 'admin') {
+            navigate('/admin/dashboard');
+          } else {
+            navigate('/');
+          }
         }
       }
     } catch (error) {

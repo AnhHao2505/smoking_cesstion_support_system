@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Dropdown, Menu, Button } from 'antd';
-import { SettingOutlined, DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined, CrownOutlined } from '@ant-design/icons';
+import { SettingOutlined, DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined, CrownOutlined, BellOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import NotificationBell from '../notifications/NotificationBell';
 import PaymentModal from '../payment/PaymentModal';
@@ -108,6 +108,15 @@ const NavBar = () => {
         { key: '/member/chat', label: 'Tin nhắn', path: '/member/chat' }
       ]
     },
+    // reminders: {
+    //   label: 'Nhắc nhở',
+    //   icon: <BellOutlined />,
+    //   items: [
+    //     { key: '/member/reminders', label: 'Danh sách nhắc nhở', path: '/member/reminders' },
+    //     { key: '/member/reminders/create', label: 'Tạo nhắc nhở', path: '/member/reminders/create' },
+    //     { key: '/member/reminders/settings', label: 'Cài đặt nhắc nhở', path: '/member/reminders/settings' }
+    //   ]
+    // },
     account: {
       label: 'Tài khoản',
       icon: <SettingOutlined />,
@@ -158,10 +167,7 @@ const NavBar = () => {
       label: 'Quản lý',
       icon: <UserOutlined />,
       items: [
-        { key: '/admin/coach-management', label: 'Quản lý huấn luyện viên', path: '/admin/coach-management' },
-        { key: '/admin/coach-list', label: 'Danh sách huấn luyện viên', path: '/admin/coach-list' },
-        { key: '/admin/coach-assignment', label: 'Phân công huấn luyện viên', path: '/admin/coach-assignment' },
-        { key: '/admin/coach-performance', label: 'Hiệu suất huấn luyện viên', path: '/admin/coach-performance' },
+        { key: '/admin/coaches', label: 'Quản lý huấn luyện viên', path: '/admin/coaches' },
       ]
     }
   };
@@ -307,15 +313,6 @@ const NavBar = () => {
               <Link to="/" className="nav-link">Trang chủ</Link>
             </li>
             
-            {user && (
-              <li className="nav-item">
-                <Link to={`/${user.role.toLowerCase()}/dashboard`} className="nav-link">
-                  <DashboardOutlined className="me-1" />
-                  Bảng điều khiển
-                </Link>
-              </li>
-            )}
-
             {renderRoleSpecificDropdowns()}
 
             <li className="nav-item">

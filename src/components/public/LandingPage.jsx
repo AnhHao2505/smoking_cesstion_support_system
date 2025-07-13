@@ -1,16 +1,87 @@
 import React, { useEffect } from 'react';
-import { Layout, Typography, Button, Row, Col, Card, Divider, Space } from 'antd';
+import { Layout, Typography, Button, Row, Col, Card, Divider, Space, message } from 'antd';
 import { Link } from 'react-router-dom';
 import { ArrowRightOutlined } from '@ant-design/icons';
+import * as authService from '../../services/authService';
 // import heroImage from '../assets/images/hero-image.png';
 import '../../styles/LandingPage.css'; // Ensure you have the appropriate CSS file
 
 const { Header, Content, Footer } = Layout;
 const { Title, Paragraph, Text } = Typography;
 
+// Add custom CSS for toast positioning
+const toastStyles = `
+  .ant-message {
+    position: fixed !important;
+    top: 24px !important;
+    right: 24px !important;
+    left: auto !important;
+    transform: none !important;
+    z-index: 1050 !important;
+  }
+  
+  .custom-reminder-toast .ant-message-notice {
+    position: fixed !important;
+    top: 24px !important;
+    right: 24px !important;
+    left: auto !important;
+    transform: none !important;
+  }
+`;
+
 const LandingPage = () => {
   useEffect(() => {
+    // Inject custom styles for toast positioning
+    const styleElement = document.createElement('style');
+    styleElement.innerHTML = toastStyles;
+    document.head.appendChild(styleElement);
+
     console.log('LandingPage mounted successfully');
+    
+    // Check for login reminder and show it as toast
+    const reminder = authService.getLoginReminder();
+    if (reminder) {
+      // Configure message position to top-right
+      message.config({
+        top: 24,
+        duration: 8,
+        maxCount: 3,
+        rtl: false,
+      });
+
+      message.info({
+        content: (
+          <div style={{ padding: '8px 0' }}>
+            <strong>🔔 Nhắc nhở từ hệ thống</strong>
+            <br />
+            {reminder}
+          </div>
+        ),
+        duration: 8, // Show for 8 seconds
+        style: {
+          position: 'fixed',
+          top: '24px',
+          right: '24px',
+          left: 'auto',
+          transform: 'none',
+          fontSize: '16px',
+          minWidth: '320px',
+          maxWidth: '400px',
+          zIndex: 1000,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+        },
+        className: 'custom-reminder-toast',
+      });
+      // Clear the reminder after showing it
+      // authService.clearLoginReminder();
+    }
+
+    // Cleanup function
+    return () => {
+      if (styleElement && styleElement.parentNode) {
+        styleElement.parentNode.removeChild(styleElement);
+      }
+    };
   }, []);
 
   return (

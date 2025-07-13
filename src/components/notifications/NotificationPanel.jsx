@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNotification } from '../../contexts/NotificationContext';
+import * as authService from '../../services/authService';
 import './NotificationPanel.css';
 
 const NotificationPanel = ({ isOpen, onClose }) => {
@@ -16,6 +17,46 @@ const NotificationPanel = ({ isOpen, onClose }) => {
   } = useNotification();
 
   const [activeTab, setActiveTab] = useState('notifications');
+  const [savedReminders, setSavedReminders] = useState([]);
+
+  // Load saved reminders when panel opens
+  useEffect(() => {
+    if (isOpen) {
+      loadSavedReminders();
+    }
+  }, [isOpen]);
+
+  const loadSavedReminders = async () => {
+    try {
+      const allReminders = [];
+
+      // Load login reminder
+      const loginReminder = authService.getLoginReminder();
+      if (loginReminder) {
+        allReminders.push({
+          id: 'login-reminder',
+          content: loginReminder,
+          message: loginReminder,
+          type: 'login',
+          category: 'system',
+          timestamp: new Date().toISOString(),
+          source: 'Login reminder'
+        });
+      }
+
+      // Note: User reminders are not loaded here since getAllReminders is admin-only
+      // User can view their reminders in the dedicated reminder pages
+
+      setSavedReminders(allReminders);
+    } catch (error) {
+      console.error('Error loading saved reminders:', error);
+    }
+  };
+
+  const clearLoginReminder = () => {
+    authService.clearLoginReminder();
+    setSavedReminders(prev => prev.filter(r => r.id !== 'login-reminder'));
+  };
 
   const handleNotificationClick = (notification) => {
     if (!notification.read) {
@@ -134,11 +175,15 @@ const NotificationPanel = ({ isOpen, onClose }) => {
           {activeTab === 'reminders' && (
             <div className="reminders-tab">
               <div className="tab-header">
-                <h4>Reminders ({reminders.length})</h4>
-                {reminders.length > 0 && (
+                <h4>Reminders ({reminders.length + savedReminders.length})</h4>
+                {(reminders.length > 0 || savedReminders.length > 0) && (
                   <button 
                     className="clear-all-btn"
-                    onClick={clearAllReminders}
+                    onClick={() => {
+                      clearAllReminders();
+                      setSavedReminders([]);
+                      authService.clearLoginReminder();
+                    }}
                   >
                     Clear All
                   </button>
@@ -146,7 +191,48 @@ const NotificationPanel = ({ isOpen, onClose }) => {
               </div>
               
               <div className="reminders-list">
-                {reminders.length === 0 ? (
+                {/* Show saved reminders first */}
+                {savedReminders.map((reminder) => (
+                  <div
+                    key={reminder.id}
+                    className="reminder-item"
+                  >
+                    <div className="reminder-content">
+                      <div className="reminder-header">
+                        <h5 className="reminder-title">
+                          {reminder.source === 'Login reminder' ? '🔔' : '⏰'} {reminder.source}
+                        </h5>
+                        <span className="reminder-time">
+                          {formatTime(reminder.timestamp)}
+                        </span>
+                      </div>
+                      <p className="reminder-message">
+                        {reminder.content || reminder.message}
+                      </p>
+                      {reminder.category && (
+                        <span className={`reminder-category ${reminder.category}`}>
+                          {reminder.category}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      className="delete-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (reminder.id === 'login-reminder') {
+                          clearLoginReminder();
+                        } else {
+                          setSavedReminders(prev => prev.filter(r => r.id !== reminder.id));
+                        }
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+
+                {/* Show WebSocket reminders */}
+                {reminders.length === 0 && savedReminders.length === 0 ? (
                   <div className="empty-state">
                     <p>No reminders yet</p>
                   </div>
@@ -159,7 +245,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
                       <div className="reminder-content">
                         <div className="reminder-header">
                           <h5 className="reminder-title">
-                            ⏰ Reminder
+                            ⏰ Live Reminder
                           </h5>
                           <span className="reminder-time">
                             {formatTime(reminder.timestamp || reminder.createdAt)}

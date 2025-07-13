@@ -47,6 +47,7 @@ import {
   toggleReminder 
 } from '../../services/reminderService';
 import { getCurrentUser } from '../../services/authService';
+import * as authService from '../../services/authService';
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -63,6 +64,7 @@ const ReminderList = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
+  const [loginReminder, setLoginReminder] = useState(null);
 
   useEffect(() => {
     const fetchReminders = async () => {
@@ -70,6 +72,12 @@ const ReminderList = () => {
         setLoading(true);
         const user = getCurrentUser();
         setCurrentUser(user);
+
+        // Load login reminder if exists
+        const reminder = authService.getLoginReminder();
+        if (reminder) {
+          setLoginReminder(reminder);
+        }
 
         const response = await getAllReminders(user.user_id);
         if (response.success) {
@@ -217,6 +225,13 @@ const ReminderList = () => {
     </Menu>
   );
 
+  // Clear login reminder
+  const clearLoginReminder = () => {
+    authService.clearLoginReminder();
+    setLoginReminder(null);
+    message.success('Đã xóa nhắc nhở đăng nhập');
+  };
+
   const paginatedData = filteredReminders.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -251,6 +266,43 @@ const ReminderList = () => {
             </Button>
           </Space>
         </div>
+
+        {/* Login Reminder Section */}
+        {loginReminder && (
+          <Card 
+            title={
+              <span>
+                <BellOutlined style={{ marginRight: '8px', color: '#1890ff' }} />
+                Nhắc nhở từ hệ thống
+              </span>
+            }
+            style={{ marginBottom: '16px' }}
+            extra={
+              <Button 
+                type="text" 
+                danger 
+                icon={<DeleteOutlined />}
+                onClick={clearLoginReminder}
+                size="small"
+              >
+                Xóa
+              </Button>
+            }
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <Text style={{ fontSize: '16px', fontWeight: '500' }}>
+                  {loginReminder}
+                </Text>
+                <br />
+                <Text type="secondary" style={{ fontSize: '14px' }}>
+                  Nhắc nhở từ lần đăng nhập gần nhất
+                </Text>
+              </div>
+              <Tag color="blue">Hệ thống</Tag>
+            </div>
+          </Card>
+        )}
 
         {/* Filters */}
         <Card className="mb-4">

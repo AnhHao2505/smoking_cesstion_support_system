@@ -22,6 +22,7 @@ const isTokenValid = (token) => {
 const clearAuthData = () => {
   localStorage.removeItem('authToken');
   localStorage.removeItem('user');
+  localStorage.removeItem('loginReminder');
 };
 
 // Create axios instance with base configuration
