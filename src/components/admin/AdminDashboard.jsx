@@ -489,17 +489,9 @@ const AdminDashboard = () => {
               <Button 
                 type="link" 
                 size="small" 
-                onClick={() => handleUserDisableToggle(record)}
-              >
-                Enable
-              </Button>
-              <Button 
-                type="link" 
-                size="small" 
-                style={{ color: '#52c41a' }}
                 onClick={() => handleUserReEnable(record)}
               >
-                Re-enable
+                Enable
               </Button>
             </>
           )}

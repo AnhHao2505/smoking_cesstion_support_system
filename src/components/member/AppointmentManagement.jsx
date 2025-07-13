@@ -679,39 +679,10 @@ const AppointmentManagement = () => {
                             <div>
                               <Text strong>{text || 'Không có tên'}</Text>
                               <br />
-                              <Text type="secondary" style={{ fontSize: '12px' }}>
-                                {record.email || 'Không có email'}
-                              </Text>
                             </div>
                           </Space>
                         )
                       },
-                      {
-                        title: 'ID thành viên',
-                        dataIndex: 'memberId',
-                        key: 'memberId',
-                        render: (id) => <Text code>{id}</Text>
-                      },
-                      {
-                        title: 'Kế hoạch',
-                        dataIndex: 'planId',
-                        key: 'planId',
-                        render: (planId) => planId ? (
-                          <Tag color="green">Có kế hoạch ({planId})</Tag>
-                        ) : (
-                          <Tag color="orange">Chưa có kế hoạch</Tag>
-                        )
-                      },
-                      {
-                        title: 'Trạng thái ban đầu',
-                        dataIndex: 'initialStatusId',
-                        key: 'initialStatusId',
-                        render: (statusId) => statusId ? (
-                          <Tag color="blue">Đã thiết lập ({statusId})</Tag>
-                        ) : (
-                          <Tag color="red">Chưa thiết lập</Tag>
-                        )
-                      }
                     ]}
                   />
                 </div>

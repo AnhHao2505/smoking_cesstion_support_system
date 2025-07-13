@@ -508,14 +508,14 @@ const ChatPage = () => {
               <Title level={4} style={{ margin: 0 }}>
                 <MessageOutlined /> Chat
               </Title>
-              <Button 
+              {/* <Button 
                 type="primary" 
                 icon={<PlusOutlined />}
                 size="small"
                 onClick={() => setCoachSelectionModal(true)}
               >
                 Chọn Coach
-              </Button>
+              </Button> */}
             </div>
             
             {/* Tab Buttons */}
@@ -528,14 +528,14 @@ const ChatPage = () => {
               >
                 Phòng Chat ({chatRooms.length})
               </Button>
-              <Button 
+              {/* <Button 
                 type={activeTab === 'coaches' ? 'primary' : 'default'}
                 size="small"
                 icon={<TeamOutlined />}
                 onClick={() => setActiveTab('coaches')}
               >
                 Coaches ({coaches.length})
-              </Button>
+              </Button> */}
             </div>
             
             {/* WebSocket Connection Status */}
@@ -563,13 +563,13 @@ const ChatPage = () => {
               )}
             </div>
             
-            <Input
+            {/* <Input
               placeholder={activeTab === 'rooms' ? "Tìm kiếm phòng chat..." : "Tìm kiếm huấn luyện viên..."}
               prefix={<SearchOutlined />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               allowClear
-            />
+            /> */}
           </Space>
         </div>
 
@@ -727,9 +727,6 @@ const ChatPage = () => {
                     status={wsConnected ? 'success' : 'error'} 
                     text={wsConnected ? 'Connected' : 'Disconnected'}
                   />
-                  <Button icon={<PhoneOutlined />} type="text" />
-                  <Button icon={<VideoCameraOutlined />} type="text" />
-                  <Button icon={<MoreOutlined />} type="text" />
                 </Space>
               </div>
             </div>
