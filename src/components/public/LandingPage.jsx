@@ -45,39 +45,67 @@ const LandingPage = () => {
     // Check for login reminder and show it as toast
     const reminder = authService.getLoginReminder();
     if (reminder) {
-      // Configure message position to top-right
+      // Configure message settings
       message.config({
         top: 24,
-        duration: 8,
+        duration: 10, // Extended duration for better readability
         maxCount: 3,
-        rtl: false,
       });
 
+      const key = `reminder-${Date.now()}`;
       message.info({
         content: (
-          <div style={{ padding: '8px 0' }}>
-            <strong>🔔 Nhắc nhở từ hệ thống</strong>
-            <br />
-            {reminder}
+          <div style={{ 
+        padding: '10px 0',
+        lineHeight: '1.5'
+          }}>
+        <strong style={{ 
+          fontSize: '16px',
+          color: '#1890ff',
+          display: 'block',
+          marginBottom: '6px'
+        }}>
+          🔔 Nhắc nhở từ hệ thống
+        </strong>
+        <span style={{
+          fontSize: '14px',
+          color: 'rgba(0,0,0,0.85)',
+          display: 'block'
+        }}>
+          {reminder}
+        </span>
+        <Button 
+          type="link" 
+          size="small"
+          style={{ padding: '4px 0', marginTop: '8px' }}
+          onClick={() => {
+            message.destroy(key);
+          }}
+        >
+          Đã hiểu
+        </Button>
           </div>
         ),
-        duration: 8, // Show for 8 seconds
+        key,
+        duration: 0, // Set to 0 to require manual closing (with the added button)
         style: {
           position: 'fixed',
-          top: '24px',
+          top: '75px',
           right: '24px',
           left: 'auto',
-          transform: 'none',
-          fontSize: '16px',
-          minWidth: '320px',
-          maxWidth: '400px',
-          zIndex: 1000,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          minWidth: '300px',
+          maxWidth: '380px',
+          zIndex: 1050,
+          boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
+          borderRadius: '8px',
+          padding: '14px 18px',
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(232, 232, 232, 0.8)',
         },
         className: 'custom-reminder-toast',
+        icon: <span role="img" aria-label="info" style={{ fontSize: '18px', color: '#1890ff' }}>ℹ️</span>,
       });
-      // Clear the reminder after showing it
-      // authService.clearLoginReminder();
     }
 
     // Cleanup function
