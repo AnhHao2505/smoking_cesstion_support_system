@@ -414,7 +414,7 @@ const App = () => {
 
               {/* Q&A Forum Routes */}
               <Route 
-                path="/qa-forum" 
+                path="/qna" 
                 element={
                   <PrivateRoute allowedRoles={['MEMBER', 'COACH', 'ADMIN']}>
                     <QAForumPage />
