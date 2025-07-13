@@ -80,7 +80,6 @@ const NavBar = () => {
       items: [
         { key: '/member/quit-plan', label: 'Kế hoạch hiện tại', path: '/member/quit-plan' },
         { key: '/member/quit-plan-flow', label: 'Hành trình cai thuốc', path: '/member/quit-plan-flow' },
-        { key: '/member/quit-plan-creation', label: 'Tạo kế hoạch mới', path: '/member/quit-plan-creation' },
         { key: '/member/quit-plan-history', label: 'Lịch sử kế hoạch', path: '/member/quit-plan-history' }
       ]
     },
@@ -88,7 +87,7 @@ const NavBar = () => {
       label: 'Theo dõi hàng ngày',
       icon: <HeartOutlined />,
       items: [
-        { key: '/member/daily-checkin', label: 'Điểm danh hàng ngày', path: '/member/daily-checkin' },
+        { key: '/member/daily-checkin', label: 'Đánh giá hàng ngày', path: '/member/daily-checkin' },
         { key: '/member/daily-record', label: 'Nhật ký hàng ngày', path: '/member/daily-record' },
         { key: '/member/craving-logger', label: 'Ghi nhận cơn thèm', path: '/member/craving-logger' },
         { key: '/member/smoking-status', label: 'Tình trạng hút thuốc', path: '/member/smoking-status' }
