@@ -74,6 +74,7 @@ const AdminDashboard = () => {
   // Feedback data state
   const [feedbackData, setFeedbackData] = useState([]);
   const [publishedFeedbacks, setPublishedFeedbacks] = useState([]);
+  const [unreviewedFeedbacks, setUnreviewedFeedbacks] = useState([]);
   
   // Reminder data state
   const [reminderData, setReminderData] = useState([]);
@@ -143,17 +144,20 @@ const AdminDashboard = () => {
   const fetchFeedbackData = async () => {
     try {
       setFeedbackLoading(true);
-      const [allFeedbacks, published] = await Promise.all([
-        feedbackService.getAllFeedbacks(),
+      const [unreviewedFeedbacks, publishedFeedbacks] = await Promise.all([
+        feedbackService.getUnreviewedFeedbacks(),
         feedbackService.getPublishedFeedbacks()
       ]);
-      setFeedbackData(allFeedbacks || []);
-      setPublishedFeedbacks(published || []);
+      setUnreviewedFeedbacks(unreviewedFeedbacks || []);
+      setPublishedFeedbacks(publishedFeedbacks || []);
+      // Keep the combined feedbackData for backward compatibility and stats
+      setFeedbackData([...(unreviewedFeedbacks || []), ...(publishedFeedbacks || [])]);
     } catch (error) {
       console.error("Error fetching feedback data:", error);
       message.error("Failed to load feedback data");
-      setFeedbackData([]);
+      setUnreviewedFeedbacks([]);
       setPublishedFeedbacks([]);
+      setFeedbackData([]);
     } finally {
       setFeedbackLoading(false);
     }
@@ -511,7 +515,163 @@ const AdminDashboard = () => {
     }
   ];
 
-  // Table columns for feedbacks
+  // Table columns for unreviewed feedbacks
+  const unreviewedFeedbackColumns = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+    },
+    {
+      title: 'Content',
+      dataIndex: 'content',
+      key: 'content',
+      ellipsis: true,
+      render: (content) => (
+        <Tooltip title={content}>
+          <span>{content}</span>
+        </Tooltip>
+      )
+    },
+    {
+      title: 'Rating',
+      dataIndex: 'star',
+      key: 'star',
+      width: 100,
+      render: (star) => (
+        <div>
+          <StarOutlined style={{ color: '#faad14' }} /> {star}/5
+        </div>
+      )
+    },
+    {
+      title: 'Coach',
+      dataIndex: ['coach', 'name'],
+      key: 'coachName',
+      render: (name, record) => name || record.coachName || 'N/A'
+    },
+    {
+      title: 'Member',
+      dataIndex: ['member', 'name'],
+      key: 'memberName',
+      render: (name, record) => name || record.memberName || 'N/A'
+    },
+    {
+      title: 'Created Date',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 120,
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      width: 250,
+      render: (_, record) => (
+        <Space>
+          <Button 
+            type="primary" 
+            size="small"
+            onClick={() => handleFeedbackReviewed(record.id)}
+          >
+            Review
+          </Button>
+          <Button 
+            type="default" 
+            size="small"
+            style={{ color: '#52c41a', borderColor: '#52c41a' }}
+            onClick={() => handleFeedbackApproval(record.id)}
+          >
+            Approve & Publish
+          </Button>
+          <Button 
+            type="default" 
+            size="small"
+            danger
+            onClick={() => handleFeedbackHide(record.id)}
+          >
+            Hide
+          </Button>
+        </Space>
+      )
+    }
+  ];
+
+  // Table columns for published feedbacks
+  const publishedFeedbackColumns = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+    },
+    {
+      title: 'Content',
+      dataIndex: 'content',
+      key: 'content',
+      ellipsis: true,
+      render: (content) => (
+        <Tooltip title={content}>
+          <span>{content}</span>
+        </Tooltip>
+      )
+    },
+    {
+      title: 'Rating',
+      dataIndex: 'star',
+      key: 'star',
+      width: 100,
+      render: (star) => (
+        <div>
+          <StarOutlined style={{ color: '#faad14' }} /> {star}/5
+        </div>
+      )
+    },
+    {
+      title: 'Coach',
+      dataIndex: ['coach', 'name'],
+      key: 'coachName',
+      render: (name, record) => name || record.coachName || 'N/A'
+    },
+    {
+      title: 'Member',
+      dataIndex: ['member', 'name'],
+      key: 'memberName',
+      render: (name, record) => name || record.memberName || 'N/A'
+    },
+    {
+      title: 'Created Date',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 120,
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+    },
+    {
+      title: 'Published Date',
+      dataIndex: 'publishedAt',
+      key: 'publishedAt',
+      width: 120,
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      width: 100,
+      render: (_, record) => (
+        <Button 
+          type="default" 
+          size="small"
+          danger
+          onClick={() => handleFeedbackHide(record.id)}
+        >
+          Hide
+        </Button>
+      )
+    }
+  ];
+
+  // Table columns for feedbacks (legacy - for backward compatibility)
   const feedbackColumns = [
     {
       title: 'ID',
@@ -778,18 +938,17 @@ const AdminDashboard = () => {
 
   // Calculate feedback status statistics
   const getFeedbackStatusStats = () => {
-    const total = feedbackData.length;
-    const published = feedbackData.filter(f => f.published || f.isPublished).length;
-    const reviewed = feedbackData.filter(f => f.reviewed || f.isReviewed).length;
-    const unreviewed = total - reviewed;
+    const totalUnreviewed = unreviewedFeedbacks.length;
+    const totalPublished = publishedFeedbacks.length;
+    const total = totalUnreviewed + totalPublished;
     
     return {
       total,
-      published,
-      reviewed,
-      unreviewed,
-      publishedRate: total > 0 ? Math.round((published / total) * 100) : 0,
-      reviewedRate: total > 0 ? Math.round((reviewed / total) * 100) : 0
+      published: totalPublished,
+      reviewed: totalPublished, // Published feedbacks are considered reviewed
+      unreviewed: totalUnreviewed,
+      publishedRate: total > 0 ? Math.round((totalPublished / total) * 100) : 0,
+      reviewedRate: total > 0 ? Math.round((totalPublished / total) * 100) : 0
     };
   };
 
@@ -960,7 +1119,7 @@ const AdminDashboard = () => {
                 <Card className="stat-card">
                   <Statistic 
                     title="Total Feedback"
-                    value={feedbackData.length || 0}
+                    value={(unreviewedFeedbacks.length || 0) + (publishedFeedbacks.length || 0)}
                     prefix={<FileTextOutlined />}
                     valueStyle={{ color: '#1890ff' }}
                   />
@@ -969,14 +1128,14 @@ const AdminDashboard = () => {
               <Col xs={24} sm={6}>
                 <Card className="stat-card">
                   <Statistic 
-                    title="Published Feedback"
-                    value={getFeedbackStatusStats().published || 0}
-                    prefix={<CheckCircleOutlined />}
-                    valueStyle={{ color: '#52c41a' }}
+                    title="Unreviewed Feedback"
+                    value={unreviewedFeedbacks.length || 0}
+                    prefix={<BellOutlined />}
+                    valueStyle={{ color: '#ff4d4f' }}
                   />
                   <div className="stat-footer">
                     <Text type="secondary">
-                      {getFeedbackStatusStats().publishedRate}% published rate
+                      Needs attention
                     </Text>
                   </div>
                 </Card>
@@ -984,14 +1143,14 @@ const AdminDashboard = () => {
               <Col xs={24} sm={6}>
                 <Card className="stat-card">
                   <Statistic 
-                    title="Reviewed Feedback"
-                    value={getFeedbackStatusStats().reviewed || 0}
-                    prefix={<BellOutlined />}
-                    valueStyle={{ color: '#722ed1' }}
+                    title="Published Feedback"
+                    value={publishedFeedbacks.length || 0}
+                    prefix={<CheckCircleOutlined />}
+                    valueStyle={{ color: '#52c41a' }}
                   />
                   <div className="stat-footer">
                     <Text type="secondary">
-                      {getFeedbackStatusStats().reviewedRate}% reviewed rate
+                      Live on platform
                     </Text>
                   </div>
                 </Card>
@@ -1061,20 +1220,66 @@ const AdminDashboard = () => {
               </Col>
             </Row>
 
-            <Card title={`All Feedback (${feedbackData.length || 0} total)`}>
-              <Table 
-                dataSource={feedbackData || []} 
-                columns={feedbackColumns} 
-                rowKey="id"
-                loading={feedbackLoading}
-                scroll={{ x: 1200 }}
-                pagination={{
-                  showSizeChanger: true,
-                  showQuickJumper: true,
-                  showTotal: (total, range) => 
-                    `${range[0]}-${range[1]} of ${total} feedback entries`
-                }}
-              />
+            <Card title={`Feedback Management`}>
+              <Tabs defaultActiveKey="unreviewed">
+                <TabPane 
+                  tab={
+                    <span>
+                      <BellOutlined />
+                      Unreviewed ({unreviewedFeedbacks.length || 0})
+                    </span>
+                  } 
+                  key="unreviewed"
+                >
+                  <div style={{ marginBottom: 16 }}>
+                    <Text type="secondary">
+                      These feedbacks need to be reviewed and approved before they can be published.
+                    </Text>
+                  </div>
+                  <Table 
+                    dataSource={unreviewedFeedbacks || []} 
+                    columns={unreviewedFeedbackColumns} 
+                    rowKey="id"
+                    loading={feedbackLoading}
+                    scroll={{ x: 1200 }}
+                    pagination={{
+                      showSizeChanger: true,
+                      showQuickJumper: true,
+                      showTotal: (total, range) => 
+                        `${range[0]}-${range[1]} of ${total} unreviewed feedback entries`
+                    }}
+                  />
+                </TabPane>
+                
+                <TabPane 
+                  tab={
+                    <span>
+                      <CheckCircleOutlined />
+                      Published ({publishedFeedbacks.length || 0})
+                    </span>
+                  } 
+                  key="published"
+                >
+                  <div style={{ marginBottom: 16 }}>
+                    <Text type="secondary">
+                      These feedbacks have been approved and are visible to the public.
+                    </Text>
+                  </div>
+                  <Table 
+                    dataSource={publishedFeedbacks || []} 
+                    columns={publishedFeedbackColumns} 
+                    rowKey="id"
+                    loading={feedbackLoading}
+                    scroll={{ x: 1200 }}
+                    pagination={{
+                      showSizeChanger: true,
+                      showQuickJumper: true,
+                      showTotal: (total, range) => 
+                        `${range[0]}-${range[1]} of ${total} published feedback entries`
+                    }}
+                  />
+                </TabPane>
+              </Tabs>
             </Card>
           </TabPane>
           

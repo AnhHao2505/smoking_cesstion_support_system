@@ -56,6 +56,16 @@ export const getAllFeedbacks = async () => {
   }
 };
 
+// Get all unreviewed feedbacks (admin only) - Updated to match new API
+export const getUnreviewedFeedbacks = async () => {
+  try {
+    const response = await axiosInstance.get('/api/feedbacks/all/unreviewed');
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
 // Approve feedback for publishing (admin only) - Updated to match new API
 export const approveFeedback = async (feedbackId) => {
   try {
