@@ -217,27 +217,26 @@ const AppointmentManagement = () => {
           </div>
         </Space>
       ),
-      width: 250
     },
-    {
-      title: 'Liên hệ',
-      dataIndex: 'contact_number',
-      key: 'contact_number',
-      render: (contact) => (
-        <Text><CalendarOutlined /> {contact}</Text>
-      )
-    },
-    {
-      title: 'Chứng chỉ',
-      dataIndex: 'certificates',
-      key: 'certificates',
-      render: (certificates) => (
-        <Text ellipsis style={{ maxWidth: 200 }}>
-          {certificates || 'Chưa cập nhật'}
-        </Text>
-      ),
-      ellipsis: true
-    },
+    // {
+    //   title: 'Liên hệ',
+    //   dataIndex: 'contact_number',
+    //   key: 'contact_number',
+    //   render: (contact) => (
+    //     <Text><CalendarOutlined /> {contact}</Text>
+    //   )
+    // },
+    // {
+    //   title: 'Chứng chỉ',
+    //   dataIndex: 'certificates',
+    //   key: 'certificates',
+    //   render: (certificates) => (
+    //     <Text ellipsis style={{ maxWidth: 200 }}>
+    //       {certificates || 'Chưa cập nhật'}
+    //     </Text>
+    //   ),
+    //   ellipsis: true
+    // },
     {
       title: 'Giờ làm việc',
       dataIndex: 'workingHours',
@@ -260,7 +259,6 @@ const AppointmentManagement = () => {
           )}
         </div>
       ),
-      width: 200
     },
     {
       title: 'Thành viên hiện tại',
@@ -282,7 +280,6 @@ const AppointmentManagement = () => {
         );
       },
       sorter: (a, b) => a.currentMemberAssignedCount - b.currentMemberAssignedCount,
-      width: 120
     },
     {
       title: 'Tình trạng',
