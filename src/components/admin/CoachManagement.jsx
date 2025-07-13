@@ -313,7 +313,7 @@ const CoachManagement = () => {
       return { color: 'red', text: 'Full' };
     }
     
-    const availableSlots = 20 - coach.currentMemberAssignedCount;
+    const availableSlots = 10 - coach.currentMemberAssignedCount;
     if (availableSlots > 10) {
       return { color: 'green', text: 'Available' };
     } else if (availableSlots > 5) {
@@ -388,7 +388,7 @@ const CoachManagement = () => {
       dataIndex: 'currentMemberAssignedCount',
       key: 'currentMemberAssignedCount',
       render: (count, record) => {
-        const maxMembers = 20;
+        const maxMembers = 10;
         const percentage = (count / maxMembers) * 100;
         return (
           <div>
@@ -774,7 +774,7 @@ const CoachManagement = () => {
                       <div>
                         <Text strong>Current Members:</Text>
                         <br />
-                        <Text>{selectedCoach.currentMemberAssignedCount || 0}/20</Text>
+                        <Text>{selectedCoach.currentMemberAssignedCount || 0}/10</Text>
                       </div>
                       <div>
                         <Text strong>Status:</Text>
