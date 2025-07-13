@@ -382,6 +382,22 @@ const AdminDashboard = () => {
     }
   };
 
+  // Re-enable reminder
+  const handleReEnableReminder = async (reminderId) => {
+    try {
+      const response = await reminderService.reEnableReminder(reminderId);
+      if (response.success) {
+        message.success('Reminder re-enabled successfully');
+        fetchReminderData(reminderPagination.current - 1, reminderPagination.pageSize);
+      } else {
+        message.error('Failed to re-enable reminder');
+      }
+    } catch (error) {
+      console.error('Error re-enabling reminder:', error);
+      message.error('Failed to re-enable reminder');
+    }
+  };
+
   // Handle reminder pagination change
   const handleReminderPaginationChange = (page, size) => {
     setReminderPagination(prev => ({
@@ -849,14 +865,25 @@ const AdminDashboard = () => {
           >
             Edit
           </Button>
-          <Button 
-            type="link" 
-            size="small"
-            danger={record.active}
-            onClick={() => handleDisableReminder(record.id)}
-          >
-            {record.active ? 'Disable' : 'Enable'}
-          </Button>
+          {record.active ? (
+            <Button 
+              type="link" 
+              size="small"
+              danger
+              onClick={() => handleDisableReminder(record.id)}
+            >
+              Disable
+            </Button>
+          ) : (
+            <Button 
+              type="link" 
+              size="small"
+              style={{ color: '#52c41a' }}
+              onClick={() => handleReEnableReminder(record.id)}
+            >
+              Enable
+            </Button>
+          )}
         </Space>
       )
     }

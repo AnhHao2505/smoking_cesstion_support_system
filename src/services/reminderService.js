@@ -37,6 +37,18 @@ export const disableReminder = async (reminderId) => {
   }
 };
 
+// Re-enable a reminder - New API endpoint
+export const reEnableReminder = async (reminderId) => {
+  try {
+    const response = await axiosInstance.patch('/api/reminders/re-enable', null, {
+      params: { reminderId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
 // Get all reminders with pagination - Updated to match new API
 export const getAllReminders = async (pageNo = 0, pageSize = 10) => {
   try {

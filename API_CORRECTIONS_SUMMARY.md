@@ -140,6 +140,7 @@ This document summarizes all the changes made to ensure API calls match the prov
 - ✅ POST `/api/reminders`
 - ✅ PUT `/api/reminders/update`
 - ✅ PATCH `/api/reminders/disable`
+- ✅ PATCH `/api/reminders/re-enable`
 
 ### Chat Management
 - ✅ GET `/chat/ws-channels`
