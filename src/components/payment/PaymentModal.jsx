@@ -48,9 +48,9 @@ const PaymentModal = ({ visible, onClose, onPaymentSuccess }) => {
         values.language || 'vn'
       );
 
-      if (paymentResponse && paymentResponse.paymentUrl) {
+      if (paymentResponse && paymentResponse.data) {
         // Redirect to VNPay payment page
-        window.location.href = paymentResponse.paymentUrl;
+        window.location.href = paymentResponse.data;
       } else {
         throw new Error('Không thể tạo liên kết thanh toán');
       }
