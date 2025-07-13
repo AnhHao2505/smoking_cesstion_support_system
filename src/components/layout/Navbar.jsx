@@ -5,6 +5,7 @@ import { SettingOutlined, DownOutlined, UserOutlined, DashboardOutlined, Calenda
 import * as authService from '../../services/authService';
 import NotificationBell from '../notifications/NotificationBell';
 import PaymentModal from '../payment/PaymentModal';
+import logo from '../../assets/logo.jpg';
 import '../../styles/Navbar.css';
 
 const NavBar = () => {
@@ -292,7 +293,7 @@ const NavBar = () => {
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
       <div className="container">
         <Link to="/" className="navbar-brand d-flex align-items-center">
-          <HeartOutlined className="me-2" style={{ fontSize: '24px' }} />
+          <img src={logo} alt="Logo" className="me-2" style={{ height: '32px', width: 'auto' }} />
           <span className="fw-bold">Smoking Cessation Support</span>
         </Link>
 

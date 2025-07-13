@@ -113,7 +113,7 @@ const App = () => {
             <main className="flex-grow-1">
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<WelcomePage />} />
+              <Route path="/" element={<LandingPage />} />
               <Route path="/home" element={<LandingPage />} />
               <Route path="/blog" element={<BlogListPage />} />
               <Route path="/blog/:id" element={<BlogDetailPage />} />
