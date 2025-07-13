@@ -482,49 +482,49 @@ const CoachDashboard = () => {
         </Space>
       )
     },
-    {
-      title: 'Plan Status',
-      dataIndex: 'current_phase',
-      key: 'current_phase',
-      render: (phase, record) => {
-        let color = 'blue';
-        let text = phase;
+    // {
+    //   title: 'Plan Status',
+    //   dataIndex: 'current_phase',
+    //   key: 'current_phase',
+    //   render: (phase, record) => {
+    //     let color = 'blue';
+    //     let text = phase;
 
-        if (phase === 'ACTIVE' && record.planId) {
-          color = 'green';
-          text = `Plan #${record.planId}`;
-        } else if (phase === 'No Plan') {
-          color = 'default';
-          text = 'No Plan';
-        }
+    //     if (phase === 'ACTIVE' && record.planId) {
+    //       color = 'green';
+    //       text = `Plan #${record.planId}`;
+    //     } else if (phase === 'No Plan') {
+    //       color = 'default';
+    //       text = 'No Plan';
+    //     }
 
-        return <Tag color={color}>{text}</Tag>;
-      }
-    },
-    {
-      title: 'Initial Status',
-      dataIndex: 'initialStatusId',
-      key: 'initialStatusId',
-      render: (statusId) => (
-        statusId ? <Tag color="blue">Status #{statusId}</Tag> : <Text type="secondary">N/A</Text>
-      )
-    },
-    {
-      title: 'Progress',
-      dataIndex: 'progress',
-      key: 'progress',
-      render: (progress) => <Progress percent={progress} size="small" />
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        status ?
-          <Badge status="success" text="Active" /> :
-          <Badge status="default" text="Inactive" />
-      )
-    },
+    //     return <Tag color={color}>{text}</Tag>;
+    //   }
+    // },
+    // {
+    //   title: 'Initial Status',
+    //   dataIndex: 'initialStatusId',
+    //   key: 'initialStatusId',
+    //   render: (statusId) => (
+    //     statusId ? <Tag color="blue">Status #{statusId}</Tag> : <Text type="secondary">N/A</Text>
+    //   )
+    // },
+    // {
+    //   title: 'Progress',
+    //   dataIndex: 'progress',
+    //   key: 'progress',
+    //   render: (progress) => <Progress percent={progress} size="small" />
+    // },
+    // {
+    //   title: 'Status',
+    //   dataIndex: 'status',
+    //   key: 'status',
+    //   render: (status) => (
+    //     status ?
+    //       <Badge status="success" text="Active" /> :
+    //       <Badge status="default" text="Inactive" />
+    //   )
+    // },
     {
       title: 'Action',
       key: 'action',
