@@ -562,13 +562,13 @@ const AdminDashboard = () => {
       width: 250,
       render: (_, record) => (
         <Space>
-          <Button 
+          {/* <Button 
             type="primary" 
             size="small"
             onClick={() => handleFeedbackReviewed(record.id)}
           >
             Review
-          </Button>
+          </Button> */}
           <Button 
             type="default" 
             size="small"

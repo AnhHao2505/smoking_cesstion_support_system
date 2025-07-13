@@ -140,8 +140,8 @@ const NavBar = () => {
       icon: <FileTextOutlined />,
       items: [
         { key: '/coach/create-quit-plan', label: 'Tạo kế hoạch', path: '/coach/create-quit-plan' },
-        { key: '/coach/quit-plan-approval', label: 'Phê duyệt kế hoạch', path: '/coach/quit-plan-approval' },
-        { key: '/coach/quit-plan-approval-new', label: 'Phê duyệt - Luồng mới', path: '/coach/quit-plan-approval-new' }
+        // { key: '/coach/quit-plan-approval', label: 'Phê duyệt kế hoạch', path: '/coach/quit-plan-approval' },
+        // { key: '/coach/quit-plan-approval-new', label: 'Phê duyệt - Luồng mới', path: '/coach/quit-plan-approval-new' }
       ]
     },
     support: {
@@ -315,14 +315,16 @@ const NavBar = () => {
             
             {renderRoleSpecificDropdowns()}
 
-            <li className="nav-item">
-              <Link to="/qna" className="nav-link">
-                <QuestionCircleOutlined className="me-1" />
-                Q&A
-              </Link>
-            </li>
+            {user && user.role === 'MEMBER' && (
+              <li className="nav-item">
+                <Link to="/qna" className="nav-link">
+                  <QuestionCircleOutlined className="me-1" />
+                  Q&A
+                </Link>
+              </li>
+            )}
             
-            {user && (
+            {user && user.role === 'MEMBER' && (
               <li className="nav-item">
                 <Link to="/demo/notifications" className="nav-link">
                   🔔 Demo

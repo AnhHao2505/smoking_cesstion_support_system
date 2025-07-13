@@ -708,7 +708,7 @@ const CoachDashboard = () => {
                     )}
                   </Title>
                 </div>
-                <Space>
+                {/* <Space>
                   <Button
                     type="primary"
                     onClick={refreshQuestions}
@@ -721,7 +721,7 @@ const CoachDashboard = () => {
                   >
                     View All Questions
                   </Button>
-                </Space>
+                </Space> */}
               </div>
               {unansweredQuestions.length > 0 ? (
                 <List
@@ -829,7 +829,7 @@ const CoachDashboard = () => {
             </Card>
           </TabPane>
 
-          <TabPane tab={<span><BarChartOutlined /> Performance</span>} key="4">
+          {/* <TabPane tab={<span><BarChartOutlined /> Performance</span>} key="4">
             <Row gutter={[16, 16]}>
               <Col xs={24} md={12}>
                 <Card>
@@ -915,7 +915,7 @@ const CoachDashboard = () => {
                 </Card>
               </Col>
             </Row>
-          </TabPane>
+          </TabPane> */}
         </Tabs>
         ) : (
           // Limited view for other coaches' profiles
