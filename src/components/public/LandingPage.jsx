@@ -127,7 +127,7 @@ const LandingPage = () => {
                 Khám phá phương pháp cai thuốc lá khoa học, được hỗ trợ bởi cộng đồng và các chuyên gia y tế.
               </Paragraph>
               <Space>
-                <Link to="/register">
+                <Link to="/login">
                   <Button type="primary" size="large">
                     Bắt đầu ngay <ArrowRightOutlined />
                   </Button>
