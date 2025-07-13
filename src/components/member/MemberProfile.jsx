@@ -10,6 +10,7 @@ import {
 import { getMyProfile, updateMemberProfile } from '../../services/memberProfileService';
 import { getCurrentUser } from '../../services/authService';
 import { upgradeToPremium } from '../../services/userService';
+import PaymentModal from '../payment/PaymentModal';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -18,6 +19,7 @@ const MemberProfile = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [form] = Form.useForm();
   
   // Get member ID from current user
@@ -88,9 +90,20 @@ const MemberProfile = () => {
     }
   };
 
-  const handleUpgradeToPremium = async () => {
+  const handleUpgradeToPremium = () => {
+    setPaymentModalVisible(true);
+  };
+
+  const handlePaymentModalClose = () => {
+    setPaymentModalVisible(false);
+  };
+
+  const handlePaymentSuccess = async () => {
     try {
+      setPaymentModalVisible(false);
       setUpgradeLoading(true);
+      
+      // Call the upgrade API to update backend
       const response = await upgradeToPremium();
       
       if (response) {
@@ -100,6 +113,13 @@ const MemberProfile = () => {
           ...prev,
           premiumMembership: true
         }));
+        
+        // Update user data in localStorage if needed
+        const user = getCurrentUser();
+        if (user) {
+          const updatedUser = { ...user, isPremiumMembership: true };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
       }
     } catch (error) {
       console.error("Error upgrading to premium:", error);
@@ -291,6 +311,13 @@ const MemberProfile = () => {
           </Col>
         </Row>
       </div>
+      
+      {/* Payment Modal */}
+      <PaymentModal
+        visible={paymentModalVisible}
+        onClose={handlePaymentModalClose}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };
