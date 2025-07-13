@@ -66,9 +66,6 @@ const ResetPasswordPage = () => {
     if (value.length < 8) {
       return Promise.reject(new Error('Password must be at least 8 characters long!'));
     }
-    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
-      return Promise.reject(new Error('Password must contain at least one uppercase letter, one lowercase letter, and one number!'));
-    }
     return Promise.resolve();
   };
 
@@ -161,8 +158,6 @@ const ResetPasswordPage = () => {
                   Password requirements:
                   <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
                     <li>At least 8 characters long</li>
-                    <li>Contains uppercase and lowercase letters</li>
-                    <li>Contains at least one number</li>
                   </ul>
                 </Text>
               </div>
