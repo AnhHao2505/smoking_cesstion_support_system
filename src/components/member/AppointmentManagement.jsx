@@ -2,21 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { 
   Card, Table, Button, Tag, Space, Avatar, Typography, 
   Modal, Form, Input, Spin, message, Badge, Progress,
-  Row, Col, Statistic, Tooltip, Alert
+  Row, Col, Statistic, Tooltip, Alert, Rate
 } from 'antd';
 import { 
   UserOutlined, ClockCircleOutlined, CheckCircleOutlined,
   StarOutlined, TeamOutlined, ExclamationCircleOutlined,
-  CalendarOutlined
+  CalendarOutlined, MessageOutlined, SendOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import { 
   getAllCoaches,
   chooseCoach
 } from '../../services/coachManagementService';
+import { submitFeedbackToPlatform } from '../../services/feebackService';
 import { useAuth } from '../../contexts/AuthContext';
 
 const { Title, Text, Paragraph } = Typography;
+const { TextArea } = Input;
 
 const AppointmentManagement = () => {
   const { currentUser } = useAuth();
@@ -25,6 +27,10 @@ const AppointmentManagement = () => {
   const [selecting, setSelecting] = useState(false);
   const [selectedCoach, setSelectedCoach] = useState(null);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [feedbackCoach, setFeedbackCoach] = useState(null);
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [feedbackForm] = Form.useForm();
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -91,6 +97,48 @@ const AppointmentManagement = () => {
     } finally {
       setSelecting(false);
     }
+  };
+
+  const handleShowFeedback = (coach) => {
+    setFeedbackCoach(coach);
+    setFeedbackModalVisible(true);
+    feedbackForm.resetFields();
+  };
+
+  const handleSubmitFeedback = async (values) => {
+    try {
+      setSubmittingFeedback(true);
+      const feedbackData = {
+        content: values.content,
+        star: values.star
+      };
+
+      const response = await submitFeedbackToPlatform(feedbackData);
+      
+      if (response.success) {
+        message.success(`Cảm ơn bạn đã gửi phản hồi về huấn luyện viên ${feedbackCoach.name}!`);
+        setFeedbackModalVisible(false);
+        feedbackForm.resetFields();
+      } else {
+        message.error(response.message || 'Không thể gửi phản hồi. Vui lòng thử lại!');
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      message.error('Có lỗi xảy ra khi gửi phản hồi. Vui lòng thử lại!');
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
+
+  const renderStarDescription = (value) => {
+    const descriptions = {
+      1: 'Rất không hài lòng',
+      2: 'Không hài lòng', 
+      3: 'Bình thường',
+      4: 'Hài lòng',
+      5: 'Rất hài lòng'
+    };
+    return descriptions[value] || '';
   };
 
   const getWorkingHoursDisplay = (workingHours) => {
@@ -237,27 +285,38 @@ const AppointmentManagement = () => {
         const canSelect = !record.full && record.workingHours && record.workingHours.length > 0;
         
         return (
-          <Space size="small">
-            {canSelect ? (
-              <Button 
-                type="primary" 
-                icon={<CheckCircleOutlined />}
-                onClick={() => handleChooseCoach(record)}
-                size="small"
-              >
-                Chọn HLV
-              </Button>
-            ) : (
-              <Tooltip title={record.full ? "Huấn luyện viên đã đầy" : "Không có giờ làm việc"}>
+          <Space size="small" direction="vertical">
+            <Space size="small">
+              {canSelect ? (
                 <Button 
-                  disabled 
-                  icon={<ExclamationCircleOutlined />}
+                  type="primary" 
+                  icon={<CheckCircleOutlined />}
+                  onClick={() => handleChooseCoach(record)}
                   size="small"
                 >
-                  Không có sẵn
+                  Chọn HLV
                 </Button>
-              </Tooltip>
-            )}
+              ) : (
+                <Tooltip title={record.full ? "Huấn luyện viên đã đầy" : "Không có giờ làm việc"}>
+                  <Button 
+                    disabled 
+                    icon={<ExclamationCircleOutlined />}
+                    size="small"
+                  >
+                    Không có sẵn
+                  </Button>
+                </Tooltip>
+              )}
+            </Space>
+            <Button 
+              type="default" 
+              icon={<StarOutlined />}
+              onClick={() => handleShowFeedback(record)}
+              size="small"
+              style={{ width: '100%' }}
+            >
+              Đánh giá
+            </Button>
           </Space>
         );
       },
@@ -419,6 +478,97 @@ const AppointmentManagement = () => {
                   <Text>{selectedCoach.currentMemberAssignedCount}/10</Text>
                 </div>
               </Card>
+            </div>
+          )}
+        </Modal>
+
+        {/* Feedback Modal */}
+        <Modal
+          title={
+            <Space>
+              <StarOutlined />
+              <span>Đánh giá huấn luyện viên</span>
+            </Space>
+          }
+          visible={feedbackModalVisible}
+          onCancel={() => {
+            setFeedbackModalVisible(false);
+            feedbackForm.resetFields();
+          }}
+          footer={null}
+          width={600}
+        >
+          {feedbackCoach && (
+            <div>
+              <Card size="small" style={{ marginBottom: 16 }}>
+                <Space>
+                  <Avatar size="large" icon={<UserOutlined />} />
+                  <div>
+                    <Text strong style={{ fontSize: '16px' }}>{feedbackCoach.name}</Text>
+                    <br />
+                    <Text type="secondary">{feedbackCoach.email}</Text>
+                  </div>
+                </Space>
+              </Card>
+
+              <Form
+                form={feedbackForm}
+                layout="vertical"
+                onFinish={handleSubmitFeedback}
+              >
+                <Form.Item
+                  name="star"
+                  label="Đánh giá sao"
+                  rules={[
+                    { required: true, message: 'Vui lòng chọn số sao đánh giá!' }
+                  ]}
+                >
+                  <Rate 
+                    tooltips={['Rất không hài lòng', 'Không hài lòng', 'Bình thường', 'Hài lòng', 'Rất hài lòng']}
+                    onChange={(value) => {
+                      // Optional: Show description below rating
+                    }}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="content"
+                  label="Nội dung phản hồi"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập nội dung phản hồi!' },
+                    { min: 10, message: 'Nội dung phản hồi phải có ít nhất 10 ký tự!' },
+                    { max: 500, message: 'Nội dung phản hồi không được vượt quá 500 ký tự!' }
+                  ]}
+                >
+                  <TextArea
+                    rows={4}
+                    placeholder="Hãy chia sẻ trải nghiệm của bạn về huấn luyện viên này..."
+                    showCount
+                    maxLength={500}
+                  />
+                </Form.Item>
+
+                <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+                  <Space>
+                    <Button 
+                      onClick={() => {
+                        setFeedbackModalVisible(false);
+                        feedbackForm.resetFields();
+                      }}
+                    >
+                      Hủy
+                    </Button>
+                    <Button 
+                      type="primary" 
+                      htmlType="submit"
+                      loading={submittingFeedback}
+                      icon={<SendOutlined />}
+                    >
+                      Gửi đánh giá
+                    </Button>
+                  </Space>
+                </Form.Item>
+              </Form>
             </div>
           )}
         </Modal>

@@ -80,6 +80,9 @@ export const API_ENDPOINTS = {
     APPROVE_PUBLISH: '/api/feedbacks/approve-publish',
     HIDE: '/api/feedbacks/hide',
     REVIEWED: '/api/feedbacks/reviewed',
+    SUBMIT_TO_COACH: '/api/feedbacks/submit/my-coach',
+    SUBMIT_TO_PLATFORM: '/api/feedbacks/submit/platform',
+    OF_A_COACH: '/api/feedbacks/of-a-coach',
   },
 
   // QnA Management
