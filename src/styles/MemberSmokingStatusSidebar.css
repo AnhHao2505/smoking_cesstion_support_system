@@ -1,0 +1,160 @@
+/* Member Smoking Status Sidebar Styles */
+
+.member-smoking-sidebar {
+  position: fixed !important;
+  left: 20px;
+  top: 100px;
+  width: 370px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.member-smoking-sidebar .ant-card-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.member-smoking-sidebar .ant-card-head-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.member-smoking-sidebar .ant-card-body {
+  padding: 12px 16px;
+}
+
+.member-smoking-sidebar .ant-typography h5 {
+  font-size: 14px !important;
+  font-weight: 600;
+  margin-bottom: 8px !important;
+  color: #262626;
+}
+
+.member-smoking-sidebar .ant-tag {
+  margin: 0;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.member-smoking-sidebar .ant-statistic {
+  text-align: center;
+}
+
+.member-smoking-sidebar .ant-statistic-title {
+  font-size: 11px !important;
+  margin-bottom: 4px !important;
+}
+
+.member-smoking-sidebar .ant-statistic-content {
+  font-size: 18px !important;
+}
+
+.member-smoking-sidebar .ant-divider {
+  margin: 6px 0 !important;
+}
+
+.member-smoking-sidebar .ant-row {
+  width: 100%;
+}
+
+.member-smoking-sidebar .ant-alert {
+  font-size: 11px;
+}
+
+.member-smoking-sidebar .ant-alert-message {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.member-smoking-sidebar .ant-alert-description {
+  font-size: 11px;
+}
+
+.member-smoking-sidebar .ant-typography {
+  font-size: 12px;
+}
+
+.member-smoking-sidebar .ant-typography p {
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+  margin: 2px 0 !important;
+}
+
+/* Scrollbar styling */
+.member-smoking-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.member-smoking-sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.member-smoking-sidebar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.member-smoking-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .member-smoking-sidebar {
+    position: relative !important;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-height: none;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Animation for sidebar */
+.member-smoking-sidebar {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Status indicators */
+.status-indicator-green {
+  background-color: #52c41a;
+  color: white;
+}
+
+.status-indicator-blue {
+  background-color: #1677ff;
+  color: white;
+}
+
+.status-indicator-orange {
+  background-color: #fa8c16;
+  color: white;
+}
+
+.status-indicator-red {
+  background-color: #ff4d4f;
+  color: white;
+}
+
+.status-indicator-purple {
+  background-color: #722ed1;
+  color: white;
+}

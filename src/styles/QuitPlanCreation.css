@@ -4,6 +4,7 @@
 .quit-plan-creation {
   background-color: #f0f2f5;
   min-height: calc(100vh - 64px);
+  position: relative;
 }
 
 /* Header Card */
@@ -117,4 +118,98 @@
 /* Smooth transitions */
 .quit-plan-creation * {
   transition: all 0.2s ease-in-out;
+}
+
+/* Layout adjustments for sidebar */
+.quit-plan-creation .ant-layout-content {
+  transition: margin-left 0.3s ease;
+}
+
+/* Member Smoking Status Sidebar */
+.member-smoking-sidebar {
+  position: fixed;
+  left: 20px;
+  top: 100px;
+  width: 350px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+}
+
+.member-smoking-sidebar .ant-card-head {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.member-smoking-sidebar .ant-card-head-title {
+  color: white;
+  font-weight: 600;
+}
+
+.member-smoking-sidebar .ant-card-extra {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .quit-plan-creation .ant-layout-content {
+    margin-left: 20px !important;
+  }
+  
+  .member-smoking-sidebar {
+    display: none;
+  }
+}
+
+@media (min-width: 1201px) {
+  .quit-plan-creation .ant-layout-content {
+    margin-left: 390px;
+  }
+}
+
+/* Sidebar content styling */
+.member-smoking-sidebar .ant-statistic-title {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.member-smoking-sidebar .ant-statistic-content {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.member-smoking-sidebar .ant-tag {
+  margin: 2px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.member-smoking-sidebar .ant-progress {
+  margin-top: 4px;
+}
+
+.member-smoking-sidebar .ant-typography-paragraph {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Scrollbar styling for sidebar */
+.member-smoking-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.member-smoking-sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.member-smoking-sidebar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.member-smoking-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }

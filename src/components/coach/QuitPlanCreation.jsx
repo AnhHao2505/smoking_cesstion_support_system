@@ -34,6 +34,7 @@ import { createQuitPlan, getNewestQuitPlan } from '../../services/quitPlanServic
 import { getAssignedMembers } from '../../services/coachManagementService';
 import { getCurrentUser } from '../../services/authService';
 import { getDefaultPhases, createGoalsOfPhases } from '../../services/quitPhaseService';
+import MemberSmokingStatusSidebar from './MemberSmokingStatusSidebar';
 import moment from 'moment';
 import '../../styles/QuitPlanCreation.css';
 
@@ -49,6 +50,7 @@ const QuitPlanCreation = () => {
   
   const [form] = Form.useForm();
   const [selectedMemberId, setSelectedMemberId] = useState(memberIdFromUrl || '');
+  const [selectedMemberName, setSelectedMemberName] = useState('');
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
@@ -69,6 +71,14 @@ const QuitPlanCreation = () => {
     }
     fetchAssignedMembers();
   }, [memberIdFromUrl, coachId, form]);
+
+  // Set member name when members are loaded and there's a selected member ID
+  useEffect(() => {
+    if (selectedMemberId && members.length > 0) {
+      const selectedMember = members.find(member => member.memberId === selectedMemberId);
+      setSelectedMemberName(selectedMember ? selectedMember.name : '');
+    }
+  }, [selectedMemberId, members]);
 
   const fetchAssignedMembers = async () => {
     if (!coachId) return;
@@ -450,7 +460,13 @@ const QuitPlanCreation = () => {
 
   return (
     <Layout className="quit-plan-creation">
-      <Content style={{ padding: '24px' }}>
+      {/* Smoking Status Sidebar - Fixed on left */}
+      <MemberSmokingStatusSidebar 
+        memberId={selectedMemberId} 
+        memberName={selectedMemberName}
+      />
+      
+      <Content style={{ padding: '24px', marginLeft: '390px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           {/* Header */}
           <Card className="header-card" style={{ marginBottom: 24, textAlign: 'center' }}>
@@ -501,6 +517,11 @@ const QuitPlanCreation = () => {
                     onChange={(value) => {
                       console.log('Member selected:', value);
                       setSelectedMemberId(value);
+                      
+                      // Find and set member name
+                      const selectedMember = members.find(member => member.memberId === value);
+                      setSelectedMemberName(selectedMember ? selectedMember.name : '');
+                      
                       form.setFieldsValue({ memberId: value });
                     }}
                     disabled={!!memberIdFromUrl || loadingMembers}

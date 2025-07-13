@@ -41,6 +41,7 @@ import {
 } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { getCurrentUser } from '../../services/authService';
+import { getMyProfile } from '../../services/profileService';
 import { getCoachDashboardData } from '../../services/coachDashboardServiceReal';
 import { getAssignedMembers, getCoachProfile } from '../../services/coachManagementService';
 import { getFeedbacksForCoach } from '../../services/feebackService';
@@ -84,17 +85,46 @@ const CoachDashboard = () => {
 
   // Get coachId from URL params or current user
   const urlCoachId = searchParams.get('coachId');
-  const coachId = urlCoachId || currentUser?.userId;
+  const [actualCoachId, setActualCoachId] = useState(null);
+  const coachId = urlCoachId || actualCoachId;
   
   // Check if viewing own profile or another coach's profile
-  const isViewingOwnProfile = !urlCoachId || urlCoachId === currentUser?.userId?.toString();
+  const isViewingOwnProfile = !urlCoachId || urlCoachId === actualCoachId?.toString();
+
+  // Fetch actual coachId for the current user when not provided in URL
+  useEffect(() => {
+    const fetchActualCoachId = async () => {
+      if (!urlCoachId && currentUser?.role === 'COACH') {
+        try {
+          console.log('Fetching coach profile to get actual coachId...');
+          const myProfile = await getMyProfile();
+          console.log('My profile response:', myProfile);
+          
+          if (myProfile.success && myProfile.data) {
+            // For coaches, the profile should contain their coachId
+            const coachIdFromProfile = myProfile.data.coachId || myProfile.data.id;
+            console.log('Coach ID from profile:', coachIdFromProfile);
+            setActualCoachId(coachIdFromProfile);
+          } else {
+            console.warn('Failed to get coach profile, using userId as fallback');
+            setActualCoachId(currentUser?.userId);
+          }
+        } catch (error) {
+          console.error('Error fetching coach profile for ID:', error);
+          // Fallback to userId if profile fetch fails
+          setActualCoachId(currentUser?.userId);
+        }
+      }
+    };
+
+    fetchActualCoachId();
+  }, [urlCoachId, currentUser?.role, currentUser?.userId]);
 
   useEffect(() => {
     const fetchCoachDashboardData = async () => {
+      // Wait for coachId to be determined
       if (!coachId) {
-        setLoading(false);
-        message.error('Please log in as a coach to access this dashboard');
-        return;
+        return; // Don't show error yet, still determining coachId
       }
 
       try {
@@ -156,8 +186,10 @@ const CoachDashboard = () => {
           // Fetch feedback using updated API
           const feedbackResponse = await getFeedbacksForCoach(coachId);
           // Handle both array and object response formats
-          const feedbacks = feedbackResponse.content;
-          setRecentFeedback(feedbacks.slice(0, 10)); // Show recent 10 feedbacks
+          const feedbacks = feedbackResponse;
+          if(feedbacks.length > 0) {
+            setRecentFeedback(feedbacks.slice(0, 10)); // Show recent 10 feedbacks
+          }
         } else {
           // If viewing another coach's profile, only show basic profile info
           setAssignedMembers([]);
@@ -182,6 +214,18 @@ const CoachDashboard = () => {
 
     fetchCoachDashboardData();
   }, [coachId, isViewingOwnProfile, currentUser?.role]);
+
+  // Show different loading state while determining coachId
+  if (!urlCoachId && !actualCoachId && currentUser?.role === 'COACH') {
+    return (
+      <div className="dashboard loading-container">
+        <Spin size="large" />
+        <div style={{ marginTop: 16, textAlign: 'center' }}>
+          <Text type="secondary">Loading coach profile...</Text>
+        </div>
+      </div>
+    );
+  }
 
   // Individual refresh functions
   const refreshMembers = async () => {
@@ -394,6 +438,22 @@ const CoachDashboard = () => {
     );
   }
 
+  // Show error if we still can't determine coachId after loading
+  if (!coachId && currentUser?.role === 'COACH') {
+    return (
+      <div className="dashboard loading-container">
+        <div style={{ textAlign: 'center', padding: '40px 0' }}>
+          <Text type="danger">Unable to load coach dashboard. Please try logging in again.</Text>
+          <div style={{ marginTop: 16 }}>
+            <Button type="primary" onClick={() => window.location.href = '/auth/login'}>
+              Go to Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Fallback for missing coach profile data
   const profileData = coachProfile || {
     full_name: currentUser?.name || 'Coach',
@@ -470,17 +530,7 @@ const CoachDashboard = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="small" direction="vertical">
-          <Space size="small">
-            <Button
-              type="link"
-              size="small"
-              onClick={() => {
-                // Navigate to member details page
-                window.location.href = `/coach/member-details/${record.user_id}`;
-              }}
-            >
-              View Details
-            </Button>
+          {/* <Space size="small">
             <Button
               type="link"
               size="small"
@@ -491,7 +541,7 @@ const CoachDashboard = () => {
             >
               Contact
             </Button>
-          </Space>
+          </Space> */}
           {record.current_phase === 'No Plan' && (
             <Button
               type="primary"
