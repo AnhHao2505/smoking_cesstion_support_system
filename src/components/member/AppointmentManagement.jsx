@@ -7,12 +7,13 @@ import {
 import { 
   UserOutlined, ClockCircleOutlined, CheckCircleOutlined,
   StarOutlined, TeamOutlined, ExclamationCircleOutlined,
-  CalendarOutlined, MessageOutlined, SendOutlined
+  CalendarOutlined, MessageOutlined, SendOutlined, EyeOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import { 
   getAllCoaches,
-  chooseCoach
+  chooseCoach,
+  getAssignedMembers
 } from '../../services/coachManagementService';
 import { submitFeedbackToCoach, submitFeedbackToPlatform } from '../../services/feebackService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -31,6 +32,10 @@ const AppointmentManagement = () => {
   const [feedbackCoach, setFeedbackCoach] = useState(null);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [feedbackForm] = Form.useForm();
+  const [assignedMembersModalVisible, setAssignedMembersModalVisible] = useState(false);
+  const [assignedMembers, setAssignedMembers] = useState([]);
+  const [loadingAssignedMembers, setLoadingAssignedMembers] = useState(false);
+  const [selectedCoachForMembers, setSelectedCoachForMembers] = useState(null);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -127,6 +132,29 @@ const AppointmentManagement = () => {
       message.error('Có lỗi xảy ra khi gửi phản hồi. Vui lòng thử lại!');
     } finally {
       setSubmittingFeedback(false);
+    }
+  };
+
+  const handleViewAssignedMembers = async (coach) => {
+    try {
+      setSelectedCoachForMembers(coach);
+      setAssignedMembersModalVisible(true);
+      setLoadingAssignedMembers(true);
+      
+      const response = await getAssignedMembers(coach.coachId);
+      
+      if (response) {
+        setAssignedMembers(response);
+      } else {
+        setAssignedMembers([]);
+        message.info('Huấn luyện viên này chưa có thành viên nào được gán.');
+      }
+    } catch (error) {
+      console.error("Error fetching assigned members:", error);
+      message.error('Không thể tải danh sách thành viên. Vui lòng thử lại!');
+      setAssignedMembers([]);
+    } finally {
+      setLoadingAssignedMembers(false);
     }
   };
 
@@ -308,19 +336,32 @@ const AppointmentManagement = () => {
                 </Tooltip>
               )}
             </Space>
-            <Button 
-              type="default" 
-              icon={<StarOutlined />}
-              onClick={() => handleShowFeedback(record)}
-              size="small"
-              style={{ width: '100%' }}
-            >
-              Đánh giá
-            </Button>
+            <Space size="small" style={{ width: '100%' }}>
+              <Button 
+                type="default" 
+                icon={<StarOutlined />}
+                onClick={() => handleShowFeedback(record)}
+                size="small"
+                style={{ flex: 1 }}
+              >
+                Đánh giá
+              </Button>
+            </Space>
+            <Space size="small" style={{ width: '100%' }}>
+              <Button 
+                type="default" 
+                icon={<EyeOutlined />}
+                onClick={() => handleViewAssignedMembers(record)}
+                size="small"
+                style={{ flex: 1 }}
+              >
+                Xem thành viên
+              </Button>
+            </Space>
           </Space>
         );
       },
-      width: 150
+      width: 180
     }
   ];
 
@@ -408,7 +449,7 @@ const AppointmentManagement = () => {
               showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} huấn luyện viên`,
             }}
             onChange={handleTableChange}
-            scroll={{ x: 1200 }}
+            scroll={{ x: 1300 }}
           />
         </Card>
         
@@ -572,6 +613,119 @@ const AppointmentManagement = () => {
             </div>
           )}
         </Modal>
+
+        {/* Assigned Members Modal */}
+        <Modal
+          title={
+            <Space>
+              <TeamOutlined />
+              <span>Thành viên được gán</span>
+              {selectedCoachForMembers && (
+                <Text type="secondary">- {selectedCoachForMembers.name}</Text>
+              )}
+            </Space>
+          }
+          visible={assignedMembersModalVisible}
+          onCancel={() => {
+            setAssignedMembersModalVisible(false);
+            setSelectedCoachForMembers(null);
+            setAssignedMembers([]);
+          }}
+          footer={[
+            <Button 
+              key="close" 
+              onClick={() => {
+                setAssignedMembersModalVisible(false);
+                setSelectedCoachForMembers(null);
+                setAssignedMembers([]);
+              }}
+            >
+              Đóng
+            </Button>
+          ]}
+          width={800}
+        >
+          {loadingAssignedMembers ? (
+            <div style={{ textAlign: 'center', padding: '50px 0' }}>
+              <Spin size="large" />
+              <div style={{ marginTop: 16 }}>
+                <Text>Đang tải danh sách thành viên...</Text>
+              </div>
+            </div>
+          ) : (
+            <div>
+              {assignedMembers && assignedMembers.length > 0 ? (
+                <div>
+                  <Alert
+                    message={`Huấn luyện viên này có ${assignedMembers.length} thành viên được gán`}
+                    type="info"
+                    style={{ marginBottom: 16 }}
+                    showIcon
+                  />
+                  
+                  <Table
+                    dataSource={assignedMembers}
+                    pagination={false}
+                    size="small"
+                    rowKey={(record) => record.memberId || record.id}
+                    columns={[
+                      {
+                        title: 'Tên thành viên',
+                        dataIndex: 'name',
+                        key: 'name',
+                        render: (text, record) => (
+                          <Space>
+                            <Avatar size="small" icon={<UserOutlined />} />
+                            <div>
+                              <Text strong>{text || 'Không có tên'}</Text>
+                              <br />
+                              <Text type="secondary" style={{ fontSize: '12px' }}>
+                                {record.email || 'Không có email'}
+                              </Text>
+                            </div>
+                          </Space>
+                        )
+                      },
+                      {
+                        title: 'ID thành viên',
+                        dataIndex: 'memberId',
+                        key: 'memberId',
+                        render: (id) => <Text code>{id}</Text>
+                      },
+                      {
+                        title: 'Kế hoạch',
+                        dataIndex: 'planId',
+                        key: 'planId',
+                        render: (planId) => planId ? (
+                          <Tag color="green">Có kế hoạch ({planId})</Tag>
+                        ) : (
+                          <Tag color="orange">Chưa có kế hoạch</Tag>
+                        )
+                      },
+                      {
+                        title: 'Trạng thái ban đầu',
+                        dataIndex: 'initialStatusId',
+                        key: 'initialStatusId',
+                        render: (statusId) => statusId ? (
+                          <Tag color="blue">Đã thiết lập ({statusId})</Tag>
+                        ) : (
+                          <Tag color="red">Chưa thiết lập</Tag>
+                        )
+                      }
+                    ]}
+                  />
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '50px 0' }}>
+                  <ExclamationCircleOutlined style={{ fontSize: '48px', color: '#ccc' }} />
+                  <div style={{ marginTop: 16 }}>
+                    <Text type="secondary">Huấn luyện viên này chưa có thành viên nào được gán</Text>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </Modal>
       </div>
     </div>
   );
@@ -600,6 +754,26 @@ const styles = `
   .coach-selection .ant-table-thead > tr > th {
     background-color: #fafafa;
     font-weight: 600;
+  }
+  
+  .coach-selection .ant-table {
+    width: 100% !important;
+    min-width: 1500px;
+  }
+  
+  .coach-selection .ant-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .coach-selection .ant-card-body {
+    padding: 24px;
+  }
+  
+  .coach-selection .container {
+    max-width: 100%;
+    width: 100%;
+    padding: 0 20px;
   }
 `;
 
