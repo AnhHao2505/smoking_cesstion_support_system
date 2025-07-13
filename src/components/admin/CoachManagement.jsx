@@ -33,7 +33,8 @@ import {
   PhoneOutlined,
   MailOutlined,
   EyeOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  ExclamationCircleOutlined
 } from '@ant-design/icons';
 import {
   getAllCoaches,
@@ -41,6 +42,7 @@ import {
   getCoachSpecialties,
   getCoachProfile
 } from '../../services/coachManagementService';
+import { reportCoachAbsent } from '../../services/profileService';
 import moment from 'moment';
 
 const { Title, Text } = Typography;
@@ -53,10 +55,13 @@ const CoachManagement = () => {
   const [creating, setCreating] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [absentReportModalVisible, setAbsentReportModalVisible] = useState(false);
   const [selectedCoach, setSelectedCoach] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [reportingAbsent, setReportingAbsent] = useState(false);
   const [form] = Form.useForm();
   const [workingHoursForm] = Form.useForm();
+  const [absentReportForm] = Form.useForm();
   const [specialties, setSpecialties] = useState([]);
   const [workingHours, setWorkingHours] = useState([]);
   const [pagination, setPagination] = useState({
@@ -255,6 +260,44 @@ const CoachManagement = () => {
     setSelectedCoach(null);
   };
 
+  const showAbsentReportModal = (coach) => {
+    setSelectedCoach(coach);
+    absentReportForm.resetFields();
+    setAbsentReportModalVisible(true);
+  };
+
+  const closeAbsentReportModal = () => {
+    setAbsentReportModalVisible(false);
+    setSelectedCoach(null);
+    absentReportForm.resetFields();
+  };
+
+  const handleAbsentReport = async () => {
+    try {
+      setReportingAbsent(true);
+      const values = await absentReportForm.validateFields();
+      
+      const reportData = {
+        coachId: selectedCoach.coachId,
+        reason: values.reason,
+        suggestion: values.suggestion
+      };
+
+      await reportCoachAbsent(reportData);
+      message.success('Coach absent report submitted successfully!');
+      closeAbsentReportModal();
+    } catch (error) {
+      console.error("Error reporting coach absent:", error);
+      if (error.message) {
+        message.error(error.message);
+      } else {
+        message.error("Failed to submit absent report. Please try again.");
+      }
+    } finally {
+      setReportingAbsent(false);
+    }
+  };
+
   const getWorkingHoursDisplay = (workingHours) => {
     if (!workingHours || workingHours.length === 0) {
       return "No schedule available";
@@ -388,7 +431,7 @@ const CoachManagement = () => {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Space>
+        <Space direction="vertical" size="small">
           <Button 
             type="primary"
             size="small"
@@ -397,9 +440,18 @@ const CoachManagement = () => {
           >
             View Profile
           </Button>
+          <Button 
+            type="default"
+            size="small"
+            icon={<ExclamationCircleOutlined />}
+            onClick={() => showAbsentReportModal(record)}
+            style={{ borderColor: '#faad14', color: '#faad14' }}
+          >
+            Report Absent
+          </Button>
         </Space>
       ),
-      width: 120
+      width: 140
     }
   ];
 
@@ -493,7 +545,7 @@ const CoachManagement = () => {
               showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} coaches`,
             }}
             onChange={handleTableChange}
-            scroll={{ x: 1320 }}
+            scroll={{ x: 1340 }}
           />
         </Card>
         
@@ -776,6 +828,72 @@ const CoachManagement = () => {
           ) : (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
               <Text type="secondary">No coach profile data available</Text>
+            </div>
+          )}
+        </Modal>
+
+        {/* Coach Absent Report Modal */}
+        <Modal
+          title={
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <ExclamationCircleOutlined style={{ marginRight: 8, color: '#faad14' }} />
+              Report Coach Absent
+            </div>
+          }
+          visible={absentReportModalVisible}
+          onCancel={closeAbsentReportModal}
+          footer={[
+            <Button key="cancel" onClick={closeAbsentReportModal}>
+              Cancel
+            </Button>,
+            <Button 
+              key="submit" 
+              type="primary" 
+              loading={reportingAbsent}
+              onClick={handleAbsentReport}
+              style={{ backgroundColor: '#faad14', borderColor: '#faad14' }}
+            >
+              Submit Report
+            </Button>,
+          ]}
+          width={600}
+        >
+          {selectedCoach && (
+            <div>
+              <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#fafafa', borderRadius: 6 }}>
+                <Text strong>Coach: </Text>
+                <Text>{selectedCoach.name}</Text>
+                <br />
+                <Text strong>Email: </Text>
+                <Text>{selectedCoach.email}</Text>
+              </div>
+              
+              <Form
+                form={absentReportForm}
+                layout="vertical"
+              >
+                <Form.Item
+                  name="reason"
+                  label="Reason for Absence"
+                  rules={[{ required: true, message: 'Please enter the reason for absence' }]}
+                >
+                  <TextArea 
+                    rows={4} 
+                    placeholder="Please describe the reason why this coach is reported as absent..."
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="suggestion"
+                  label="Suggestion for Members"
+                  rules={[{ required: true, message: 'Please enter suggestions for affected members' }]}
+                >
+                  <TextArea 
+                    rows={4} 
+                    placeholder="Please provide suggestions or alternative solutions for members assigned to this coach..."
+                  />
+                </Form.Item>
+              </Form>
             </div>
           )}
         </Modal>
