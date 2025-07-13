@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form, InputNumber, Select, Card, Alert, Spin, Typography, Space } from 'antd';
 import { CreditCardOutlined, DollarOutlined, CrownOutlined } from '@ant-design/icons';
-import { createVNPayPayment } from '../../services/paymentService';
+import { createVNPayPayment, handleVNPayReturn } from '../../services/paymentService';
 import { upgradeToPremium } from '../../services/userService';
 import '../../styles/Payment.css';
 
@@ -68,20 +68,50 @@ const PaymentModal = ({ visible, onClose, onPaymentSuccess }) => {
         throw new Error('URL thanh toán không hợp lệ');
       }
 
-      console.log('Opening VNPay in new tab:', paymentUrl);
+      console.log('VNPay URL received:', paymentUrl);
       
-      // Save payment session to localStorage for tracking
-      localStorage.setItem('vnpay_payment_session', JSON.stringify({
-        amount: selectedPkg.price,
-        packageId: selectedPkg.id,
-        timestamp: Date.now()
-      }));
+      // Extract query parameters from VNPay URL
+      const url = new URL(paymentUrl);
+      const vnpayParams = {};
+      url.searchParams.forEach((value, key) => {
+        vnpayParams[key] = value;
+      });
+
+      console.log('Extracted VNPay params:', vnpayParams);
+
+      // Call VNPay return API with the extracted parameters
+      const returnResponse = await handleVNPayReturn(vnpayParams);
       
-      // Open VNPay in new tab instead of redirecting current page
-      window.open(paymentUrl, '_blank', 'noopener,noreferrer');
-      
-      // Close modal after opening payment page
-      onClose();
+      console.log('VNPay return response:', returnResponse);
+
+      if (returnResponse && returnResponse.success) {
+        // Payment successful
+        try {
+          await upgradeToPremium();
+          
+          // Success feedback
+          Modal.success({
+            title: 'Thanh toán thành công!',
+            content: 'Tài khoản của bạn đã được nâng cấp lên Premium.',
+            onOk: () => {
+              onPaymentSuccess && onPaymentSuccess();
+              onClose();
+            }
+          });
+        } catch (upgradeError) {
+          console.error('Premium upgrade error:', upgradeError);
+          Modal.success({
+            title: 'Thanh toán thành công!',
+            content: 'Thanh toán đã hoàn tất. Tài khoản sẽ được nâng cấp trong vài phút.',
+            onOk: () => {
+              onPaymentSuccess && onPaymentSuccess();
+              onClose();
+            }
+          });
+        }
+      } else {
+        throw new Error(returnResponse?.message || 'Thanh toán thất bại');
+      }
 
     } catch (error) {
       console.error('Payment error:', error);
@@ -97,20 +127,19 @@ const PaymentModal = ({ visible, onClose, onPaymentSuccess }) => {
         errorMessage = 'Thông tin thanh toán không hợp lệ.';
       } else if (error.response?.status === 500) {
         errorMessage = 'Lỗi server. Vui lòng thử lại sau.';
+      } else if (error.message) {
+        errorMessage = error.message;
       }
       
       Modal.error({
         title: 'Lỗi thanh toán',
-        content: error.message || errorMessage,
+        content: errorMessage,
         onOk: () => {
           setLoading(false);
         }
       });
     } finally {
-      // Only set loading false if modal is still open (error case)
-      if (document.querySelector('.ant-modal-wrap')) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
