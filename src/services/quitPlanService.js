@@ -261,23 +261,41 @@ export const disableQuitPlan = async (planId) => {
 // Member accepts a quit plan - Updated to match new API
 export const acceptQuitPlan = async (planId) => {
   try {
+    console.log('Accepting quit plan with ID:', planId);
     const response = await axiosInstance.patch('/api/quit-plans/accept', null, {
       params: { planId }
     });
+    console.log('Accept quit plan response:', response);
     return handleApiResponse(response);
   } catch (error) {
+    console.error('Error accepting quit plan:', error);
     throw handleApiError(error);
   }
 };
 
-// Member denies a quit plan - Updated to match new API
-export const denyQuitPlan = async (planId) => {
+// Member denies a quit plan - Updated to match new API with feedback support
+export const denyQuitPlan = async (planId, feedbackData = null) => {
   try {
-    const response = await axiosInstance.patch('/api/quit-plans/deny', null, {
-      params: { planId }
+    console.log('Denying quit plan with ID:', planId, 'Feedback:', feedbackData);
+    
+    let requestBody = null;
+    let requestParams = { planId };
+    
+    // If feedback is provided, include it in the request
+    if (feedbackData && feedbackData.feedback) {
+      // Try sending feedback as request body first
+      requestBody = { feedback: feedbackData.feedback };
+      // Also try as query parameter in case API expects it there
+      requestParams.feedback = feedbackData.feedback;
+    }
+    
+    const response = await axiosInstance.patch('/api/quit-plans/deny', requestBody, {
+      params: requestParams
     });
+    console.log('Deny quit plan response:', response);
     return handleApiResponse(response);
   } catch (error) {
+    console.error('Error denying quit plan:', error);
     throw handleApiError(error);
   }
 };
@@ -296,5 +314,462 @@ export const getAllPlanCreatedByCoach = async (coachId) => {
   }
 };
 
-// Note: GET quit plan by ID is not available in the API specification
-// The available endpoints are only for getting newest and old plans
+// ========================
+// WORKFLOW HELPER FUNCTIONS
+// ========================
+
+/**
+ * Check if a quit plan can be accepted/denied by member
+ * @param {Object} quitPlan - The quit plan object
+ * @returns {Object} - Object with canAccept and canDeny flags
+ */
+export const checkPlanActionAvailability = (quitPlan) => {
+  if (!quitPlan) return { canAccept: false, canDeny: false };
+  
+  const status = quitPlan.quitPlanStatus || quitPlan.status;
+  const isPendingApproval = status === 'PENDING_APPROVAL' || status === 'CREATED' || status === 'pending';
+  
+  return {
+    canAccept: isPendingApproval,
+    canDeny: isPendingApproval,
+    status: status
+  };
+};
+
+/**
+ * Get user-friendly status text for quit plan
+ * @param {string} status - The plan status
+ * @returns {string} - User-friendly status text
+ */
+export const getQuitPlanStatusText = (status) => {
+  switch (status?.toUpperCase()) {
+    case 'PENDING_APPROVAL':
+    case 'CREATED':
+      return 'Chờ phê duyệt';
+    case 'ACTIVE':
+      return 'Đang hoạt động';
+    case 'COMPLETED':
+      return 'Hoàn thành';
+    case 'DENIED':
+      return 'Từ chối';
+    case 'CANCELLED':
+    case 'DISABLED':
+      return 'Đã hủy';
+    default:
+      return 'Không xác định';
+  }
+};
+
+/**
+ * Get status color for UI display
+ * @param {string} status - The plan status
+ * @returns {string} - Ant Design color name
+ */
+export const getQuitPlanStatusColor = (status) => {
+  switch (status?.toUpperCase()) {
+    case 'PENDING_APPROVAL':
+    case 'CREATED':
+      return 'orange';
+    case 'ACTIVE':
+      return 'green';
+    case 'COMPLETED':
+      return 'blue';
+    case 'DENIED':
+      return 'red';
+    case 'CANCELLED':
+    case 'DISABLED':
+      return 'gray';
+    default:
+      return 'default';
+  }
+};
+
+/**
+ * Format quit plan data for display in member workflow
+ * @param {Object} planData - Raw plan data from API
+ * @returns {Object} - Formatted plan data
+ */
+export const formatQuitPlanForMember = (planData) => {
+  if (!planData) return null;
+  
+  return {
+    ...planData,
+    quit_plan_id: planData.id || planData.quit_plan_id,
+    member_id: planData.memberId || planData.member_id,
+    coach_id: planData.coachId || planData.coach_id,
+    coach_name: planData.coachName || planData.coach_name,
+    status: planData.quitPlanStatus || planData.status,
+    start_date: planData.startDate || planData.start_date,
+    end_date: planData.endDate || planData.end_date,
+    created_at: planData.startDate || planData.created_at,
+    
+    // Content fields
+    motivation: planData.motivation,
+    triggers: planData.smokingTriggersToAvoid || planData.triggers,
+    strategies: planData.copingStrategies || planData.strategies_to_use,
+    medications: planData.medicationsToUse || planData.medications_to_use,
+    medication_instructions: planData.medicationInstructions || planData.medication_instructions,
+    preparation_steps: planData.relapsePreventionStrategies || planData.preparation_steps,
+    support_resources: planData.supportResources || planData.support_resources,
+    reward_plan: planData.rewardPlan || planData.reward_plan,
+    notes: planData.additionalNotes || planData.note || planData.notes,
+    
+    // Status helpers
+    ...checkPlanActionAvailability(planData),
+    statusText: getQuitPlanStatusText(planData.quitPlanStatus || planData.status),
+    statusColor: getQuitPlanStatusColor(planData.quitPlanStatus || planData.status)
+  };
+};
+
+/**
+ * Get member's quit plan with action availability check
+ * @param {string} memberId - Member ID
+ * @returns {Object} - Formatted quit plan with action flags
+ */
+export const getMemberQuitPlanWithActions = async (memberId) => {
+  try {
+    console.log('Getting member quit plan with actions for member:', memberId);
+    const response = await getNewestQuitPlan(memberId);
+    return handleApiResponse(response)
+  } catch (error) {
+    console.error('Error getting member quit plan with actions:', error);
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Process member action on quit plan (accept/deny)
+ * @param {string} planId - Plan ID
+ * @param {string} action - 'accept' or 'deny'
+ * @param {Object} options - Additional options (feedback for deny)
+ * @returns {Object} - Action result
+ */
+export const processMemberQuitPlanAction = async (planId, action, options = {}) => {
+  try {
+    console.log(`Processing member action: ${action} on plan:`, planId, 'Options:', options);
+    
+    let response;
+    switch (action.toLowerCase()) {
+      case 'accept':
+        response = await acceptQuitPlan(planId);
+        break;
+      case 'deny':
+        response = await denyQuitPlan(planId, options);
+        break;
+      default:
+        throw new Error(`Invalid action: ${action}`);
+    }
+    
+    console.log(`${action} action result:`, response);
+    return response;
+  } catch (error) {
+    console.error(`Error processing ${action} action:`, error);
+    throw handleApiError(error);
+  }
+};
+
+// ========================
+// COACH WORKFLOW FUNCTIONS
+// ========================
+
+/**
+ * Coach creates quit plan for member with validation
+ * @param {string} memberId - Member ID
+ * @param {Object} planData - Plan data
+ * @param {Object} phaseData - Phase goals data (optional)
+ * @returns {Object} - Creation result
+ */
+export const createQuitPlanForMember = async (memberId, planData, phaseData = null) => {
+  try {
+    console.log('Coach creating quit plan for member:', memberId, 'Plan data:', planData);
+    
+    // Validate required fields
+    const requiredFields = ['motivation', 'startDate', 'endDate'];
+    const missingFields = requiredFields.filter(field => !planData[field]);
+    
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        message: `Missing required fields: ${missingFields.join(', ')}`
+      };
+    }
+    
+    // Create the quit plan
+    const createResponse = await createQuitPlan(memberId, planData);
+    console.log('Create quit plan response:', createResponse);
+    
+    if (createResponse.success && phaseData && createResponse.data?.planId) {
+      // If phase data is provided, create phase goals
+      try {
+        const { createGoalsOfPhases } = await import('./phaseService');
+        await createGoalsOfPhases(createResponse.data.planId, phaseData);
+        console.log('Phase goals created successfully');
+      } catch (phaseError) {
+        console.warn('Failed to create phase goals:', phaseError);
+        // Don't fail the entire operation if phase creation fails
+      }
+    }
+    
+    return createResponse;
+  } catch (error) {
+    console.error('Error creating quit plan for member:', error);
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Get formatted quit plan data for coach view
+ * @param {Object} planData - Raw plan data
+ * @returns {Object} - Formatted plan data for coach
+ */
+export const formatQuitPlanForCoach = (planData) => {
+  if (!planData) return null;
+  
+  const formatted = formatQuitPlanForMember(planData);
+  
+  return {
+    ...formatted,
+    // Add coach-specific fields
+    canEdit: formatted.status === 'PENDING_APPROVAL' || formatted.status === 'ACTIVE',
+    canFinish: formatted.status === 'ACTIVE',
+    canDisable: formatted.status === 'ACTIVE' || formatted.status === 'PENDING_APPROVAL',
+    
+    // Coach action helpers
+    isWaitingForMemberResponse: formatted.status === 'PENDING_APPROVAL' || formatted.status === 'CREATED',
+    isMemberApproved: formatted.status === 'ACTIVE',
+    isMemberDenied: formatted.status === 'DENIED'
+  };
+};
+
+/**
+ * Get notification message for plan status
+ * @param {string} status - Plan status
+ * @param {boolean} isCoach - Whether the user is a coach
+ * @returns {Object} - Notification object with type and message
+ */
+export const getQuitPlanNotification = (status, isCoach = false) => {
+  const notifications = {
+    coach: {
+      'PENDING_APPROVAL': {
+        type: 'info',
+        message: 'Kế hoạch đã được tạo và đang chờ thành viên phê duyệt'
+      },
+      'ACTIVE': {
+        type: 'success',
+        message: 'Thành viên đã chấp nhận kế hoạch và bắt đầu hành trình cai thuốc'
+      },
+      'DENIED': {
+        type: 'warning',
+        message: 'Thành viên đã từ chối kế hoạch này. Vui lòng tạo kế hoạch mới.'
+      },
+      'COMPLETED': {
+        type: 'success',
+        message: 'Kế hoạch đã hoàn thành thành công!'
+      }
+    },
+    member: {
+      'PENDING_APPROVAL': {
+        type: 'info',
+        message: 'Huấn luyện viên đã tạo kế hoạch mới cho bạn. Vui lòng xem xét và phê duyệt.'
+      },
+      'ACTIVE': {
+        type: 'success',
+        message: 'Bạn đã chấp nhận kế hoạch. Hãy bắt đầu hành trình cai thuốc!'
+      },
+      'DENIED': {
+        type: 'info',
+        message: 'Bạn đã từ chối kế hoạch này. Huấn luyện viên sẽ tạo kế hoạch mới.'
+      },
+      'COMPLETED': {
+        type: 'success',
+        message: 'Chúc mừng! Bạn đã hoàn thành kế hoạch cai thuốc!'
+      }
+    }
+  };
+  
+  const userType = isCoach ? 'coach' : 'member';
+  return notifications[userType][status] || {
+    type: 'default',
+    message: 'Trạng thái kế hoạch: ' + getQuitPlanStatusText(status)
+  };
+};
+
+// ========================
+// VALIDATION & UTILITY FUNCTIONS
+// ========================
+
+/**
+ * Validate quit plan data before creation
+ * @param {Object} planData - Plan data to validate
+ * @returns {Object} - Validation result
+ */
+export const validateQuitPlanData = (planData) => {
+  const errors = [];
+  const warnings = [];
+  
+  // Required field validation
+  if (!planData.motivation || planData.motivation.trim().length < 10) {
+    errors.push('Động lực cai thuốc phải có ít nhất 10 ký tự');
+  }
+  
+  if (!planData.startDate) {
+    errors.push('Ngày bắt đầu là bắt buộc');
+  }
+  
+  if (!planData.endDate) {
+    errors.push('Ngày kết thúc là bắt buộc');
+  }
+  
+  // Date validation
+  if (planData.startDate && planData.endDate) {
+    const startDate = new Date(planData.startDate);
+    const endDate = new Date(planData.endDate);
+    const today = new Date();
+    
+    if (startDate < today) {
+      warnings.push('Ngày bắt đầu nên là ngày hôm nay hoặc trong tương lai');
+    }
+    
+    if (endDate <= startDate) {
+      errors.push('Ngày kết thúc phải sau ngày bắt đầu');
+    }
+    
+    const durationDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
+    if (durationDays < 7) {
+      warnings.push('Kế hoạch quá ngắn (dưới 1 tuần). Khuyến nghị ít nhất 4-12 tuần.');
+    } else if (durationDays > 365) {
+      warnings.push('Kế hoạch quá dài (trên 1 năm). Khuyến nghị từ 4-12 tuần.');
+    }
+  }
+  
+  // Content validation
+  if (!planData.copingStrategies && !planData.strategies_to_use) {
+    warnings.push('Nên có ít nhất một chiến lược đối phó với cơn thèm');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings
+  };
+};
+
+/**
+ * Generate summary for quit plan
+ * @param {Object} quitPlan - The quit plan object
+ * @returns {Object} - Plan summary
+ */
+export const generateQuitPlanSummary = (quitPlan) => {
+  if (!quitPlan) return null;
+  
+  const startDate = new Date(quitPlan.start_date || quitPlan.startDate);
+  const endDate = new Date(quitPlan.end_date || quitPlan.endDate);
+  const durationDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+  
+  return {
+    planId: quitPlan.quit_plan_id || quitPlan.id,
+    memberName: quitPlan.memberName || quitPlan.member_name,
+    coachName: quitPlan.coachName || quitPlan.coach_name,
+    status: quitPlan.status || quitPlan.quitPlanStatus,
+    statusText: getQuitPlanStatusText(quitPlan.status || quitPlan.quitPlanStatus),
+    statusColor: getQuitPlanStatusColor(quitPlan.status || quitPlan.quitPlanStatus),
+    duration: {
+      days: durationDays,
+      weeks: Math.ceil(durationDays / 7),
+      text: durationDays <= 7 ? `${durationDays} ngày` : `${Math.ceil(durationDays / 7)} tuần`
+    },
+    startDate: startDate.toLocaleDateString('vi-VN'),
+    endDate: endDate.toLocaleDateString('vi-VN'),
+    hasStrategies: !!(quitPlan.copingStrategies || quitPlan.strategies_to_use),
+    hasMedications: !!(quitPlan.medicationsToUse || quitPlan.medications_to_use),
+    hasPreparationSteps: !!(quitPlan.relapsePreventionStrategies || quitPlan.preparation_steps)
+  };
+};
+
+/**
+ * Check if user has permission to perform action on quit plan
+ * @param {Object} quitPlan - The quit plan
+ * @param {Object} user - Current user
+ * @param {string} action - Action to perform
+ * @returns {boolean} - Whether user has permission
+ */
+export const checkQuitPlanPermission = (quitPlan, user, action) => {
+  if (!quitPlan || !user) return false;
+  
+  const userRole = user.role?.toLowerCase();
+  const userId = user.userId || user.id;
+  const isOwner = userId === (quitPlan.member_id || quitPlan.memberId);
+  const isAssignedCoach = userId === (quitPlan.coach_id || quitPlan.coachId);
+  
+  switch (action.toLowerCase()) {
+    case 'accept':
+    case 'deny':
+      return userRole === 'member' && isOwner;
+    
+    case 'create':
+    case 'update':
+    case 'finish':
+    case 'disable':
+      return userRole === 'coach' && isAssignedCoach;
+    
+    case 'view':
+      return isOwner || isAssignedCoach || userRole === 'admin';
+    
+    default:
+      return false;
+  }
+};
+
+// Export workflow constants
+export const QUIT_PLAN_STATUS = {
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  DENIED: 'DENIED',
+  CANCELLED: 'CANCELLED',
+  DISABLED: 'DISABLED'
+};
+
+export const QUIT_PLAN_ACTIONS = {
+  ACCEPT: 'accept',
+  DENY: 'deny',
+  UPDATE: 'update',
+  FINISH: 'finish',
+  DISABLE: 'disable'
+};
+
+// Export all functions for easy access
+export const quitPlanWorkflow = {
+  // Core API functions
+  createQuitPlan,
+  updateQuitPlanByCoach,
+  getNewestQuitPlan,
+  acceptQuitPlan,
+  denyQuitPlan,
+  finishQuitPlan,
+  disableQuitPlan,
+  
+  // Enhanced workflow functions
+  createQuitPlanForMember,
+  getMemberQuitPlanWithActions,
+  processMemberQuitPlanAction,
+  
+  // Formatting and utility
+  formatQuitPlanForMember,
+  formatQuitPlanForCoach,
+  generateQuitPlanSummary,
+  
+  // Validation and permissions
+  validateQuitPlanData,
+  checkQuitPlanPermission,
+  checkPlanActionAvailability,
+  
+  // UI helpers
+  getQuitPlanStatusText,
+  getQuitPlanStatusColor,
+  getQuitPlanNotification,
+  
+  // Constants
+  STATUS: QUIT_PLAN_STATUS,
+  ACTIONS: QUIT_PLAN_ACTIONS
+};

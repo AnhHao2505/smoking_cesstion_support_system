@@ -33,14 +33,16 @@ import {
   TrophyOutlined,
   MessageOutlined,
   FileTextOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  FlagOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import { 
-  getNewestQuitPlan,
-  acceptQuitPlan, 
-  denyQuitPlan,
-  getOldPlansOfMember
+  getMemberQuitPlanWithActions,
+  processMemberQuitPlanAction,
+  getOldPlansOfMember,
+  getQuitPlanNotification,
+  quitPlanWorkflow
 } from '../../services/quitPlanService';
 import { getPhasesOfPlan } from '../../services/phaseService';
 import { getCurrentUser } from '../../services/authService';
@@ -75,29 +77,69 @@ const MemberQuitPlanFlow = () => {
     try {
       setLoading(true);
       
-      // Fetch current plan
-      const currentPlanResponse = await getNewestQuitPlan(memberId);
-      if (currentPlanResponse.success && currentPlanResponse.data) {
-        setCurrentPlan(currentPlanResponse.data);
+      // Fetch current plan with action availability
+      const currentPlanResponse = await getMemberQuitPlanWithActions(memberId);
+      console.log('API Response:', currentPlanResponse);
+      
+        // Map API response to component expected format
+        const planData = currentPlanResponse;
+        const mappedPlan = {
+          quit_plan_id: planData.id,
+          status: planData.quitPlanStatus,
+          start_date: planData.startDate,
+          end_date: planData.endDate,
+          coach_name: planData.coachName,
+          coach_id: planData.coachId,
+          member_name: planData.memberName,
+          member_id: planData.memberId,
+          strategies_to_use: planData.copingStrategies,
+          medications_to_use: planData.medicationsToUse,
+          preparation_steps: planData.relapsePreventionStrategies,
+          medication_instructions: planData.medicationInstructions,
+          note: planData.additionalNotes,
+          motivation: planData.motivation,
+          reward_plan: planData.rewardPlan,
+          support_resources: planData.supportResources,
+          smoking_triggers_to_avoid: planData.smokingTriggersToAvoid,
+          current_smoking_status: planData.currentSmokingStatus,
+          // Add action availability based on status
+          canAccept: planData.quitPlanStatus === 'PENDING',
+          canDeny: planData.quitPlanStatus === 'PENDING'
+        };
         
-        // Fetch plan phases
-        const phasesResponse = await getPhasesOfPlan(currentPlanResponse.data.quit_plan_id);
-        if (phasesResponse.success) {
-          setPlanPhases(phasesResponse.data);
+        setCurrentPlan(mappedPlan);
+        
+        // Fetch plan phases if plan has ID
+        const planId = planData.id;
+        if (planId) {
+          try {
+            const phasesResponse = await getPhasesOfPlan(planId);
+            console.log('Phases Response:', phasesResponse);
+            // Handle single phase object or array of phases
+            const phases = Array.isArray(phasesResponse) ? phasesResponse : [phasesResponse];
+            // Sort phases by order if multiple phases exist
+            const sortedPhases = phases.sort((a, b) => (a.phaseOrder || 0) - (b.phaseOrder || 0));
+            setPlanPhases(sortedPhases);
+          } catch (phaseError) {
+            console.warn('Could not fetch phases:', phaseError);
+            setPlanPhases([]);
+          }
         }
-      } else {
-        setCurrentPlan(null);
-        setPlanPhases([]);
-      }
 
       // Fetch plan history
-      const historyResponse = await getOldPlansOfMember(memberId, 0, 5);
-      if (historyResponse.success) {
-        setPlanHistory(historyResponse.data.content || []);
+      try {
+        const historyResponse = await getOldPlansOfMember(memberId, 0, 5);
+        if (historyResponse.success) {
+          setPlanHistory(historyResponse.data.content || []);
+        }
+      } catch (historyError) {
+        console.warn('Could not fetch plan history:', historyError);
+        setPlanHistory([]);
       }
     } catch (error) {
       console.error('Error fetching member quit plan data:', error);
       message.error('Failed to load quit plan data');
+      setCurrentPlan(null);
     } finally {
       setLoading(false);
     }
@@ -113,22 +155,28 @@ const MemberQuitPlanFlow = () => {
       setSubmitting(true);
       const planId = currentPlan.quit_plan_id;
 
-      let response;
-      if (actionType === 'accept') {
-        response = await acceptQuitPlan(planId);
-        if (response.success) {
-          message.success('Plan accepted! Your quit journey begins now. Good luck!');
-          setCurrentPlan({ ...currentPlan, status: 'ACTIVE' });
-        }
-      } else if (actionType === 'deny') {
-        response = await denyQuitPlan(planId);
-        if (response.success) {
-          message.success('Plan denied. Your coach will be notified to create a new plan.');
-          setCurrentPlan({ ...currentPlan, status: 'DENIED' });
-        }
-      }
-
-      if (!response.success) {
+      // Use the enhanced workflow function
+      const response = await processMemberQuitPlanAction(planId, actionType);
+      
+      if (response.success) {
+        // Update local state immediately
+        const newStatus = actionType === 'accept' ? 'ACTIVE' : 'DENIED';
+        setCurrentPlan({ 
+          ...currentPlan, 
+          status: newStatus, 
+          canAccept: false, 
+          canDeny: false 
+        });
+        
+        // Show appropriate success message
+        const actionMessage = actionType === 'accept' 
+          ? 'Plan accepted successfully! Your quit journey has begun.' 
+          : 'Plan declined. Your coach will create a new plan for you.';
+        message.success(actionMessage);
+        
+        // Refresh data to get latest state
+        await fetchMemberQuitPlanData();
+      } else {
         message.error(response.message || `Failed to ${actionType} plan`);
       }
 
@@ -142,25 +190,11 @@ const MemberQuitPlanFlow = () => {
   };
 
   const getStatusColor = (status) => {
-    switch (status?.toUpperCase()) {
-      case 'ACTIVE': return 'green';
-      case 'PENDING_APPROVAL': return 'orange';
-      case 'DENIED': return 'red';
-      case 'COMPLETED': return 'blue';
-      case 'CANCELLED': return 'gray';
-      default: return 'default';
-    }
+    return quitPlanWorkflow.getQuitPlanStatusColor(status);
   };
 
   const getStatusText = (status) => {
-    switch (status?.toUpperCase()) {
-      case 'ACTIVE': return 'Active';
-      case 'PENDING_APPROVAL': return 'Waiting for Your Decision';
-      case 'DENIED': return 'Denied';
-      case 'COMPLETED': return 'Completed';
-      case 'CANCELLED': return 'Cancelled';
-      default: return 'Unknown';
-    }
+    return quitPlanWorkflow.getQuitPlanStatusText(status);
   };
 
   const formatDate = (dateString) => {
@@ -168,10 +202,11 @@ const MemberQuitPlanFlow = () => {
   };
 
   const getCurrentPhaseIndex = () => {
-    if (!planPhases.length || !currentPlan?.current_phase) return 0;
-    return planPhases.findIndex(phase => 
-      phase.phase_name === currentPlan.current_phase.phase_name
-    );
+    if (!planPhases.length) return 0;
+    // Since we may only have one phase currently, return 0 for active phase
+    // or find the current phase based on order
+    const currentPhase = planPhases.find(phase => phase.phaseOrder === 1);
+    return currentPhase ? 0 : 0;
   };
 
   const calculateProgress = () => {
@@ -201,14 +236,14 @@ const MemberQuitPlanFlow = () => {
       <div className="container py-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <Title level={2}>
-            <HeartOutlined /> My Quit Journey
+            <HeartOutlined /> Hành trình cai thuốc của tôi
           </Title>
           <Space>
             <Button 
               icon={<FileTextOutlined />}
               onClick={() => setHistoryModalVisible(true)}
             >
-              Plan History
+              Lịch sử kế hoạch
             </Button>
           </Space>
         </div>
@@ -218,12 +253,15 @@ const MemberQuitPlanFlow = () => {
           <Card>
             <div className="text-center py-5">
               <ExclamationCircleOutlined style={{ fontSize: '48px', color: '#faad14' }} />
-              <Title level={3}>No Active Quit Plan</Title>
+              <Title level={3}>Chưa có kế hoạch cai thuốc</Title>
               <Paragraph>
-                You don't have an active quit plan yet. Your assigned coach will create a personalized plan for you soon.
+                Bạn chưa có kế hoạch cai thuốc nào. Huấn luyện viên được phân công sẽ tạo kế hoạch cá nhân hóa cho bạn trong thời gian sớm nhất.
               </Paragraph>
-              <Button type="primary" size="large">
-                Contact Your Coach
+              <Paragraph type="secondary">
+                Trong lúc chờ đợi, bạn có thể liên hệ với huấn luyện viên để được tư vấn và hỗ trợ.
+              </Paragraph>
+              <Button type="primary" size="large" icon={<MessageOutlined />}>
+                Liên hệ huấn luyện viên
               </Button>
             </div>
           </Card>
@@ -236,37 +274,47 @@ const MemberQuitPlanFlow = () => {
                 title={
                   <Space>
                     <CalendarOutlined />
-                    Current Quit Plan
+                    Kế hoạch cai thuốc hiện tại
                     <Tag color={getStatusColor(currentPlan.status)}>
                       {getStatusText(currentPlan.status)}
                     </Tag>
                   </Space>
                 }
                 extra={
-                  currentPlan.status === 'PENDING_APPROVAL' && (
+                  currentPlan.canAccept || currentPlan.canDeny ? (
                     <Space>
-                      <Button
-                        danger
-                        icon={<CloseCircleOutlined />}
-                        onClick={() => handlePlanAction('deny')}
-                      >
-                        Decline
-                      </Button>
-                      <Button
-                        type="primary"
-                        icon={<CheckCircleOutlined />}
-                        onClick={() => handlePlanAction('accept')}
-                      >
-                        Accept Plan
-                      </Button>
+                      {currentPlan.canDeny && (
+                        <Button
+                          danger
+                          icon={<CloseCircleOutlined />}
+                          onClick={() => handlePlanAction('deny')}
+                        >
+                          Từ chối
+                        </Button>
+                      )}
+                      {currentPlan.canAccept && (
+                        <Button
+                          type="primary"
+                          icon={<CheckCircleOutlined />}
+                          onClick={() => handlePlanAction('accept')}
+                        >
+                          Chấp nhận kế hoạch
+                        </Button>
+                      )}
                     </Space>
-                  )
+                  ) : null
                 }
               >
-                {currentPlan.status === 'PENDING_APPROVAL' && (
+                {(currentPlan.canAccept || currentPlan.canDeny) && (
                   <Alert
-                    message="Plan Pending Your Approval"
-                    description="Your coach has created a personalized quit plan for you. Please review the details below and decide whether to accept or request changes."
+                    message="Kế hoạch đang chờ phê duyệt"
+                    description={
+                      <div>
+                        <p>Huấn luyện viên <strong>{currentPlan.coach_name}</strong> đã tạo kế hoạch cai thuốc cá nhân hóa cho bạn.</p>
+                        <p>Thời gian thực hiện: <strong>{formatDate(currentPlan.start_date)}</strong> đến <strong>{formatDate(currentPlan.end_date)}</strong> ({moment(currentPlan.end_date).diff(moment(currentPlan.start_date), 'days')} ngày)</p>
+                        <p>Vui lòng xem xét chi tiết bên dưới và quyết định chấp nhận hoặc yêu cầu thay đổi.</p>
+                      </div>
+                    }
                     type="warning"
                     showIcon
                     className="mb-4"
@@ -276,16 +324,16 @@ const MemberQuitPlanFlow = () => {
                 <Row gutter={[16, 16]}>
                   <Col xs={24} md={12}>
                     <Descriptions column={1} size="small">
-                      <Descriptions.Item label="Start Date">
+                      <Descriptions.Item label="Ngày bắt đầu">
                         {formatDate(currentPlan.start_date)}
                       </Descriptions.Item>
-                      <Descriptions.Item label="Target End Date">
+                      <Descriptions.Item label="Ngày kết thúc dự kiến">
                         {formatDate(currentPlan.end_date)}
                       </Descriptions.Item>
-                      <Descriptions.Item label="Duration">
-                        {moment(currentPlan.end_date).diff(moment(currentPlan.start_date), 'days')} days
+                      <Descriptions.Item label="Thời gian thực hiện">
+                        {moment(currentPlan.end_date).diff(moment(currentPlan.start_date), 'days')} ngày
                       </Descriptions.Item>
-                      <Descriptions.Item label="Coach">
+                      <Descriptions.Item label="Huấn luyện viên">
                         <Space>
                           <Avatar src={currentPlan.coach_photo} icon={<UserOutlined />} />
                           {currentPlan.coach_name}
@@ -296,7 +344,7 @@ const MemberQuitPlanFlow = () => {
                   <Col xs={24} md={12}>
                     {currentPlan.status === 'ACTIVE' && (
                       <div>
-                        <Title level={4}>Progress</Title>
+                        <Title level={4}>Tiến độ</Title>
                         <Progress
                           type="circle"
                           percent={Math.round(calculateProgress())}
@@ -305,7 +353,7 @@ const MemberQuitPlanFlow = () => {
                         />
                         <div className="mt-3">
                           <Statistic
-                            title="Days Completed"
+                            title="Số ngày đã hoàn thành"
                             value={Math.max(0, moment().diff(moment(currentPlan.start_date), 'days'))}
                             suffix={`/ ${moment(currentPlan.end_date).diff(moment(currentPlan.start_date), 'days')}`}
                           />
@@ -319,24 +367,39 @@ const MemberQuitPlanFlow = () => {
 
             {/* Plan Details */}
             <Col xs={24} lg={16}>
-              <Card title="Plan Details">
+              <Card title="Chi tiết kế hoạch">
                 <Descriptions column={1} bordered>
-                  <Descriptions.Item label="Strategies">
+                  <Descriptions.Item label="Chiến lược đối phó">
                     {currentPlan.strategies_to_use}
                   </Descriptions.Item>
-                  <Descriptions.Item label="Medications">
-                    {currentPlan.medications_to_use || 'None prescribed'}
+                  <Descriptions.Item label="Thuốc hỗ trợ">
+                    {currentPlan.medications_to_use || 'Không có thuốc được kê toa'}
                   </Descriptions.Item>
-                  <Descriptions.Item label="Preparation Steps">
+                  <Descriptions.Item label="Hướng dẫn sử dụng thuốc">
+                    {currentPlan.medication_instructions}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Tình huống kích thích hút thuốc cần tránh">
+                    {currentPlan.smoking_triggers_to_avoid}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Chiến lược phòng ngừa tái nghiện">
                     {currentPlan.preparation_steps}
                   </Descriptions.Item>
-                  {currentPlan.medication_instructions && (
-                    <Descriptions.Item label="Medication Instructions">
-                      {currentPlan.medication_instructions}
-                    </Descriptions.Item>
-                  )}
+                  <Descriptions.Item label="Nguồn hỗ trợ">
+                    {currentPlan.support_resources}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Động lực">
+                    {currentPlan.motivation}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Kế hoạch thưởng">
+                    {currentPlan.reward_plan}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Tình trạng hút thuốc hiện tại">
+                    <Tag color={currentPlan.current_smoking_status === 'NONE' ? 'green' : 'orange'}>
+                      {currentPlan.current_smoking_status === 'NONE' ? 'Không hút thuốc' : currentPlan.current_smoking_status || 'Chưa xác định'}
+                    </Tag>
+                  </Descriptions.Item>
                   {currentPlan.note && (
-                    <Descriptions.Item label="Coach Notes">
+                    <Descriptions.Item label="Ghi chú bổ sung">
                       {currentPlan.note}
                     </Descriptions.Item>
                   )}
@@ -345,27 +408,58 @@ const MemberQuitPlanFlow = () => {
                 {planPhases.length > 0 && (
                   <>
                     <Divider />
-                    <Title level={4}>Phase Progress</Title>
-                    <Steps
-                      current={getCurrentPhaseIndex()}
-                      direction="vertical"
-                      size="small"
-                    >
+                    <Title level={4}>
+                      <FlagOutlined /> Các giai đoạn thực hiện
+                    </Title>
+                    <div className="phases-container">
                       {planPhases.map((phase, index) => (
-                        <Step
-                          key={phase.quit_phase_id}
-                          title={phase.phase_name}
-                          description={phase.objective}
-                          status={
-                            phase.is_completed
-                              ? 'finish'
-                              : index === getCurrentPhaseIndex()
-                              ? 'process'
-                              : 'wait'
+                        <Card 
+                          key={phase.id} 
+                          size="small" 
+                          className="mb-3"
+                          title={
+                            <Space>
+                              <Tag color="blue">Giai đoạn {phase.phaseOrder}</Tag>
+                              {phase.name}
+                            </Space>
                           }
-                        />
+                        >
+                          <Row gutter={[16, 16]}>
+                            <Col xs={24} md={12}>
+                              <div>
+                                <Text strong>Thời gian:</Text>
+                                <br />
+                                <Text>{phase.duration}</Text>
+                              </div>
+                              <Divider type="vertical" style={{ height: 'auto', margin: '8px 0' }} />
+                              <div>
+                                <Text strong>Mục tiêu khuyến nghị:</Text>
+                                <br />
+                                <Text>{phase.recommendGoal}</Text>
+                              </div>
+                            </Col>
+                            <Col xs={24} md={12}>
+                              <div>
+                                <Text strong>Mục tiêu cụ thể:</Text>
+                                {phase.goals && Array.isArray(phase.goals) && phase.goals.length > 0 ? (
+                                  <ul style={{ marginTop: 8, paddingLeft: 16 }}>
+                                    {phase.goals.map((goal, goalIndex) => (
+                                      <li key={goalIndex}>
+                                        <Text>{goal}</Text>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <div style={{ marginTop: 8 }}>
+                                    <Text type="secondary" italic>Chưa có mục tiêu cụ thể</Text>
+                                  </div>
+                                )}
+                              </div>
+                            </Col>
+                          </Row>
+                        </Card>
                       ))}
-                    </Steps>
+                    </div>
                   </>
                 )}
               </Card>
@@ -373,33 +467,33 @@ const MemberQuitPlanFlow = () => {
 
             {/* Quick Actions */}
             <Col xs={24} lg={8}>
-              <Card title="Quick Actions">
+              <Card title="Thao tác nhanh">
                 <Space direction="vertical" style={{ width: '100%' }}>
                   <Button block icon={<CheckCircleOutlined />}>
-                    Daily Check-in
+                    Báo cáo hàng ngày
                   </Button>
                   <Button block icon={<MessageOutlined />}>
-                    Message Coach
+                    Nhắn tin với huấn luyện viên
                   </Button>
                   <Button block icon={<MedicineBoxOutlined />}>
-                    Medication Reminder
+                    Nhắc nhở uống thuốc
                   </Button>
                   <Button block icon={<TrophyOutlined />}>
-                    View Progress
+                    Xem tiến độ
                   </Button>
                   <Button block icon={<CalendarOutlined />}>
-                    Schedule Appointment
+                    Đặt lịch hẹn
                   </Button>
                 </Space>
               </Card>
 
               {currentPlan.status === 'ACTIVE' && (
-                <Card title="Motivation" className="mt-4">
+                <Card title="Động lực" className="mt-4">
                   <div className="text-center">
                     <FireOutlined style={{ fontSize: '32px', color: '#ff4d4f' }} />
-                    <Title level={4}>Keep Going!</Title>
+                    <Title level={4}>Tiếp tục cố gắng!</Title>
                     <Paragraph>
-                      Every smoke-free day is a victory. You're doing great!
+                      Mỗi ngày không hút thuốc là một chiến thắng. Bạn đang làm rất tốt!
                     </Paragraph>
                   </div>
                 </Card>
