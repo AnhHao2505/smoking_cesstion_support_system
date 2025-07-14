@@ -34,8 +34,6 @@ const PaymentCallback = () => {
         if (result) {
           // Payment successful, upgrade user to premium
           try {
-            console.log('Upgrading user to premium...');
-            await upgradeToPremium();
             
             // Update user data in localStorage and context
             const currentUser = authService.getCurrentUser();
@@ -43,7 +41,6 @@ const PaymentCallback = () => {
               const updatedUser = {
                 ...currentUser,
                 isPremiumMembership: true,
-                premiumMembership: true
               };
               localStorage.setItem('user', JSON.stringify(updatedUser));
               console.log('User upgraded to premium successfully');
