@@ -50,7 +50,7 @@ const NavBar = () => {
     }
 
     // Fallback to user object
-    return user.isPremiumMembership === true;
+    return user.isPremiumMembership === true && user.role === 'MEMBER';
   };
 
   // Handle upgrade button click
@@ -229,33 +229,35 @@ const NavBar = () => {
       console.log(me)
       return (
         <div className="d-flex align-items-center">
-
-          {/* Premium badge or upgrade button */}
-          {isPremium ? (
-              <span className="badge bg-warning text-dark d-flex align-items-center px-2 py-1 fw-bold" style={{ borderRadius: '16px' }}>
-                <CrownOutlined className="me-1" />
-                PREMIUM
-              </span>
-            ) : (
-              <Button
-                type="primary"
-                icon={<CrownOutlined />}
-                onClick={handleUpgradeClick}
-                style={{
-                  background: 'linear-gradient(45deg, #FFD700, #FFA500)',
-                  borderColor: '#FFD700',
-                  color: '#000',
-                  fontWeight: 'bold',
-                  boxShadow: '0 2px 8px rgba(255, 215, 0, 0.3)'
-                }}
-                size="small"
-              >
-                Nâng cấp Premium
-              </Button>
-            )}
-
+          {user.role === 'MEMBER' && (
+            <>
+              {/* Premium badge or upgrade button */}
+              {isPremium ? (
+                <span className="badge bg-warning text-dark d-flex align-items-center px-2 py-1 fw-bold" style={{ borderRadius: '16px' }}>
+                  <CrownOutlined className="me-1" />
+                  PREMIUM
+                </span>
+              ) : (
+                <Button
+                  type="primary"
+                  icon={<CrownOutlined />}
+                  onClick={handleUpgradeClick}
+                  style={{
+                    background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                    borderColor: '#FFD700',
+                    color: '#000',
+                    fontWeight: 'bold',
+                    boxShadow: '0 2px 8px rgba(255, 215, 0, 0.3)'
+                  }}
+                  size="small"
+                >
+                  Nâng cấp Premium
+                </Button>
+              )}
+            </>
+          )}
           <span className="me-3 ms-2 text-white">{user.fullName}</span>
-          {user.role !== 'ADMIN' && (
+          {user.role !== 'ADMIN' && user.role !== 'COACH' && (
             <Link to="/profile" className="btn btn-outline-light me-2">Hồ sơ</Link>
           )}
           <button onClick={handleLogout} className="btn btn-outline-danger">Đăng xuất</button>

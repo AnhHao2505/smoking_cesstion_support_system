@@ -883,7 +883,7 @@ const QuitPlanCreation = () => {
                       >
                         Quay lại chỉnh sửa kế hoạch
                       </Button>
-                      <Button 
+                      {/* <Button 
                         size="large"
                         onClick={() => {
                           message.success('✅ Kế hoạch đã được tạo thành công!');
@@ -891,7 +891,7 @@ const QuitPlanCreation = () => {
                         }}
                       >
                         ⏭️ Bỏ qua tạo phases chi tiết
-                      </Button>
+                      </Button> */}
                       {defaultPhases.length > 0 && (
                         <Button 
                           type="primary" 
