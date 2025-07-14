@@ -84,6 +84,7 @@ import NotificationDemo from './demo/NotificationDemo';
 
 // Import payment components
 import PaymentCallback from './payment/PaymentCallback';
+import VNPayCallback from './payment/VNPayCallback';
 
 // Auth protection component
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
@@ -122,6 +123,7 @@ const App = () => {
               <Route path="/home" element={<LandingPage />} />
               <Route path="/blog" element={<BlogListPage />} />
               <Route path="/blog/:id" element={<BlogDetailPage />} />
+              <Route path="/vn-pay/callback" element={<VNPayCallback />} />
               
               {/* Demo Routes */}
               <Route 
