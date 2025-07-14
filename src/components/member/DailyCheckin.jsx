@@ -347,8 +347,12 @@ const DailyCheckIn = () => {
 
   const handleSubmit = async () => {
     try {
-      const values = await form.validateFields();
+      // Validate all fields
+      await form.validateFields();
       setSubmitting(true);
+      // Lấy toàn bộ giá trị form (kể cả các trường không thuộc step hiện tại)
+      const values = form.getFieldsValue(true);
+      console.log('Form values:', values);
 
       // Calculate total points based on new scoring system
       const totalPoints = calculateTotalPoints(values);
