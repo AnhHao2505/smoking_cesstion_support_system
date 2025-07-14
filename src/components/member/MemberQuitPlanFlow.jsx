@@ -83,9 +83,17 @@ const MemberQuitPlanFlow = () => {
       
         // Map API response to component expected format
         const planData = currentPlanResponse;
+        // Normalize status to match new status types
+        let normalizedStatus = planData.quitPlanStatus;
+        if (normalizedStatus === 'ACTIVE') normalizedStatus = 'IN_PROGRESS';
+        if (normalizedStatus === 'DENIED') normalizedStatus = 'REJECTED';
+        if (normalizedStatus === 'ACCEPTED') normalizedStatus = 'ACCEPTED';
+        if (normalizedStatus === 'COMPLETED') normalizedStatus = 'COMPLETED';
+        if (normalizedStatus === 'PENDING') normalizedStatus = 'PENDING';
+
         const mappedPlan = {
           quit_plan_id: planData.id,
-          status: planData.quitPlanStatus,
+          status: normalizedStatus,
           start_date: planData.startDate,
           end_date: planData.endDate,
           coach_name: planData.coachName,
@@ -103,10 +111,10 @@ const MemberQuitPlanFlow = () => {
           smoking_triggers_to_avoid: planData.smokingTriggersToAvoid,
           current_smoking_status: planData.currentSmokingStatus,
           // Add action availability based on status
-          canAccept: planData.quitPlanStatus === 'PENDING',
-          canDeny: planData.quitPlanStatus === 'PENDING'
+          canAccept: normalizedStatus === 'PENDING',
+          canDeny: normalizedStatus === 'PENDING'
         };
-        
+        console.log(mappedPlan);
         setCurrentPlan(mappedPlan);
         
         // Fetch plan phases if plan has ID
@@ -160,7 +168,7 @@ const MemberQuitPlanFlow = () => {
       
       if (response.success) {
         // Update local state immediately
-        const newStatus = actionType === 'accept' ? 'ACTIVE' : 'DENIED';
+        const newStatus = actionType === 'accept' ? 'ACCEPTED' : 'REJECTED';
         setCurrentPlan({ 
           ...currentPlan, 
           status: newStatus, 
@@ -190,11 +198,39 @@ const MemberQuitPlanFlow = () => {
   };
 
   const getStatusColor = (status) => {
-    return quitPlanWorkflow.getQuitPlanStatusColor(status);
+    // Custom color mapping for new status types
+    switch (status) {
+      case 'REJECTED':
+        return 'red';
+      case 'ACCEPTED':
+        return 'blue';
+      case 'PENDING':
+        return 'gold';
+      case 'COMPLETED':
+        return 'green';
+      case 'IN_PROGRESS':
+        return 'cyan';
+      default:
+        return 'default';
+    }
   };
 
   const getStatusText = (status) => {
-    return quitPlanWorkflow.getQuitPlanStatusText(status);
+    // Custom text mapping for new status types
+    switch (status) {
+      case 'REJECTED':
+        return 'Đã từ chối';
+      case 'ACCEPTED':
+        return 'Đã chấp nhận';
+      case 'PENDING':
+        return 'Đang chờ duyệt';
+      case 'COMPLETED':
+        return 'Đã hoàn thành';
+      case 'IN_PROGRESS':
+        return 'Đang thực hiện';
+      default:
+        return 'Không xác định';
+    }
   };
 
   const formatDate = (dateString) => {
@@ -275,9 +311,9 @@ const MemberQuitPlanFlow = () => {
                   <Space>
                     <CalendarOutlined />
                     Kế hoạch cai thuốc hiện tại
-                    <Tag color={getStatusColor(currentPlan.status)}>
-                      {getStatusText(currentPlan.status)}
-                    </Tag>
+                  <Tag color={getStatusColor(currentPlan.status)}>
+                    {getStatusText(currentPlan.status)}
+                  </Tag>
                   </Space>
                 }
                 extra={
@@ -342,7 +378,7 @@ const MemberQuitPlanFlow = () => {
                     </Descriptions>
                   </Col>
                   <Col xs={24} md={12}>
-                    {currentPlan.status === 'ACTIVE' && (
+                    {currentPlan.status === 'IN_PROGRESS' && (
                       <div>
                         <Title level={4}>Tiến độ</Title>
                         <Progress
@@ -475,19 +511,13 @@ const MemberQuitPlanFlow = () => {
                   <Button block icon={<MessageOutlined />}>
                     Nhắn tin với huấn luyện viên
                   </Button>
-                  <Button block icon={<MedicineBoxOutlined />}>
-                    Nhắc nhở uống thuốc
-                  </Button>
                   <Button block icon={<TrophyOutlined />}>
                     Xem tiến độ
-                  </Button>
-                  <Button block icon={<CalendarOutlined />}>
-                    Đặt lịch hẹn
                   </Button>
                 </Space>
               </Card>
 
-              {currentPlan.status === 'ACTIVE' && (
+                  {currentPlan.status === 'IN_PROGRESS' && (
                 <Card title="Động lực" className="mt-4">
                   <div className="text-center">
                     <FireOutlined style={{ fontSize: '32px', color: '#ff4d4f' }} />
@@ -554,7 +584,7 @@ const MemberQuitPlanFlow = () => {
                 color={getStatusColor(plan.status)}
                 dot={
                   plan.status === 'COMPLETED' ? <CheckCircleOutlined /> :
-                  plan.status === 'DENIED' ? <CloseCircleOutlined /> :
+                  plan.status === 'REJECTED' ? <CloseCircleOutlined /> :
                   <ClockCircleOutlined />
                 }
               >
