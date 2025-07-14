@@ -144,7 +144,7 @@ const App = () => {
               
               {/* Payment Routes */}
               <Route 
-                path="/payment/callback" 
+                path="/vn-pay/callback" 
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
                     <PaymentCallback />
