@@ -93,23 +93,6 @@ const ChatPage = () => {
       COMMUNITY_ROOM_IDS.forEach(id => webSocketService.unsubscribeFromCommunityChat(id));
     };
   }, []);
-  // Community chat logic
-  const loadCommunityMessages = async (roomId) => {
-    try {
-      setLoadingCommunityMessages(true);
-      const res = await fetch(`/chat/community/${roomId}/messages`, {
-        headers: {
-          'Authorization': `Bearer ${currentUser?.token}`
-        }
-      });
-      const data = await res.json();
-      setCommunityMessages(Array.isArray(data) ? data : []);
-    } catch (error) {
-      setCommunityMessages([]);
-    } finally {
-      setLoadingCommunityMessages(false);
-    }
-  };
 
   const subscribeToCommunityRoom = (roomId) => {
     if (wsConnected && roomId) {
@@ -118,8 +101,8 @@ const ChatPage = () => {
           const newMsg = {
             id: message.id || Date.now(),
             content: message.content,
-            senderId: message.senderId,
-            senderName: message.senderName,
+            sender_id: message.sender_id,
+            sender_name: message.sender_name,
             timestamp: message.timestamp || new Date().toISOString(),
             type: message.type || 'text'
           };
@@ -137,15 +120,16 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (activeTab === 'community') {
-      loadCommunityMessages(communityRoomId);
+      loadMessages(communityRoomId);
       subscribeToCommunityRoom(communityRoomId);
     }
     // eslint-disable-next-line
   }, [activeTab, communityRoomId, wsConnected]);
 
-  const handleCommunityRoomSelect = (roomId) => {
+  const handleCommunityRoomSelect = async (roomId) => {
     setCommunityRoomId(roomId);
     setCommunityMessages([]);
+    await loadMessages(roomId);
   };
 
   const handleSendCommunityMessage = async () => {
@@ -155,8 +139,8 @@ const ChatPage = () => {
     const messageData = {
       content: newMessage.trim(),
       type: 'text',
-      senderId: currentUser.userId,
-      senderName: 'You',
+      sender_id: currentUser.userId,
+      sender_name: 'You',
       timestamp: new Date().toISOString(),
       tempId: tempId
     };
@@ -169,7 +153,7 @@ const ChatPage = () => {
     setNewMessage('');
     if (wsConnected) {
       try {
-        webSocketService.sendCommunityMessage(communityRoomId, messageData);
+        webSocketService.sendCommunityMessage(communityRoomId, messageData.content);
         setCommunityMessages(prev => prev.map(msg =>
           msg.tempId === tempId
             ? { ...msg, status: 'sent' }
@@ -293,25 +277,6 @@ const ChatPage = () => {
     }
   };
 
-  const handleCoachSelect = (coach) => {
-    // Clear selected room when selecting coach
-    if (selectedChatRoom?.roomId) {
-      webSocketService.unsubscribeFromPrivateChat(selectedChatRoom.roomId);
-      setSelectedChatRoom(null);
-    }
-    
-    setSelectedCoach(coach);
-    setMessages([]); // Clear messages when switching to new coach
-    
-    // Look for existing room with this coach
-    const existingRoom = chatRooms.find(room => 
-      room.roomName && room.roomName.toLowerCase().includes(coach.name.toLowerCase())
-    );
-    
-    if (existingRoom) {
-      handleRoomSelect(existingRoom);
-    }
-  };
 
   const subscribeToRoom = (roomId) => {
     if (wsConnected && roomId) {
@@ -324,10 +289,10 @@ const ChatPage = () => {
           const newMsg = {
             id: message.id || Date.now(),
             content: message.content,
-            senderId: message.senderId,
-            senderName: message.senderName,
-            receiverId: message.receiverId,
-            receiverName: message.receiverName,
+            sender_id: message.sender_id,
+            sender_name: message.sender_name,
+            receiver_id: message.receiver_id,
+            receiver_name: message.receiver_name,
             timestamp: message.timestamp || new Date().toISOString(),
             type: message.type || 'text'
           };
@@ -364,8 +329,8 @@ const ChatPage = () => {
       } else if (response.success && Array.isArray(response.data)) {
         messagesData = response.data;
       }
-      
       setMessages(messagesData);
+      setCommunityMessages(messagesData);
       console.log('Loaded messages:', messagesData);
       
     } catch (error) {
@@ -394,10 +359,10 @@ const ChatPage = () => {
       const messageData = {
         content: newMessage.trim(),
         type: 'text',
-        senderId: currentUser.userId,
-        senderName: currentUser.fullName || currentUser.name || 'You',
-        receiverId: selectedCoach?.coachId || null,
-        receiverName: selectedCoach?.name || '',
+        sender_id: currentUser.userId,
+        sender_name: currentUser.fullName || currentUser.name || 'You',
+        receiver_id: selectedCoach?.coachId || null,
+        receiver_name: selectedCoach?.name || '',
         timestamp: new Date().toISOString(),
         tempId: tempId
       };
@@ -497,10 +462,10 @@ const ChatPage = () => {
         const messageData = {
           content: failedMessage.content,
           type: failedMessage.type || 'text',
-          senderId: currentUser.userId,
-          senderName: currentUser.fullName || currentUser.name || 'You',
-          receiverId: selectedCoach?.coachId || null,
-          receiverName: selectedCoach?.name || '',
+          sender_id: currentUser.userId,
+          sender_name: currentUser.fullName || currentUser.name || 'You',
+          receiver_id: selectedCoach?.coachId || null,
+          receiver_name: selectedCoach?.name || '',
           timestamp: new Date().toISOString(),
           tempId: failedMessage.tempId || failedMessage.id
         };
@@ -790,71 +755,74 @@ const ChatPage = () => {
               ) : communityMessages.length > 0 ? (
                 <div>
                   {communityMessages.map((msg) => (
-                    <div
-                      key={msg.id || msg.messageId}
-                      style={{
-                        marginBottom: '16px',
-                        display: 'flex',
-                        justifyContent: msg.senderId === currentUser.userId ? 'flex-end' : 'flex-start'
-                      }}
-                    >
-                      <div style={{ maxWidth: '70%' }}>
-                        {msg.senderId !== currentUser.userId && (
-                          <div style={{ marginBottom: '4px' }}>
-                            <Text type="secondary" style={{ fontSize: '12px' }}>
-                              {msg.senderName}
-                            </Text>
-                          </div>
-                        )}
-                        <Card
-                          size="small"
-                          style={{
-                            backgroundColor: msg.senderId === currentUser.userId ? '#52c41a' : '#fff',
-                            color: msg.senderId === currentUser.userId ? '#fff' : '#000',
-                            border: 'none',
-                            borderRadius: '12px',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                          }}
-                          bodyStyle={{ padding: '8px 12px' }}
-                        >
-                          <div>{msg.content}</div>
-                          <div style={{
-                            fontSize: '11px',
-                            opacity: 0.7,
-                            marginTop: '4px',
-                            textAlign: 'right',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                          }}>
-                            <span>{formatMessageTime(msg.timestamp)}</span>
-                            {msg.senderId === currentUser.userId && (
-                              <span style={{ marginLeft: '8px' }}>
-                                {msg.status === 'sending' && (
-                                  <Tag color="orange" size="small" style={{ fontSize: '10px', margin: 0 }}>
-                                    Đang gửi...
-                                  </Tag>
-                                )}
-                                {msg.status === 'sent' && (
-                                  <Tag color="green" size="small" style={{ fontSize: '10px', margin: 0 }}>
-                                    ✓ Đã gửi
-                                  </Tag>
-                                )}
-                                {msg.status === 'failed' && (
-                                  <Tag
-                                    color="red"
-                                    size="small"
-                                    style={{ fontSize: '10px', margin: 0 }}
-                                  >
-                                    ✗ Thất bại
-                                  </Tag>
-                                )}
-                              </span>
-                            )}
-                          </div>
-                        </Card>
+                    ((msg.sender_id) && 
+                      <div
+                        key={msg.id || msg.messageId}
+                        style={{
+                          marginBottom: '16px',
+                          display: 'flex',
+                          justifyContent: msg.sender_id === currentUser.userId ? 'flex-end' : 'flex-start'
+                        }}
+                      >
+                        
+                        <div style={{ maxWidth: '70%' }}>
+                          {msg.sender_id !== currentUser.userId && (
+                            <div style={{ marginBottom: '4px' }}>
+                              <Text type="secondary" style={{ fontSize: '12px' }}>
+                                {msg.sender_name}
+                              </Text>
+                            </div>
+                          )}
+                          <Card
+                            size="small"
+                            style={{
+                              backgroundColor: msg.sender_id === currentUser.userId ? '#52c41a' : '#fff',
+                              color: msg.sender_id === currentUser.userId ? '#fff' : '#000',
+                              border: 'none',
+                              borderRadius: '12px',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                            }}
+                            bodyStyle={{ padding: '8px 12px' }}
+                          >
+                            <div>{msg.content}</div>
+                            <div style={{
+                              fontSize: '11px',
+                              opacity: 0.7,
+                              marginTop: '4px',
+                              textAlign: 'right',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center'
+                            }}>
+                              <span>{formatMessageTime(msg.timestamp)}</span>
+                              {msg.sender_id === currentUser.userId && (
+                                <span style={{ marginLeft: '8px' }}>
+                                  {msg.status === 'sending' && (
+                                    <Tag color="orange" size="small" style={{ fontSize: '10px', margin: 0 }}>
+                                      Đang gửi...
+                                    </Tag>
+                                  )}
+                                  {msg.status === 'sent' && (
+                                    <Tag color="green" size="small" style={{ fontSize: '10px', margin: 0 }}>
+                                      ✓ Đã gửi
+                                    </Tag>
+                                  )}
+                                  {msg.status === 'failed' && (
+                                    <Tag
+                                      color="red"
+                                      size="small"
+                                      style={{ fontSize: '10px', margin: 0 }}
+                                    >
+                                      ✗ Thất bại
+                                    </Tag>
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          </Card>
+                        </div>
                       </div>
-                    </div>
+                    )
                   ))}
                   <div ref={communityMessagesEndRef} />
                 </div>
@@ -950,73 +918,75 @@ const ChatPage = () => {
               ) : messages.length > 0 ? (
                 <div>
                   {messages.map((msg) => (
-                    <div
-                      key={msg.id || msg.messageId}
-                      style={{
-                        marginBottom: '16px',
-                        display: 'flex',
-                        justifyContent: msg.senderId === currentUser.userId ? 'flex-end' : 'flex-start'
-                      }}
-                    >
-                      <div style={{ maxWidth: '70%' }}>
-                        {msg.senderId !== currentUser.userId && (
-                          <div style={{ marginBottom: '4px' }}>
-                            <Text type="secondary" style={{ fontSize: '12px' }}>
-                              {msg.senderName}
-                            </Text>
-                          </div>
-                        )}
-                        <Card
-                          size="small"
-                          style={{
-                            backgroundColor: msg.senderId === currentUser.userId ? '#1890ff' : '#fff',
-                            color: msg.senderId === currentUser.userId ? '#fff' : '#000',
-                            border: 'none',
-                            borderRadius: '12px',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                          }}
-                          bodyStyle={{ padding: '8px 12px' }}
-                        >
-                          <div>{msg.content}</div>
-                          <div style={{
-                            fontSize: '11px',
-                            opacity: 0.7,
-                            marginTop: '4px',
-                            textAlign: 'right',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                          }}>
-                            <span>{formatMessageTime(msg.timestamp)}</span>
-                            {msg.senderId === currentUser.userId && (
-                              <span style={{ marginLeft: '8px' }}>
-                                {msg.status === 'sending' && (
-                                  <Tag color="orange" size="small" style={{ fontSize: '10px', margin: 0 }}>
-                                    Đang gửi...
-                                  </Tag>
-                                )}
-                                {msg.status === 'sent' && (
-                                  <Tag color="green" size="small" style={{ fontSize: '10px', margin: 0 }}>
-                                    ✓ Đã gửi
-                                  </Tag>
-                                )}
-                                {msg.status === 'failed' && (
-                                  <Tag
-                                    color="red"
-                                    size="small"
-                                    style={{ fontSize: '10px', margin: 0, cursor: 'pointer' }}
-                                    onClick={() => handleRetryMessage(msg)}
-                                    title="Click để gửi lại"
-                                  >
-                                    ✗ Thất bại (Gửi lại)
-                                  </Tag>
-                                )}
-                              </span>
-                            )}
-                          </div>
-                        </Card>
+                    (msg.sender_id && 
+                      <div
+                        key={msg.id || msg.messageId}
+                        style={{
+                          marginBottom: '16px',
+                          display: 'flex',
+                          justifyContent: msg.sender_id === currentUser.userId ? 'flex-end' : 'flex-start'
+                        }}
+                      >
+                        <div style={{ maxWidth: '70%' }}>
+                          {msg.sender_id !== currentUser.userId && (
+                            <div style={{ marginBottom: '4px' }}>
+                              <Text type="secondary" style={{ fontSize: '12px' }}>
+                                {msg.sender_name}
+                              </Text>
+                            </div>
+                          )}
+                          <Card
+                            size="small"
+                            style={{
+                              backgroundColor: msg.sender_id === currentUser.userId ? '#1890ff' : '#fff',
+                              color: msg.sender_id === currentUser.userId ? '#fff' : '#000',
+                              border: 'none',
+                              borderRadius: '12px',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                            }}
+                            bodyStyle={{ padding: '8px 12px' }}
+                          >
+                            <div>{msg.content}</div>
+                            <div style={{
+                              fontSize: '11px',
+                              opacity: 0.7,
+                              marginTop: '4px',
+                              textAlign: 'right',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center'
+                            }}>
+                              <span>{formatMessageTime(msg.timestamp)}</span>
+                              {msg.sender_id === currentUser.userId && (
+                                <span style={{ marginLeft: '8px' }}>
+                                  {msg.status === 'sending' && (
+                                    <Tag color="orange" size="small" style={{ fontSize: '10px', margin: 0 }}>
+                                      Đang gửi...
+                                    </Tag>
+                                  )}
+                                  {msg.status === 'sent' && (
+                                    <Tag color="green" size="small" style={{ fontSize: '10px', margin: 0 }}>
+                                      ✓ Đã gửi
+                                    </Tag>
+                                  )}
+                                  {msg.status === 'failed' && (
+                                    <Tag
+                                      color="red"
+                                      size="small"
+                                      style={{ fontSize: '10px', margin: 0, cursor: 'pointer' }}
+                                      onClick={() => handleRetryMessage(msg)}
+                                      title="Click để gửi lại"
+                                    >
+                                      ✗ Thất bại (Gửi lại)
+                                    </Tag>
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          </Card>
+                        </div>
                       </div>
-                    </div>
+                    )
                   ))}
                   <div ref={messagesEndRef} />
                 </div>
@@ -1081,112 +1051,6 @@ const ChatPage = () => {
           </div>
         )}
       </Content>
-
-      {/* Coach Selection Modal */}
-      <Modal
-        title={
-          <Space>
-            <TeamOutlined />
-            <span>Chọn Huấn luyện viên</span>
-          </Space>
-        }
-        open={coachSelectionModal}
-        onCancel={() => setCoachSelectionModal(false)}
-        footer={null}
-        width={800}
-      >
-        <div style={{ marginBottom: 16 }}>
-          <Text type="secondary">
-            Chọn một huấn luyện viên để bắt đầu nhận hỗ trợ trong hành trình cai thuốc lá của bạn.
-          </Text>
-        </div>
-
-        <List
-          dataSource={coaches}
-          renderItem={(coach) => (
-            <List.Item
-              actions={[
-                <Button
-                  type="primary"
-                  loading={selectingCoach}
-                  onClick={() => handleChooseCoach(coach)}
-                  disabled={coach.full}
-                >
-                  {coach.full ? 'Đã đầy' : 'Chọn Coach'}
-                </Button>
-              ]}
-            >
-              <List.Item.Meta
-                avatar={
-                  <Avatar 
-                    src={coach.photo_url} 
-                    icon={<UserOutlined />}
-                    size={64}
-                  />
-                }
-                title={
-                  <div>
-                    <Text strong style={{ fontSize: '16px' }}>
-                      {coach.name}
-                    </Text>
-                    <div style={{ marginTop: '4px' }}>
-                      <Tag color="blue">{coach.certificates}</Tag>
-                      {coach.full && <Tag color="red">Đã đầy</Tag>}
-                    </div>
-                  </div>
-                }
-                description={
-                  <div>
-                    <div style={{ marginTop: '8px' }}>
-                      <Text type="secondary">
-                        Email: {coach.email}
-                      </Text>
-                    </div>
-                    <div style={{ marginTop: '4px' }}>
-                      <Text type="secondary">
-                        Liên hệ: {coach.contact_number}
-                      </Text>
-                    </div>
-                    <div style={{ marginTop: '8px' }}>
-                      <Space>
-                        <Text type="secondary">
-                          <TeamOutlined /> {coach.currentMemberAssignedCount} thành viên
-                        </Text>
-                        <Text type="secondary">
-                          Trạng thái: {coach.full ? 'Đã đầy' : 'Còn chỗ'}
-                        </Text>
-                      </Space>
-                    </div>
-                    <div style={{ marginTop: '8px' }}>
-                      <Text strong>Lịch làm việc:</Text>
-                      <div style={{ marginTop: '4px' }}>
-                        {coach.workingHours?.length > 0 ? (
-                          coach.workingHours.slice(0, 3).map((schedule, index) => (
-                            <div key={index} style={{ fontSize: '12px' }}>
-                              <Text type="secondary">
-                                {schedule.dayOfWeek}: {schedule.startTime} - {schedule.endTime}
-                              </Text>
-                            </div>
-                          ))
-                        ) : (
-                          <Text type="secondary" style={{ fontSize: '12px' }}>
-                            Chưa có lịch làm việc
-                          </Text>
-                        )}
-                        {coach.workingHours?.length > 3 && (
-                          <Text type="secondary" style={{ fontSize: '12px' }}>
-                            ... và {coach.workingHours.length - 3} ngày khác
-                          </Text>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                }
-              />
-            </List.Item>
-          )}
-        />
-      </Modal>
     </Layout>
   );
 };
