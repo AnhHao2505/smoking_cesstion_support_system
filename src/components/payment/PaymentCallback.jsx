@@ -31,7 +31,7 @@ const PaymentCallback = () => {
         
         console.log('VNPay verification result:', result);
         
-        if (result && result.success) {
+        if (result) {
           // Payment successful, upgrade user to premium
           try {
             console.log('Upgrading user to premium...');

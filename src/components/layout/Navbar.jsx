@@ -231,8 +231,7 @@ const NavBar = () => {
         <div className="d-flex align-items-center">
 
           {/* Premium badge or upgrade button */}
-          {me.membershipDaysLeft > 0 && (
-            isPremium ? (
+          {isPremium ? (
               <span className="badge bg-warning text-dark d-flex align-items-center px-2 py-1 fw-bold" style={{ borderRadius: '16px' }}>
                 <CrownOutlined className="me-1" />
                 PREMIUM
@@ -253,17 +252,8 @@ const NavBar = () => {
               >
                 Nâng cấp Premium
               </Button>
-            )
-          )}
+            )}
 
-          {/* Quá hạn badge */}
-          {me.membershipDaysLeft <= 0 && (
-            <span className="badge bg-secondary d-flex align-items-center px-2 py-1 fw-bold" style={{ borderRadius: '16px' }}>
-              <CrownOutlined className="me-1" />
-              Quá hạn
-            </span>
-          )}
-          
           <span className="me-3 ms-2 text-white">{user.fullName}</span>
           {user.role !== 'ADMIN' && (
             <Link to="/profile" className="btn btn-outline-light me-2">Hồ sơ</Link>
