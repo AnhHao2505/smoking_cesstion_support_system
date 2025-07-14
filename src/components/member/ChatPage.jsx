@@ -48,6 +48,7 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
+const COMMUNITY_ROOM_IDS = [3, 25, 26];
 const ChatPage = () => {
   const { currentUser } = useAuth();
   const [coaches, setCoaches] = useState([]);
@@ -64,7 +65,12 @@ const ChatPage = () => {
   const [selectingCoach, setSelectingCoach] = useState(false);
   const [wsConnected, setWsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  const [activeTab, setActiveTab] = useState('rooms'); // 'rooms' or 'coaches'
+  const [activeTab, setActiveTab] = useState('private'); // 'private' or 'community'
+  const [communityRoomId, setCommunityRoomId] = useState(COMMUNITY_ROOM_IDS[0]);
+  const [communityMessages, setCommunityMessages] = useState([]);
+  const [loadingCommunityMessages, setLoadingCommunityMessages] = useState(false);
+  const [sendingCommunityMessage, setSendingCommunityMessage] = useState(false);
+  const communityMessagesEndRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   // Scroll to bottom of messages
@@ -75,16 +81,116 @@ const ChatPage = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+  useEffect(() => {
+    communityMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [communityMessages]);
 
   useEffect(() => {
     fetchData();
     initializeWebSocket();
-    
-    // Cleanup WebSocket connection on unmount
     return () => {
       webSocketService.disconnect();
+      COMMUNITY_ROOM_IDS.forEach(id => webSocketService.unsubscribeFromCommunityChat(id));
     };
   }, []);
+  // Community chat logic
+  const loadCommunityMessages = async (roomId) => {
+    try {
+      setLoadingCommunityMessages(true);
+      const res = await fetch(`/chat/community/${roomId}/messages`, {
+        headers: {
+          'Authorization': `Bearer ${currentUser?.token}`
+        }
+      });
+      const data = await res.json();
+      setCommunityMessages(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setCommunityMessages([]);
+    } finally {
+      setLoadingCommunityMessages(false);
+    }
+  };
+
+  const subscribeToCommunityRoom = (roomId) => {
+    if (wsConnected && roomId) {
+      try {
+        webSocketService.subscribeToCommunityChat(roomId, (message) => {
+          const newMsg = {
+            id: message.id || Date.now(),
+            content: message.content,
+            senderId: message.senderId,
+            senderName: message.senderName,
+            timestamp: message.timestamp || new Date().toISOString(),
+            type: message.type || 'text'
+          };
+          setCommunityMessages(prev => {
+            const exists = prev.some(msg => msg.id === newMsg.id);
+            if (exists) return prev;
+            return [...prev, newMsg];
+          });
+        });
+      } catch (error) {
+        // silent
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'community') {
+      loadCommunityMessages(communityRoomId);
+      subscribeToCommunityRoom(communityRoomId);
+    }
+    // eslint-disable-next-line
+  }, [activeTab, communityRoomId, wsConnected]);
+
+  const handleCommunityRoomSelect = (roomId) => {
+    setCommunityRoomId(roomId);
+    setCommunityMessages([]);
+  };
+
+  const handleSendCommunityMessage = async () => {
+    if (!newMessage.trim()) return;
+    setSendingCommunityMessage(true);
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const messageData = {
+      content: newMessage.trim(),
+      type: 'text',
+      senderId: currentUser.userId,
+      senderName: 'You',
+      timestamp: new Date().toISOString(),
+      tempId: tempId
+    };
+    const tempMessage = {
+      id: tempId,
+      ...messageData,
+      status: 'sending'
+    };
+    setCommunityMessages(prev => [...prev, tempMessage]);
+    setNewMessage('');
+    if (wsConnected) {
+      try {
+        webSocketService.sendCommunityMessage(communityRoomId, messageData);
+        setCommunityMessages(prev => prev.map(msg =>
+          msg.tempId === tempId
+            ? { ...msg, status: 'sent' }
+            : msg
+        ));
+      } catch (error) {
+        setCommunityMessages(prev => prev.map(msg =>
+          msg.tempId === tempId
+            ? { ...msg, status: 'failed' }
+            : msg
+        ));
+      }
+    } else {
+      setCommunityMessages(prev => prev.map(msg =>
+        msg.tempId === tempId
+          ? { ...msg, status: 'failed' }
+          : msg
+      ));
+    }
+    setSendingCommunityMessage(false);
+  };
 
   const initializeWebSocket = async () => {
     try {
@@ -423,7 +529,7 @@ const ChatPage = () => {
       console.error('❌ Failed to retry message:', error);
       
       // Update message status to "failed"
-      setMessages(prev => prev.map(msg => 
+      setMessages(prev => prev.map(msg =>
         (msg.id === failedMessage.id || msg.tempId === failedMessage.tempId)
           ? { ...msg, status: 'failed' }
           : msg
@@ -455,6 +561,11 @@ const ChatPage = () => {
     }
   }, [messages]);
 
+  const communityRooms = COMMUNITY_ROOM_IDS.map(id => ({
+    roomId: id,
+    roomName: `Community Room ${id}`,
+    type: 'community'
+  }));
   const filteredChatRooms = chatRooms.filter(room =>
     room.roomName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -508,36 +619,26 @@ const ChatPage = () => {
               <Title level={4} style={{ margin: 0 }}>
                 <MessageOutlined /> Chat
               </Title>
-              {/* <Button 
-                type="primary" 
-                icon={<PlusOutlined />}
-                size="small"
-                onClick={() => setCoachSelectionModal(true)}
-              >
-                Chọn Coach
-              </Button> */}
             </div>
-            
             {/* Tab Buttons */}
             <div style={{ display: 'flex', gap: '8px' }}>
               <Button 
-                type={activeTab === 'rooms' ? 'primary' : 'default'}
+                type={activeTab === 'private' ? 'primary' : 'default'}
                 size="small"
                 icon={<CommentOutlined />}
-                onClick={() => setActiveTab('rooms')}
+                onClick={() => setActiveTab('private')}
               >
-                Phòng Chat ({chatRooms.length})
+                Private Chat
               </Button>
-              {/* <Button 
-                type={activeTab === 'coaches' ? 'primary' : 'default'}
+              <Button 
+                type={activeTab === 'community' ? 'primary' : 'default'}
                 size="small"
                 icon={<TeamOutlined />}
-                onClick={() => setActiveTab('coaches')}
+                onClick={() => setActiveTab('community')}
               >
-                Coaches ({coaches.length})
-              </Button> */}
+                Community
+              </Button>
             </div>
-            
             {/* WebSocket Connection Status */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Badge 
@@ -562,20 +663,11 @@ const ChatPage = () => {
                 </Button>
               )}
             </div>
-            
-            {/* <Input
-              placeholder={activeTab === 'rooms' ? "Tìm kiếm phòng chat..." : "Tìm kiếm huấn luyện viên..."}
-              prefix={<SearchOutlined />}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              allowClear
-            /> */}
           </Space>
         </div>
 
         <div style={{ height: 'calc(100vh - 180px)', overflow: 'auto' }}>
-          {activeTab === 'rooms' ? (
-            // Chat Rooms List
+          {activeTab === 'private' ? (
             filteredChatRooms.length > 0 ? (
               <List
                 dataSource={filteredChatRooms}
@@ -631,75 +723,33 @@ const ChatPage = () => {
               />
             )
           ) : (
-            // Coaches List
-            filteredCoaches.length > 0 ? (
-              <List
-                dataSource={filteredCoaches}
-                renderItem={(coach) => (
-                  <List.Item
-                    style={{ 
-                      padding: '12px 16px',
-                      cursor: 'pointer',
-                      backgroundColor: selectedCoach?.coachId === coach.coachId 
-                        ? '#e6f7ff' : 'transparent',
-                      borderLeft: selectedCoach?.coachId === coach.coachId 
-                        ? '3px solid #1890ff' : '3px solid transparent'
-                    }}
-                    onClick={() => handleCoachSelect(coach)}
-                  >
-                    <List.Item.Meta
-                      avatar={
-                        <Badge dot={wsConnected} status={wsConnected ? 'success' : 'default'}>
-                          <Avatar 
-                            src={coach.photo_url} 
-                            icon={<UserOutlined />}
-                            size={48}
-                          />
-                        </Badge>
-                      }
-                      title={
-                        <div>
-                          <Text strong>{coach.name}</Text>
-                          <div style={{ fontSize: '12px' }}>
-                            <Text type="secondary">{coach.certificates}</Text>
-                          </div>
-                        </div>
-                      }
-                      description={
-                        <div>
-                          <Text type="secondary" style={{ fontSize: '12px' }}>
-                            {coach.contact_number}
-                          </Text>
-                          <br />
-                          <Text type="secondary" style={{ fontSize: '11px' }}>
-                            Thành viên hiện tại: {coach.currentMemberAssignedCount}
-                          </Text>
-                          <br />
-                          <Text type="secondary" style={{ fontSize: '11px' }}>
-                            {coach.full ? 'Đã đầy' : 'Còn chỗ'} • {wsConnected ? 'Online' : 'Offline'}
-                          </Text>
-                        </div>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
-            ) : (
-              <Empty 
-                description="Không tìm thấy huấn luyện viên"
-                style={{ marginTop: '50px' }}
-              />
-            )
+            <>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0' }}>
+                <Text strong>Chọn phòng Community:</Text>
+                <Space style={{ marginLeft: 8 }}>
+                  {communityRooms.map(room => (
+                    <Button
+                      key={room.roomId}
+                      type={communityRoomId === room.roomId ? 'primary' : 'default'}
+                      onClick={() => handleCommunityRoomSelect(room.roomId)}
+                      size="small"
+                    >
+                      {room.roomName}
+                    </Button>
+                  ))}
+                </Space>
+              </div>
+            </>
           )}
         </div>
       </Sider>
 
       {/* Main Chat Area */}
       <Content style={{ display: 'flex', flexDirection: 'column' }}>
-        {selectedChatRoom ? (
+        {activeTab === 'community' && communityRoomId ? (
           <>
-            {/* Chat Header */}
-            <div style={{ 
+            {/* Community Chat Header */}
+            <div style={{
               background: '#fff',
               padding: '16px 24px',
               borderBottom: '1px solid #f0f0f0',
@@ -707,7 +757,162 @@ const ChatPage = () => {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Space>
-                  <Avatar 
+                  <Avatar icon={<TeamOutlined />} size={40} style={{ backgroundColor: '#52c41a' }} />
+                  <div>
+                    <Title level={5} style={{ margin: 0 }}>
+                      Community Room {communityRoomId}
+                    </Title>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                      Room ID: {communityRoomId} • Community
+                    </Text>
+                  </div>
+                </Space>
+                <Space>
+                  <Badge
+                    status={wsConnected ? 'success' : 'error'}
+                    text={wsConnected ? 'Connected' : 'Disconnected'}
+                  />
+                </Space>
+              </div>
+            </div>
+            {/* Community Messages Area */}
+            <div style={{
+              flex: 1,
+              overflow: 'auto',
+              padding: '16px 24px',
+              background: '#fafafa'
+            }}>
+              {loadingCommunityMessages ? (
+                <div style={{ textAlign: 'center', padding: '50px' }}>
+                  <Spin size="large" />
+                  <div style={{ marginTop: '16px' }}>Loading messages...</div>
+                </div>
+              ) : communityMessages.length > 0 ? (
+                <div>
+                  {communityMessages.map((msg) => (
+                    <div
+                      key={msg.id || msg.messageId}
+                      style={{
+                        marginBottom: '16px',
+                        display: 'flex',
+                        justifyContent: msg.senderId === currentUser.userId ? 'flex-end' : 'flex-start'
+                      }}
+                    >
+                      <div style={{ maxWidth: '70%' }}>
+                        {msg.senderId !== currentUser.userId && (
+                          <div style={{ marginBottom: '4px' }}>
+                            <Text type="secondary" style={{ fontSize: '12px' }}>
+                              {msg.senderName}
+                            </Text>
+                          </div>
+                        )}
+                        <Card
+                          size="small"
+                          style={{
+                            backgroundColor: msg.senderId === currentUser.userId ? '#52c41a' : '#fff',
+                            color: msg.senderId === currentUser.userId ? '#fff' : '#000',
+                            border: 'none',
+                            borderRadius: '12px',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                          }}
+                          bodyStyle={{ padding: '8px 12px' }}
+                        >
+                          <div>{msg.content}</div>
+                          <div style={{
+                            fontSize: '11px',
+                            opacity: 0.7,
+                            marginTop: '4px',
+                            textAlign: 'right',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}>
+                            <span>{formatMessageTime(msg.timestamp)}</span>
+                            {msg.senderId === currentUser.userId && (
+                              <span style={{ marginLeft: '8px' }}>
+                                {msg.status === 'sending' && (
+                                  <Tag color="orange" size="small" style={{ fontSize: '10px', margin: 0 }}>
+                                    Đang gửi...
+                                  </Tag>
+                                )}
+                                {msg.status === 'sent' && (
+                                  <Tag color="green" size="small" style={{ fontSize: '10px', margin: 0 }}>
+                                    ✓ Đã gửi
+                                  </Tag>
+                                )}
+                                {msg.status === 'failed' && (
+                                  <Tag
+                                    color="red"
+                                    size="small"
+                                    style={{ fontSize: '10px', margin: 0 }}
+                                  >
+                                    ✗ Thất bại
+                                  </Tag>
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        </Card>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={communityMessagesEndRef} />
+                </div>
+              ) : (
+                <div style={{
+                  textAlign: 'center',
+                  marginTop: '50px',
+                  color: '#999'
+                }}>
+                  <MessageOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                  <div>Bắt đầu cuộc trò chuyện trong Community Room {communityRoomId}</div>
+                </div>
+              )}
+            </div>
+            {/* Community Message Input */}
+            <div style={{
+              background: '#fff',
+              padding: '16px 24px',
+              borderTop: '1px solid #f0f0f0'
+            }}>
+              <Space.Compact style={{ width: '100%' }}>
+                <TextArea
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Nhập tin nhắn..."
+                  autoSize={{ minRows: 1, maxRows: 4 }}
+                  onPressEnter={(e) => {
+                    if (e.shiftKey) return;
+                    e.preventDefault();
+                    handleSendCommunityMessage();
+                  }}
+                  style={{ resize: 'none' }}
+                />
+                <Button
+                  type="primary"
+                  icon={<SendOutlined />}
+                  loading={sendingCommunityMessage}
+                  onClick={handleSendCommunityMessage}
+                  disabled={!newMessage.trim() || !wsConnected}
+                  title={!wsConnected ? 'WebSocket chưa kết nối' : ''}
+                >
+                  Gửi
+                </Button>
+              </Space.Compact>
+            </div>
+          </>
+        ) : selectedChatRoom ? (
+          <>
+            {/* Chat Header */}
+            <div style={{
+              background: '#fff',
+              padding: '16px 24px',
+              borderBottom: '1px solid #f0f0f0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Space>
+                  <Avatar
                     icon={<MessageOutlined />}
                     size={40}
                     style={{ backgroundColor: '#1890ff' }}
@@ -721,10 +926,9 @@ const ChatPage = () => {
                     </Text>
                   </div>
                 </Space>
-                
                 <Space>
-                  <Badge 
-                    status={wsConnected ? 'success' : 'error'} 
+                  <Badge
+                    status={wsConnected ? 'success' : 'error'}
                     text={wsConnected ? 'Connected' : 'Disconnected'}
                   />
                 </Space>
@@ -732,7 +936,7 @@ const ChatPage = () => {
             </div>
 
             {/* Messages Area */}
-            <div style={{ 
+            <div style={{
               flex: 1,
               overflow: 'auto',
               padding: '16px 24px',
@@ -746,9 +950,9 @@ const ChatPage = () => {
               ) : messages.length > 0 ? (
                 <div>
                   {messages.map((msg) => (
-                    <div 
+                    <div
                       key={msg.id || msg.messageId}
-                      style={{ 
+                      style={{
                         marginBottom: '16px',
                         display: 'flex',
                         justifyContent: msg.senderId === currentUser.userId ? 'flex-end' : 'flex-start'
@@ -774,8 +978,8 @@ const ChatPage = () => {
                           bodyStyle={{ padding: '8px 12px' }}
                         >
                           <div>{msg.content}</div>
-                          <div style={{ 
-                            fontSize: '11px', 
+                          <div style={{
+                            fontSize: '11px',
                             opacity: 0.7,
                             marginTop: '4px',
                             textAlign: 'right',
@@ -797,9 +1001,9 @@ const ChatPage = () => {
                                   </Tag>
                                 )}
                                 {msg.status === 'failed' && (
-                                  <Tag 
-                                    color="red" 
-                                    size="small" 
+                                  <Tag
+                                    color="red"
+                                    size="small"
                                     style={{ fontSize: '10px', margin: 0, cursor: 'pointer' }}
                                     onClick={() => handleRetryMessage(msg)}
                                     title="Click để gửi lại"
@@ -817,8 +1021,8 @@ const ChatPage = () => {
                   <div ref={messagesEndRef} />
                 </div>
               ) : (
-                <div style={{ 
-                  textAlign: 'center', 
+                <div style={{
+                  textAlign: 'center',
                   marginTop: '50px',
                   color: '#999'
                 }}>
@@ -827,9 +1031,8 @@ const ChatPage = () => {
                 </div>
               )}
             </div>
-
             {/* Message Input */}
-            <div style={{ 
+            <div style={{
               background: '#fff',
               padding: '16px 24px',
               borderTop: '1px solid #f0f0f0'
@@ -861,7 +1064,7 @@ const ChatPage = () => {
             </div>
           </>
         ) : (
-          <div style={{ 
+          <div style={{
             flex: 1,
             display: 'flex',
             alignItems: 'center',

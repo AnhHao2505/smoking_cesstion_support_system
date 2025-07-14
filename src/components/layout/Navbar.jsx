@@ -256,6 +256,7 @@ const NavBar = () => {
               )}
             </>
           )}
+           <NotificationBell />
           <span className="me-3 ms-2 text-white">{user.fullName}</span>
           {user.role !== 'ADMIN' && user.role !== 'COACH' && (
             <Link to="/profile" className="btn btn-outline-light me-2">Hồ sơ</Link>
