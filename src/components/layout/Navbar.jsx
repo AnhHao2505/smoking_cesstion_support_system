@@ -37,7 +37,7 @@ const NavBar = () => {
   // Check if current user is premium member
   const checkIfPremiumMember = () => {
     if (!user) return false;
-    
+
     // Check localStorage user data for isPremium flag
     try {
       const userFromStorage = localStorage.getItem('user');
@@ -48,7 +48,7 @@ const NavBar = () => {
     } catch (error) {
       console.error('Error parsing user data from localStorage:', error);
     }
-    
+
     // Fallback to user object
     return user.isPremiumMembership === true;
   };
@@ -78,7 +78,7 @@ const NavBar = () => {
       label: 'Kế hoạch cai thuốc',
       icon: <FileTextOutlined />,
       items: [
-        { key: '/member/quit-plan', label: 'Kế hoạch hiện tại', path: '/member/quit-plan' },
+        // { key: '/member/quit-plan', label: 'Kế hoạch hiện tại', path: '/member/quit-plan' },
         { key: '/member/quit-plan-flow', label: 'Hành trình cai thuốc', path: '/member/quit-plan-flow' },
         { key: '/member/quit-plan-history', label: 'Lịch sử kế hoạch', path: '/member/quit-plan-history' }
       ]
@@ -148,7 +148,7 @@ const NavBar = () => {
       label: 'Hỗ trợ thành viên',
       icon: <UserOutlined />,
       items: [
-        { key: '/coach/schedule', label: 'Quản lý lịch trình', path: '/coach/schedule' },
+        // { key: '/coach/schedule', label: 'Quản lý lịch trình', path: '/coach/schedule' },
         { key: '/coach/qna', label: 'Q&A', path: '/coach/qna' }
       ]
     }
@@ -225,50 +225,43 @@ const NavBar = () => {
   const renderAuthSection = () => {
     if (user) {
       const isPremium = checkIfPremiumMember();
-      
+      const me = JSON.parse(localStorage.getItem('me') || '{}');
+      console.log(me)
       return (
         <div className="d-flex align-items-center">
-          
-          {/* Upgrade button for non-premium members */}
-          {!isPremium && user.role === 'MEMBER' && (
-            <Button
-              type="primary"
-              icon={<CrownOutlined />}
-              onClick={handleUpgradeClick}
-              style={{
-                background: 'linear-gradient(45deg, #FFD700, #FFA500)',
-                borderColor: '#FFD700',
-                color: '#000',
-                fontWeight: 'bold',
-                marginRight: '12px',
-                boxShadow: '0 2px 8px rgba(255, 215, 0, 0.3)'
-              }}
-              size="small"
-            >
-              Nâng cấp Premium
-            </Button>
+
+          {/* Premium badge or upgrade button */}
+          {me.membershipDaysLeft > 0 && (
+            isPremium ? (
+              <span className="badge bg-warning text-dark d-flex align-items-center px-2 py-1 fw-bold" style={{ borderRadius: '16px' }}>
+                <CrownOutlined className="me-1" />
+                PREMIUM
+              </span>
+            ) : (
+              <Button
+                type="primary"
+                icon={<CrownOutlined />}
+                onClick={handleUpgradeClick}
+                style={{
+                  background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                  borderColor: '#FFD700',
+                  color: '#000',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 8px rgba(255, 215, 0, 0.3)'
+                }}
+                size="small"
+              >
+                Nâng cấp Premium
+              </Button>
+            )
           )}
-          <NotificationBell />
-          
-          {/* Premium badge for premium members */}
-          {isPremium && (
-            <div
-              style={{
-                background: 'linear-gradient(45deg, #FFD700, #FFA500)',
-                color: '#000',
-                padding: '4px 12px',
-                borderRadius: '16px',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                marginRight: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <CrownOutlined />
-              PREMIUM
-            </div>
+
+          {/* Quá hạn badge */}
+          {me.membershipDaysLeft <= 0 && (
+            <span className="badge bg-secondary d-flex align-items-center px-2 py-1 fw-bold" style={{ borderRadius: '16px' }}>
+              <CrownOutlined className="me-1" />
+              Quá hạn
+            </span>
           )}
           
           <span className="me-3 ms-2 text-white">{user.fullName}</span>
@@ -312,7 +305,7 @@ const NavBar = () => {
             <li className="nav-item">
               <Link to="/" className="nav-link">Trang chủ</Link>
             </li>
-            
+
             {renderRoleSpecificDropdowns()}
 
             {user && user.role === 'MEMBER' && (
@@ -323,14 +316,14 @@ const NavBar = () => {
                 </Link>
               </li>
             )}
-            
-            {user && user.role === 'MEMBER' && (
+
+            {/* {user && user.role === 'MEMBER' && (
               <li className="nav-item">
                 <Link to="/demo/notifications" className="nav-link">
                   🔔 Demo
                 </Link>
               </li>
-            )}
+            )} */}
           </ul>
 
           <div className="d-flex align-items-center">
@@ -338,7 +331,7 @@ const NavBar = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Payment Modal */}
       <PaymentModal
         visible={paymentModalVisible}

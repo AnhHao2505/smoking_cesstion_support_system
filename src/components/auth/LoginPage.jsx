@@ -4,6 +4,7 @@ import { Form, Input, Button, Checkbox, Typography, Row, Col, Card, Alert, Divid
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import '../../styles/global.css';
+import { getMyProfile } from '../../services/memberProfileService';
 
 const { Title, Text } = Typography;
 
@@ -49,6 +50,12 @@ const LoginPage = () => {
       if (response.success) {
         const { user, reminder } = response;
         const role = user.role?.toLowerCase();
+        const userId = user.userId;
+        if(role === 'member' ) {
+          const me = await getMyProfile(userId);
+          console.log(me)
+          localStorage.setItem('me', JSON.stringify(me));
+        }
         
         // If there's a reminder, show it as a toast and navigate to home
         if (reminder) {

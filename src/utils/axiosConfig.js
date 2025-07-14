@@ -23,6 +23,8 @@ const clearAuthData = () => {
   localStorage.removeItem('authToken');
   localStorage.removeItem('user');
   localStorage.removeItem('loginReminder');
+  localStorage.removeItem('me');
+  localStorage.removeItem('vnpay_payment_session');
 };
 
 // Create axios instance with base configuration
