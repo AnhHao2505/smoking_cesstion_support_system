@@ -281,7 +281,7 @@ const App = () => {
               <Route 
                 path="/member/chat" 
                 element={
-                  <PrivateRoute allowedRoles={['MEMBER']}>
+                  <PrivateRoute allowedRoles={['MEMBER', 'COACH']}>
                     <ChatPage />
                   </PrivateRoute>
                 }
