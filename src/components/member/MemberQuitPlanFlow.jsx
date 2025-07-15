@@ -37,7 +37,7 @@ import {
   FlagOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
-import { 
+import {
   getMemberQuitPlanWithActions,
   processMemberQuitPlanAction,
   getOldPlansOfMember,
@@ -76,63 +76,63 @@ const MemberQuitPlanFlow = () => {
   const fetchMemberQuitPlanData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch current plan with action availability
       const currentPlanResponse = await getMemberQuitPlanWithActions(memberId);
       console.log('API Response:', currentPlanResponse);
-      
-        // Map API response to component expected format
-        const planData = currentPlanResponse;
-        // Normalize status to match new status types
-        let normalizedStatus = planData.quitPlanStatus;
-        if (normalizedStatus === 'ACTIVE') normalizedStatus = 'IN_PROGRESS';
-        if (normalizedStatus === 'DENIED') normalizedStatus = 'REJECTED';
-        if (normalizedStatus === 'ACCEPTED') normalizedStatus = 'ACCEPTED';
-        if (normalizedStatus === 'COMPLETED') normalizedStatus = 'COMPLETED';
-        if (normalizedStatus === 'PENDING') normalizedStatus = 'PENDING';
 
-        const mappedPlan = {
-          quit_plan_id: planData.id,
-          status: normalizedStatus,
-          start_date: planData.startDate,
-          end_date: planData.endDate,
-          coach_name: planData.coachName,
-          coach_id: planData.coachId,
-          member_name: planData.memberName,
-          member_id: planData.memberId,
-          strategies_to_use: planData.copingStrategies,
-          medications_to_use: planData.medicationsToUse,
-          preparation_steps: planData.relapsePreventionStrategies,
-          medication_instructions: planData.medicationInstructions,
-          note: planData.additionalNotes,
-          motivation: planData.motivation,
-          reward_plan: planData.rewardPlan,
-          support_resources: planData.supportResources,
-          smoking_triggers_to_avoid: planData.smokingTriggersToAvoid,
-          current_smoking_status: planData.currentSmokingStatus,
-          // Add action availability based on status
-          canAccept: normalizedStatus === 'PENDING',
-          canDeny: normalizedStatus === 'PENDING'
-        };
-        console.log(mappedPlan);
-        setCurrentPlan(mappedPlan);
-        
-        // Fetch plan phases if plan has ID
-        const planId = planData.id;
-        if (planId) {
-          try {
-            const phasesResponse = await getPhasesOfPlan(planId);
-            console.log('Phases Response:', phasesResponse);
-            // Handle single phase object or array of phases
-            const phases = Array.isArray(phasesResponse) ? phasesResponse : [phasesResponse];
-            // Sort phases by order if multiple phases exist
-            const sortedPhases = phases.sort((a, b) => (a.phaseOrder || 0) - (b.phaseOrder || 0));
-            setPlanPhases(sortedPhases);
-          } catch (phaseError) {
-            console.warn('Could not fetch phases:', phaseError);
-            setPlanPhases([]);
-          }
+      // Map API response to component expected format
+      const planData = currentPlanResponse;
+      // Normalize status to match new status types
+      let normalizedStatus = planData.quitPlanStatus;
+      if (normalizedStatus === 'ACTIVE') normalizedStatus = 'IN_PROGRESS';
+      if (normalizedStatus === 'DENIED') normalizedStatus = 'REJECTED';
+      if (normalizedStatus === 'ACCEPTED') normalizedStatus = 'ACCEPTED';
+      if (normalizedStatus === 'COMPLETED') normalizedStatus = 'COMPLETED';
+      if (normalizedStatus === 'PENDING') normalizedStatus = 'PENDING';
+
+      const mappedPlan = {
+        quit_plan_id: planData.id,
+        status: normalizedStatus,
+        start_date: planData.startDate,
+        end_date: planData.endDate,
+        coach_name: planData.coachName,
+        coach_id: planData.coachId,
+        member_name: planData.memberName,
+        member_id: planData.memberId,
+        strategies_to_use: planData.copingStrategies,
+        medications_to_use: planData.medicationsToUse,
+        preparation_steps: planData.relapsePreventionStrategies,
+        medication_instructions: planData.medicationInstructions,
+        note: planData.additionalNotes,
+        motivation: planData.motivation,
+        reward_plan: planData.rewardPlan,
+        support_resources: planData.supportResources,
+        smoking_triggers_to_avoid: planData.smokingTriggersToAvoid,
+        current_smoking_status: planData.currentSmokingStatus,
+        // Add action availability based on status
+        canAccept: normalizedStatus === 'PENDING',
+        canDeny: normalizedStatus === 'PENDING'
+      };
+      console.log(mappedPlan);
+      setCurrentPlan(mappedPlan);
+
+      // Fetch plan phases if plan has ID
+      const planId = planData.id;
+      if (planId) {
+        try {
+          const phasesResponse = await getPhasesOfPlan(planId);
+          console.log('Phases Response:', phasesResponse);
+          // Handle single phase object or array of phases
+          const phases = Array.isArray(phasesResponse) ? phasesResponse : [phasesResponse];
+          // Sort phases by order if multiple phases exist
+          const sortedPhases = phases.sort((a, b) => (a.phaseOrder || 0) - (b.phaseOrder || 0));
+          setPlanPhases(sortedPhases);
+        } catch (phaseError) {
+          console.warn('Could not fetch phases:', phaseError);
+          setPlanPhases([]);
         }
+      }
 
       // Fetch plan history
       try {
@@ -165,23 +165,23 @@ const MemberQuitPlanFlow = () => {
 
       // Use the enhanced workflow function
       const response = await processMemberQuitPlanAction(planId, actionType);
-      
+
       if (response.success) {
         // Update local state immediately
         const newStatus = actionType === 'accept' ? 'ACCEPTED' : 'REJECTED';
-        setCurrentPlan({ 
-          ...currentPlan, 
-          status: newStatus, 
-          canAccept: false, 
-          canDeny: false 
+        setCurrentPlan({
+          ...currentPlan,
+          status: newStatus,
+          canAccept: false,
+          canDeny: false
         });
-        
+
         // Show appropriate success message
-        const actionMessage = actionType === 'accept' 
-          ? 'Plan accepted successfully! Your quit journey has begun.' 
+        const actionMessage = actionType === 'accept'
+          ? 'Plan accepted successfully! Your quit journey has begun.'
           : 'Plan declined. Your coach will create a new plan for you.';
         message.success(actionMessage);
-        
+
         // Refresh data to get latest state
         await fetchMemberQuitPlanData();
       } else {
@@ -250,10 +250,10 @@ const MemberQuitPlanFlow = () => {
     const startDate = moment(currentPlan.start_date);
     const endDate = moment(currentPlan.end_date);
     const today = moment();
-    
+
     const totalDays = endDate.diff(startDate, 'days');
     const passedDays = today.diff(startDate, 'days');
-    
+
     return Math.max(0, Math.min(100, (passedDays / totalDays) * 100));
   };
 
@@ -275,7 +275,7 @@ const MemberQuitPlanFlow = () => {
             <HeartOutlined /> Hành trình cai thuốc của tôi
           </Title>
           <Space>
-            <Button 
+            <Button
               icon={<FileTextOutlined />}
               onClick={() => setHistoryModalVisible(true)}
             >
@@ -311,9 +311,9 @@ const MemberQuitPlanFlow = () => {
                   <Space>
                     <CalendarOutlined />
                     Kế hoạch cai thuốc hiện tại
-                  <Tag color={getStatusColor(currentPlan.status)}>
-                    {getStatusText(currentPlan.status)}
-                  </Tag>
+                    <Tag color={getStatusColor(currentPlan.status)}>
+                      {getStatusText(currentPlan.status)}
+                    </Tag>
                   </Space>
                 }
                 extra={
@@ -449,9 +449,9 @@ const MemberQuitPlanFlow = () => {
                     </Title>
                     <div className="phases-container">
                       {planPhases.map((phase, index) => (
-                        <Card 
-                          key={phase.id} 
-                          size="small" 
+                        <Card
+                          key={phase.id}
+                          size="small"
                           className="mb-3"
                           title={
                             <Space>
@@ -501,23 +501,34 @@ const MemberQuitPlanFlow = () => {
               </Card>
             </Col>
 
-            {/* Quick Actions */}
             <Col xs={24} lg={8}>
               <Card title="Thao tác nhanh">
                 <Space direction="vertical" style={{ width: '100%' }}>
-                  <Button block icon={<CheckCircleOutlined />}>
+                  <Button
+                    block
+                    icon={<CheckCircleOutlined />}
+                    onClick={() => window.location.href = '/member/daily-checkin'}
+                  >
                     Báo cáo hàng ngày
                   </Button>
-                  <Button block icon={<MessageOutlined />}>
+                  <Button
+                    block
+                    icon={<MessageOutlined />}
+                    onClick={() => window.location.href = '/member/chat'}
+                  >
                     Nhắn tin với huấn luyện viên
                   </Button>
-                  <Button block icon={<TrophyOutlined />}>
+                  <Button
+                    block
+                    icon={<TrophyOutlined />}
+                    onClick={() => window.location.href = '/member/progress-chart'}
+                  >
                     Xem tiến độ
                   </Button>
                 </Space>
               </Card>
 
-                  {currentPlan.status === 'IN_PROGRESS' && (
+              {currentPlan.status === 'IN_PROGRESS' && (
                 <Card title="Động lực" className="mt-4">
                   <div className="text-center">
                     <FireOutlined style={{ fontSize: '32px', color: '#ff4d4f' }} />
@@ -530,9 +541,7 @@ const MemberQuitPlanFlow = () => {
               )}
             </Col>
           </Row>
-        )}
-
-        {/* Action Modal */}
+        )}}
         <Modal
           title={
             <Space>
@@ -584,8 +593,8 @@ const MemberQuitPlanFlow = () => {
                 color={getStatusColor(plan.status)}
                 dot={
                   plan.status === 'COMPLETED' ? <CheckCircleOutlined /> :
-                  plan.status === 'REJECTED' ? <CloseCircleOutlined /> :
-                  <ClockCircleOutlined />
+                    plan.status === 'REJECTED' ? <CloseCircleOutlined /> :
+                      <ClockCircleOutlined />
                 }
               >
                 <div>
@@ -604,7 +613,7 @@ const MemberQuitPlanFlow = () => {
               </Timeline.Item>
             ))}
           </Timeline>
-          
+
           {planHistory.length === 0 && (
             <div className="text-center py-4">
               <Text type="secondary">No previous plans found</Text>
