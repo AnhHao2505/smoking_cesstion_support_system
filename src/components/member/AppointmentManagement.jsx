@@ -16,6 +16,7 @@ import {
   getAssignedMembers
 } from '../../services/coachManagementService';
 import { submitFeedbackToCoach, submitFeedbackToPlatform } from '../../services/feebackService';
+import { getCoachProfile } from '../../services/profileService';
 import { useAuth } from '../../contexts/AuthContext';
 
 const { Title, Text, Paragraph } = Typography;
@@ -41,6 +42,9 @@ const AppointmentManagement = () => {
     pageSize: 10,
     total: 0
   });
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [coachProfile, setCoachProfile] = useState(null);
   
   const userId = currentUser?.userId;
 
@@ -155,6 +159,21 @@ const AppointmentManagement = () => {
       setAssignedMembers([]);
     } finally {
       setLoadingAssignedMembers(false);
+    }
+  };
+
+  // Handler to view coach profile
+  const handleViewProfile = async (coach) => {
+    setProfileModalVisible(true);
+    setProfileLoading(true);
+    try {
+      const response = await getCoachProfile(coach.coachId);
+      setCoachProfile(response.data || response);
+    } catch (error) {
+      message.error('Không thể tải thông tin huấn luyện viên');
+      setCoachProfile(null);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -353,6 +372,17 @@ const AppointmentManagement = () => {
                 style={{ flex: 1 }}
               >
                 Xem thành viên
+              </Button>
+            </Space>
+            <Space size="small" style={{ width: '100%' }}>
+              <Button 
+                type="default" 
+                icon={<EyeOutlined />}
+                onClick={() => handleViewProfile(record)}
+                size="small"
+                style={{ flex: 1 }}
+              >
+                Xem profile
               </Button>
             </Space>
           </Space>
@@ -692,6 +722,77 @@ const AppointmentManagement = () => {
                 </div>
               )}
             </div>
+          )}
+        </Modal>
+
+        {/* Coach Profile Modal */}
+        <Modal
+          title={
+            <Space>
+              <UserOutlined />
+              <span>Thông tin huấn luyện viên</span>
+            </Space>
+          }
+          visible={profileModalVisible}
+          onCancel={() => {
+            setProfileModalVisible(false);
+            setCoachProfile(null);
+          }}
+          footer={[
+            <Button key="close" onClick={() => {
+              setProfileModalVisible(false);
+              setCoachProfile(null);
+            }}>
+              Đóng
+            </Button>
+          ]}
+          width={600}
+        >
+          {profileLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <Spin size="large" />
+            </div>
+          ) : coachProfile ? (
+            <div>
+              <Card size="small" style={{ marginBottom: 16 }}>
+                <Space>
+                  <Avatar size="large" src={coachProfile.photo_url} icon={<UserOutlined />} />
+                  <div>
+                    <Text strong style={{ fontSize: '16px' }}>{coachProfile.full_name}</Text>
+                    <br />
+                    <Text type="secondary">{coachProfile.email}</Text>
+                    <br />
+                    <Text type="secondary">Liên hệ: {coachProfile.contactNumber || coachProfile.contact_number}</Text>
+                  </div>
+                </Space>
+              </Card>
+              <div style={{ marginBottom: 12 }}>
+                <Text strong>Chuyên môn:</Text> <Tag color="blue">{coachProfile.specialty}</Tag>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <Text strong>Chứng chỉ:</Text>
+                <br />
+                {coachProfile.certificates}
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <Text strong>Giờ làm việc:</Text>
+                <br />
+                {coachProfile.workingHour && coachProfile.workingHour.length > 0
+                  ? coachProfile.workingHour.map((schedule, idx) => (
+                      <div key={idx}>
+                        <Text>{schedule.dayOfWeek}: {schedule.startTime} - {schedule.endTime}</Text>
+                      </div>
+                    ))
+                  : <Text type="secondary">Không có lịch trình</Text>
+                }
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <Text strong>Giới thiệu:</Text>
+                <Paragraph>{coachProfile.bio || 'Chưa có thông tin.'}</Paragraph>
+              </div>
+            </div>
+          ) : (
+            <Text type="secondary">Không có dữ liệu huấn luyện viên</Text>
           )}
         </Modal>
       </div>
