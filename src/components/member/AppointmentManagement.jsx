@@ -39,12 +39,13 @@ const AppointmentManagement = () => {
   const [selectedCoachForMembers, setSelectedCoachForMembers] = useState(null);
   const [pagination, setPagination] = useState({
     current: 1,
-    pageSize: 10,
+    pageSize: 30,
     total: 0
   });
   const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [coachProfile, setCoachProfile] = useState(null);
+  const [totalCoaches, setTotalCoaches] = useState(0);
   
   const userId = currentUser?.userId;
 
@@ -63,6 +64,7 @@ const AppointmentManagement = () => {
           ...prev,
           total: response.totalElements
         }));
+        setTotalCoaches(response.totalElements);
       } else {
         setCoaches([]);
         message.warning('No coaches found');
@@ -401,7 +403,6 @@ const AppointmentManagement = () => {
   }
 
   // Calculate summary statistics
-  const totalCoaches = coaches.length;
   const availableCoaches = coaches.filter(coach => !coach.full).length;
   const fullCoaches = coaches.filter(coach => coach.full).length;
   const averageMembers = coaches.length > 0 
