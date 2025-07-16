@@ -1,23 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Card, Table, Button, Tag, Space, Avatar, Typography, 
-  Modal, Form, Input, Spin, message, Badge, Progress,
-  Row, Col, Statistic, Tooltip, Alert, Rate
-} from 'antd';
-import { 
-  UserOutlined, ClockCircleOutlined, CheckCircleOutlined,
-  StarOutlined, TeamOutlined, ExclamationCircleOutlined,
-  CalendarOutlined, MessageOutlined, SendOutlined, EyeOutlined
-} from '@ant-design/icons';
-import moment from 'moment';
-import { 
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  Table,
+  Button,
+  Tag,
+  Space,
+  Avatar,
+  Typography,
+  Modal,
+  Form,
+  Input,
+  Spin,
+  message,
+  Badge,
+  Progress,
+  Row,
+  Col,
+  Statistic,
+  Tooltip,
+  Alert,
+  Rate,
+} from "antd";
+import {
+  UserOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  StarOutlined,
+  TeamOutlined,
+  ExclamationCircleOutlined,
+  CalendarOutlined,
+  MessageOutlined,
+  SendOutlined,
+  EyeOutlined,
+} from "@ant-design/icons";
+import moment from "moment";
+import {
   getAllCoaches,
   chooseCoach,
-  getAssignedMembers
-} from '../../services/coachManagementService';
-import { submitFeedbackToCoach, submitFeedbackToPlatform } from '../../services/feebackService';
+  getAssignedMembers,
+} from "../../services/coachManagementService";
+import {
+  submitFeedbackToCoach,
+  submitFeedbackToAnyCoach,
+  submitFeedbackToPlatform,
+} from "../../services/feebackService";
 import { getCoachProfile } from '../../services/profileService';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from "../../contexts/AuthContext";
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -33,7 +61,8 @@ const AppointmentManagement = () => {
   const [feedbackCoach, setFeedbackCoach] = useState(null);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [feedbackForm] = Form.useForm();
-  const [assignedMembersModalVisible, setAssignedMembersModalVisible] = useState(false);
+  const [assignedMembersModalVisible, setAssignedMembersModalVisible] =
+    useState(false);
   const [assignedMembers, setAssignedMembers] = useState([]);
   const [loadingAssignedMembers, setLoadingAssignedMembers] = useState(false);
   const [selectedCoachForMembers, setSelectedCoachForMembers] = useState(null);
@@ -56,18 +85,21 @@ const AppointmentManagement = () => {
   const fetchCoaches = async () => {
     try {
       setLoading(true);
-      const response = await getAllCoaches(pagination.current - 1, pagination.pageSize);
-      
+      const response = await getAllCoaches(
+        pagination.current - 1,
+        pagination.pageSize
+      );
+
       if (response && response.content) {
         setCoaches(response.content);
-        setPagination(prev => ({
+        setPagination((prev) => ({
           ...prev,
-          total: response.totalElements
+          total: response.totalElements,
         }));
         setTotalCoaches(response.totalElements);
       } else {
         setCoaches([]);
-        message.warning('No coaches found');
+        message.warning("No coaches found");
       }
       setLoading(false);
     } catch (error) {
@@ -87,14 +119,16 @@ const AppointmentManagement = () => {
     try {
       setSelecting(true);
       const response = await chooseCoach(selectedCoach.coachId);
-      
+
       if (response) {
-        message.success(`Successfully selected ${selectedCoach.name} as your coach!`);
+        message.success(
+          `Successfully selected ${selectedCoach.name} as your coach!`
+        );
         setConfirmModalVisible(false);
-        
+
         // Refresh coaches list to update their current member counts
         fetchCoaches();
-        
+
         // Optionally redirect to dashboard or appointment booking page
         // navigate('/member/dashboard');
       }
@@ -121,21 +155,26 @@ const AppointmentManagement = () => {
       setSubmittingFeedback(true);
       const feedbackData = {
         content: values.content,
-        star: values.star
+        star: values.star,
+        coachId: feedbackCoach.coachId,
       };
 
-      const response = await submitFeedbackToCoach(feedbackData);
-      
+      const response = await submitFeedbackToAnyCoach(feedbackData);
+
       if (response.success) {
-        message.success(`Cảm ơn bạn đã gửi phản hồi về huấn luyện viên ${feedbackCoach.name}!`);
+        message.success(
+          `Cảm ơn bạn đã gửi phản hồi về huấn luyện viên ${feedbackCoach.name}!`
+        );
         setFeedbackModalVisible(false);
         feedbackForm.resetFields();
       } else {
-        message.error(response.message || 'Không thể gửi phản hồi. Vui lòng thử lại!');
+        message.error(
+          response.message || "Không thể gửi phản hồi. Vui lòng thử lại!"
+        );
       }
     } catch (error) {
       console.error("Error submitting feedback:", error);
-      message.error('Có lỗi xảy ra khi gửi phản hồi. Vui lòng thử lại!');
+      message.error("Có lỗi xảy ra khi gửi phản hồi. Vui lòng thử lại!");
     } finally {
       setSubmittingFeedback(false);
     }
@@ -146,18 +185,18 @@ const AppointmentManagement = () => {
       setSelectedCoachForMembers(coach);
       setAssignedMembersModalVisible(true);
       setLoadingAssignedMembers(true);
-      
+
       const response = await getAssignedMembers(coach.coachId);
-      
+
       if (response) {
         setAssignedMembers(response);
       } else {
         setAssignedMembers([]);
-        message.info('Huấn luyện viên này chưa có thành viên nào được gán.');
+        message.info("Huấn luyện viên này chưa có thành viên nào được gán.");
       }
     } catch (error) {
       console.error("Error fetching assigned members:", error);
-      message.error('Không thể tải danh sách thành viên. Vui lòng thử lại!');
+      message.error("Không thể tải danh sách thành viên. Vui lòng thử lại!");
       setAssignedMembers([]);
     } finally {
       setLoadingAssignedMembers(false);
@@ -181,37 +220,40 @@ const AppointmentManagement = () => {
 
   const renderStarDescription = (value) => {
     const descriptions = {
-      1: 'Rất không hài lòng',
-      2: 'Không hài lòng', 
-      3: 'Bình thường',
-      4: 'Hài lòng',
-      5: 'Rất hài lòng'
+      1: "Rất không hài lòng",
+      2: "Không hài lòng",
+      3: "Bình thường",
+      4: "Hài lòng",
+      5: "Rất hài lòng",
     };
-    return descriptions[value] || '';
+    return descriptions[value] || "";
   };
 
   const getWorkingHoursDisplay = (workingHours) => {
     if (!workingHours || workingHours.length === 0) {
       return "Không có lịch trình";
     }
-    
-    return workingHours.map(schedule => 
-      `${schedule.dayOfWeek}: ${schedule.startTime} - ${schedule.endTime}`
-    ).join(', ');
+
+    return workingHours
+      .map(
+        (schedule) =>
+          `${schedule.dayOfWeek}: ${schedule.startTime} - ${schedule.endTime}`
+      )
+      .join(", ");
   };
 
   const getAvailabilityStatus = (coach) => {
     if (coach.full) {
-      return { color: 'red', text: 'Đầy' };
+      return { color: "red", text: "Đầy" };
     }
-    
+
     const availableSlots = 10 - coach.currentMemberAssignedCount; // Assuming max 20 members per coach
     if (availableSlots > 10) {
-      return { color: 'green', text: 'Có sẵn' };
+      return { color: "green", text: "Có sẵn" };
     } else if (availableSlots > 5) {
-      return { color: 'orange', text: 'Hạn chế' };
+      return { color: "orange", text: "Hạn chế" };
     } else {
-      return { color: 'red', text: 'Gần đầy' };
+      return { color: "red", text: "Gần đầy" };
     }
   };
 
@@ -219,20 +261,22 @@ const AppointmentManagement = () => {
     setPagination({
       current: pagination.current,
       pageSize: pagination.pageSize,
-      total: pagination.total
+      total: pagination.total,
     });
   };
 
   const columns = [
     {
-      title: 'Huấn luyện viên',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Huấn luyện viên",
+      dataIndex: "name",
+      key: "name",
       render: (text, record) => (
         <Space>
           <Avatar size="large" icon={<UserOutlined />} />
           <div>
-            <Text strong style={{ fontSize: '16px' }}>{text}</Text>
+            <Text strong style={{ fontSize: "16px" }}>
+              {text}
+            </Text>
             <br />
             <Text type="secondary">{record.email}</Text>
           </div>
@@ -259,22 +303,25 @@ const AppointmentManagement = () => {
     //   ellipsis: true
     // },
     {
-      title: 'Giờ làm việc',
-      dataIndex: 'workingHours',
-      key: 'workingHours',
+      title: "Giờ làm việc",
+      dataIndex: "workingHours",
+      key: "workingHours",
       render: (workingHours) => (
         <div>
           {workingHours && workingHours.length > 0 ? (
             workingHours.slice(0, 2).map((schedule, index) => (
-              <div key={index} style={{ fontSize: '12px' }}>
-                <Text><ClockCircleOutlined /> {schedule.dayOfWeek}: {schedule.startTime} - {schedule.endTime}</Text>
+              <div key={index} style={{ fontSize: "12px" }}>
+                <Text>
+                  <ClockCircleOutlined /> {schedule.dayOfWeek}:{" "}
+                  {schedule.startTime} - {schedule.endTime}
+                </Text>
               </div>
             ))
           ) : (
             <Text type="secondary">Chưa có lịch</Text>
           )}
           {workingHours && workingHours.length > 2 && (
-            <Text type="secondary" style={{ fontSize: '11px' }}>
+            <Text type="secondary" style={{ fontSize: "11px" }}>
               +{workingHours.length - 2} khung giờ khác...
             </Text>
           )}
@@ -282,60 +329,76 @@ const AppointmentManagement = () => {
       ),
     },
     {
-      title: 'Thành viên hiện tại',
-      dataIndex: 'currentMemberAssignedCount',
-      key: 'currentMemberAssignedCount',
+      title: "Thành viên hiện tại",
+      dataIndex: "currentMemberAssignedCount",
+      key: "currentMemberAssignedCount",
       render: (count, record) => {
         const maxMembers = 10; // Assuming max capacity
         const percentage = (count / maxMembers) * 100;
         return (
           <div>
-            <Progress 
-              percent={percentage} 
-              size="small" 
-              strokeColor={percentage >= 90 ? '#ff4d4f' : percentage >= 70 ? '#faad14' : '#52c41a'}
+            <Progress
+              percent={percentage}
+              size="small"
+              strokeColor={
+                percentage >= 90
+                  ? "#ff4d4f"
+                  : percentage >= 70
+                  ? "#faad14"
+                  : "#52c41a"
+              }
               showInfo={false}
             />
-            <Text style={{ fontSize: '12px' }}>{count}/{maxMembers}</Text>
+            <Text style={{ fontSize: "12px" }}>
+              {count}/{maxMembers}
+            </Text>
           </div>
         );
       },
-      sorter: (a, b) => a.currentMemberAssignedCount - b.currentMemberAssignedCount,
+      sorter: (a, b) =>
+        a.currentMemberAssignedCount - b.currentMemberAssignedCount,
     },
     {
-      title: 'Tình trạng',
-      key: 'availability',
+      title: "Tình trạng",
+      key: "availability",
       render: (_, record) => {
         const status = getAvailabilityStatus(record);
         return (
-          <Badge 
-            status={status.color === 'green' ? 'success' : status.color === 'orange' ? 'warning' : 'error'} 
-            text={status.text} 
+          <Badge
+            status={
+              status.color === "green"
+                ? "success"
+                : status.color === "orange"
+                ? "warning"
+                : "error"
+            }
+            text={status.text}
           />
         );
       },
       filters: [
-        { text: 'Có sẵn', value: 'available' },
-        { text: 'Hạn chế', value: 'limited' },
-        { text: 'Đầy', value: 'full' }
+        { text: "Có sẵn", value: "available" },
+        { text: "Hạn chế", value: "limited" },
+        { text: "Đầy", value: "full" },
       ],
       onFilter: (value, record) => {
         const status = getAvailabilityStatus(record);
         return status.text.toLowerCase().includes(value);
-      }
+      },
     },
     {
-      title: 'Hành động',
-      key: 'action',
+      title: "Hành động",
+      key: "action",
       render: (_, record) => {
-        const canSelect = !record.full && record.workingHours && record.workingHours.length > 0;
-        
+        const canSelect =
+          !record.full && record.workingHours && record.workingHours.length > 0;
+
         return (
           <Space size="small" direction="vertical">
             <Space size="small">
               {canSelect ? (
-                <Button 
-                  type="primary" 
+                <Button
+                  type="primary"
                   icon={<CheckCircleOutlined />}
                   onClick={() => handleChooseCoach(record)}
                   size="small"
@@ -343,9 +406,15 @@ const AppointmentManagement = () => {
                   Chọn HLV
                 </Button>
               ) : (
-                <Tooltip title={record.full ? "Huấn luyện viên đã đầy" : "Không có giờ làm việc"}>
-                  <Button 
-                    disabled 
+                <Tooltip
+                  title={
+                    record.full
+                      ? "Huấn luyện viên đã đầy"
+                      : "Không có giờ làm việc"
+                  }
+                >
+                  <Button
+                    disabled
                     icon={<ExclamationCircleOutlined />}
                     size="small"
                   >
@@ -354,9 +423,9 @@ const AppointmentManagement = () => {
                 </Tooltip>
               )}
             </Space>
-            <Space size="small" style={{ width: '100%' }}>
-              <Button 
-                type="default" 
+            <Space size="small" style={{ width: "100%" }}>
+              <Button
+                type="default"
                 icon={<StarOutlined />}
                 onClick={() => handleShowFeedback(record)}
                 size="small"
@@ -365,9 +434,9 @@ const AppointmentManagement = () => {
                 Đánh giá
               </Button>
             </Space>
-            <Space size="small" style={{ width: '100%' }}>
-              <Button 
-                type="default" 
+            <Space size="small" style={{ width: "100%" }}>
+              <Button
+                type="default"
                 icon={<EyeOutlined />}
                 onClick={() => handleViewAssignedMembers(record)}
                 size="small"
@@ -390,24 +459,38 @@ const AppointmentManagement = () => {
           </Space>
         );
       },
-      width: 180
-    }
+      width: 180,
+    },
   ];
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "400px",
+        }}
+      >
         <Spin size="large" />
       </div>
     );
   }
 
   // Calculate summary statistics
-  const availableCoaches = coaches.filter(coach => !coach.full).length;
-  const fullCoaches = coaches.filter(coach => coach.full).length;
-  const averageMembers = coaches.length > 0 
-    ? (coaches.reduce((sum, coach) => sum + coach.currentMemberAssignedCount, 0) / coaches.length).toFixed(1)
-    : 0;
+  const totalCoaches = coaches.length;
+  const availableCoaches = coaches.filter((coach) => !coach.full).length;
+  const fullCoaches = coaches.filter((coach) => coach.full).length;
+  const averageMembers =
+    coaches.length > 0
+      ? (
+          coaches.reduce(
+            (sum, coach) => sum + coach.currentMemberAssignedCount,
+            0
+          ) / coaches.length
+        ).toFixed(1)
+      : 0;
 
   return (
     <div className="coach-selection">
@@ -415,10 +498,11 @@ const AppointmentManagement = () => {
         <Title level={2}>
           <TeamOutlined /> Chọn Huấn Luyện Viên
         </Title>
-        
+
         <Paragraph>
-          Chọn một huấn luyện viên có trình độ để hướng dẫn bạn trong hành trình cai thuốc lá. 
-          Mỗi huấn luyện viên có chuyên môn và lịch trình riêng để hỗ trợ kế hoạch cai thuốc của bạn.
+          Chọn một huấn luyện viên có trình độ để hướng dẫn bạn trong hành trình
+          cai thuốc lá. Mỗi huấn luyện viên có chuyên môn và lịch trình riêng để
+          hỗ trợ kế hoạch cai thuốc của bạn.
         </Paragraph>
 
         {/* Summary Statistics */}
@@ -438,7 +522,7 @@ const AppointmentManagement = () => {
                 title="Huấn luyện viên có sẵn"
                 value={availableCoaches}
                 prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: '#3f8600' }}
+                valueStyle={{ color: "#3f8600" }}
               />
             </Card>
           </Col>
@@ -448,7 +532,7 @@ const AppointmentManagement = () => {
                 title="Huấn luyện viên đã đầy"
                 value={fullCoaches}
                 prefix={<ExclamationCircleOutlined />}
-                valueStyle={{ color: '#cf1322' }}
+                valueStyle={{ color: "#cf1322" }}
               />
             </Card>
           </Col>
@@ -464,9 +548,9 @@ const AppointmentManagement = () => {
         </Row>
 
         <Card title="Danh sách huấn luyện viên">
-          <Table 
-            dataSource={coaches} 
-            columns={columns} 
+          <Table
+            dataSource={coaches}
+            columns={columns}
             rowKey="coachId"
             pagination={{
               current: pagination.current,
@@ -474,13 +558,14 @@ const AppointmentManagement = () => {
               total: pagination.total,
               showSizeChanger: true,
               showQuickJumper: true,
-              showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} huấn luyện viên`,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} của ${total} huấn luyện viên`,
             }}
             onChange={handleTableChange}
             scroll={{ x: 1300 }}
           />
         </Card>
-        
+
         {/* Confirmation Modal */}
         <Modal
           title="Xác nhận chọn huấn luyện viên"
@@ -490,9 +575,9 @@ const AppointmentManagement = () => {
             <Button key="back" onClick={() => setConfirmModalVisible(false)}>
               Hủy
             </Button>,
-            <Button 
-              key="submit" 
-              type="primary" 
+            <Button
+              key="submit"
+              type="primary"
               loading={selecting}
               onClick={confirmChooseCoach}
             >
@@ -509,39 +594,47 @@ const AppointmentManagement = () => {
                 showIcon
                 style={{ marginBottom: 16 }}
               />
-              
+
               <Card size="small">
                 <Space>
                   <Avatar size="large" icon={<UserOutlined />} />
                   <div>
-                    <Text strong style={{ fontSize: '16px' }}>{selectedCoach.name}</Text>
+                    <Text strong style={{ fontSize: "16px" }}>
+                      {selectedCoach.name}
+                    </Text>
                     <br />
                     <Text type="secondary">{selectedCoach.email}</Text>
                     <br />
-                    <Text type="secondary">Liên hệ: {selectedCoach.contact_number}</Text>
+                    <Text type="secondary">
+                      Liên hệ: {selectedCoach.contact_number}
+                    </Text>
                   </div>
                 </Space>
-                
+
                 <div style={{ marginTop: 12 }}>
                   <Text strong>Chứng chỉ:</Text>
                   <br />
-                  <Text>{selectedCoach.certificates || 'Chưa cập nhật'}</Text>
+                  <Text>{selectedCoach.certificates || "Chưa cập nhật"}</Text>
                 </div>
-                
+
                 <div style={{ marginTop: 12 }}>
                   <Text strong>Giờ làm việc:</Text>
                   <br />
-                  {selectedCoach.workingHours && selectedCoach.workingHours.length > 0 ? (
+                  {selectedCoach.workingHours &&
+                  selectedCoach.workingHours.length > 0 ? (
                     selectedCoach.workingHours.map((schedule, index) => (
                       <div key={index}>
-                        <Text>{schedule.dayOfWeek}: {schedule.startTime} - {schedule.endTime}</Text>
+                        <Text>
+                          {schedule.dayOfWeek}: {schedule.startTime} -{" "}
+                          {schedule.endTime}
+                        </Text>
                       </div>
                     ))
                   ) : (
                     <Text type="secondary">Không có lịch trình</Text>
                   )}
                 </div>
-                
+
                 <div style={{ marginTop: 12 }}>
                   <Text strong>Thành viên hiện tại: </Text>
                   <Text>{selectedCoach.currentMemberAssignedCount}/10</Text>
@@ -573,7 +666,9 @@ const AppointmentManagement = () => {
                 <Space>
                   <Avatar size="large" icon={<UserOutlined />} />
                   <div>
-                    <Text strong style={{ fontSize: '16px' }}>{feedbackCoach.name}</Text>
+                    <Text strong style={{ fontSize: "16px" }}>
+                      {feedbackCoach.name}
+                    </Text>
                     <br />
                     <Text type="secondary">{feedbackCoach.email}</Text>
                   </div>
@@ -589,11 +684,20 @@ const AppointmentManagement = () => {
                   name="star"
                   label="Đánh giá sao"
                   rules={[
-                    { required: true, message: 'Vui lòng chọn số sao đánh giá!' }
+                    {
+                      required: true,
+                      message: "Vui lòng chọn số sao đánh giá!",
+                    },
                   ]}
                 >
-                  <Rate 
-                    tooltips={['Rất không hài lòng', 'Không hài lòng', 'Bình thường', 'Hài lòng', 'Rất hài lòng']}
+                  <Rate
+                    tooltips={[
+                      "Rất không hài lòng",
+                      "Không hài lòng",
+                      "Bình thường",
+                      "Hài lòng",
+                      "Rất hài lòng",
+                    ]}
                     onChange={(value) => {
                       // Optional: Show description below rating
                     }}
@@ -604,9 +708,19 @@ const AppointmentManagement = () => {
                   name="content"
                   label="Nội dung phản hồi"
                   rules={[
-                    { required: true, message: 'Vui lòng nhập nội dung phản hồi!' },
-                    { min: 10, message: 'Nội dung phản hồi phải có ít nhất 10 ký tự!' },
-                    { max: 500, message: 'Nội dung phản hồi không được vượt quá 500 ký tự!' }
+                    {
+                      required: true,
+                      message: "Vui lòng nhập nội dung phản hồi!",
+                    },
+                    {
+                      min: 10,
+                      message: "Nội dung phản hồi phải có ít nhất 10 ký tự!",
+                    },
+                    {
+                      max: 500,
+                      message:
+                        "Nội dung phản hồi không được vượt quá 500 ký tự!",
+                    },
                   ]}
                 >
                   <TextArea
@@ -617,9 +731,9 @@ const AppointmentManagement = () => {
                   />
                 </Form.Item>
 
-                <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+                <Form.Item style={{ marginBottom: 0, textAlign: "right" }}>
                   <Space>
-                    <Button 
+                    <Button
                       onClick={() => {
                         setFeedbackModalVisible(false);
                         feedbackForm.resetFields();
@@ -627,8 +741,8 @@ const AppointmentManagement = () => {
                     >
                       Hủy
                     </Button>
-                    <Button 
-                      type="primary" 
+                    <Button
+                      type="primary"
                       htmlType="submit"
                       loading={submittingFeedback}
                       icon={<SendOutlined />}
@@ -660,8 +774,8 @@ const AppointmentManagement = () => {
             setAssignedMembers([]);
           }}
           footer={[
-            <Button 
-              key="close" 
+            <Button
+              key="close"
               onClick={() => {
                 setAssignedMembersModalVisible(false);
                 setSelectedCoachForMembers(null);
@@ -669,12 +783,12 @@ const AppointmentManagement = () => {
               }}
             >
               Đóng
-            </Button>
+            </Button>,
           ]}
           width={800}
         >
           {loadingAssignedMembers ? (
-            <div style={{ textAlign: 'center', padding: '50px 0' }}>
+            <div style={{ textAlign: "center", padding: "50px 0" }}>
               <Spin size="large" />
               <div style={{ marginTop: 16 }}>
                 <Text>Đang tải danh sách thành viên...</Text>
@@ -690,7 +804,7 @@ const AppointmentManagement = () => {
                     style={{ marginBottom: 16 }}
                     showIcon
                   />
-                  
+
                   <Table
                     dataSource={assignedMembers}
                     pagination={false}
@@ -698,27 +812,31 @@ const AppointmentManagement = () => {
                     rowKey={(record) => record.memberId || record.id}
                     columns={[
                       {
-                        title: 'Tên thành viên',
-                        dataIndex: 'name',
-                        key: 'name',
+                        title: "Tên thành viên",
+                        dataIndex: "name",
+                        key: "name",
                         render: (text, record) => (
                           <Space>
                             <Avatar size="small" icon={<UserOutlined />} />
                             <div>
-                              <Text strong>{text || 'Không có tên'}</Text>
+                              <Text strong>{text || "Không có tên"}</Text>
                               <br />
                             </div>
                           </Space>
-                        )
+                        ),
                       },
                     ]}
                   />
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', padding: '50px 0' }}>
-                  <ExclamationCircleOutlined style={{ fontSize: '48px', color: '#ccc' }} />
+                <div style={{ textAlign: "center", padding: "50px 0" }}>
+                  <ExclamationCircleOutlined
+                    style={{ fontSize: "48px", color: "#ccc" }}
+                  />
                   <div style={{ marginTop: 16 }}>
-                    <Text type="secondary">Huấn luyện viên này chưa có thành viên nào được gán</Text>
+                    <Text type="secondary">
+                      Huấn luyện viên này chưa có thành viên nào được gán
+                    </Text>
                   </div>
                 </div>
               )}
@@ -848,7 +966,7 @@ const styles = `
 `;
 
 // Inject styles
-if (typeof document !== 'undefined') {
+if (typeof document !== "undefined") {
   const styleSheet = document.createElement("style");
   styleSheet.innerText = styles;
   document.head.appendChild(styleSheet);
