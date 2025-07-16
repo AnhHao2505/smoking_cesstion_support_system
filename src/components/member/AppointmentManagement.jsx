@@ -479,7 +479,6 @@ const AppointmentManagement = () => {
   }
 
   // Calculate summary statistics
-  const totalCoaches = coaches.length;
   const availableCoaches = coaches.filter((coach) => !coach.full).length;
   const fullCoaches = coaches.filter((coach) => coach.full).length;
   const averageMembers =

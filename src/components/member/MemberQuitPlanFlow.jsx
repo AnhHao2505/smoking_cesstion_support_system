@@ -541,7 +541,7 @@ const MemberQuitPlanFlow = () => {
               )}
             </Col>
           </Row>
-        )}}
+        )}
         <Modal
           title={
             <Space>
