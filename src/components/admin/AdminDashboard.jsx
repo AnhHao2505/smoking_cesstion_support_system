@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Layout, 
-  Typography, 
-  Row, 
-  Col, 
-  Card, 
-  Statistic, 
-  Table, 
-  Tag, 
-  Progress, 
-  Button, 
-  Space, 
+import React, { useState, useEffect } from "react";
+import {
+  Layout,
+  Typography,
+  Row,
+  Col,
+  Card,
+  Statistic,
+  Table,
+  Tag,
+  Progress,
+  Button,
+  Space,
   Badge,
   Tabs,
   Pagination,
@@ -19,20 +19,20 @@ import {
   Form,
   Modal,
   Input,
-  Select
-} from 'antd';
-import { 
-  UserOutlined, 
-  TeamOutlined, 
-  CheckCircleOutlined, 
+  Select,
+} from "antd";
+import {
+  UserOutlined,
+  TeamOutlined,
+  CheckCircleOutlined,
   StarOutlined,
   RiseOutlined,
   FileTextOutlined,
   TrophyOutlined,
   MedicineBoxOutlined,
   BellOutlined,
-  PlusOutlined
-} from '@ant-design/icons';
+  PlusOutlined,
+} from "@ant-design/icons";
 import {
   LineChart,
   BarChart,
@@ -46,13 +46,13 @@ import {
   PieChart,
   Pie,
   Cell,
-  ResponsiveContainer
-} from 'recharts';
-import * as adminDashboardService from '../../services/adminDashboardService';
-import * as userService from '../../services/userService';
-import * as feedbackService from '../../services/feebackService';
-import * as reminderService from '../../services/reminderService';
-import '../../styles/Dashboard.css';
+  ResponsiveContainer,
+} from "recharts";
+import * as adminDashboardService from "../../services/adminDashboardService";
+import * as userService from "../../services/userService";
+import * as feedbackService from "../../services/feebackService";
+import * as reminderService from "../../services/reminderService";
+import "../../styles/Dashboard.css";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -60,7 +60,7 @@ const { TabPane } = Tabs;
 const AdminDashboard = () => {
   // Dashboard statistics state
   const [dashboardStats, setDashboardStats] = useState({});
-  
+
   // Users data state
   const [usersData, setUsersData] = useState({
     content: [],
@@ -68,28 +68,28 @@ const AdminDashboard = () => {
     pageSize: 10,
     totalElements: 0,
     totalPages: 0,
-    last: false
+    last: false,
   });
-  
+
   // Feedback data state
   const [feedbackData, setFeedbackData] = useState([]);
   const [publishedFeedbacks, setPublishedFeedbacks] = useState([]);
   const [unreviewedFeedbacks, setUnreviewedFeedbacks] = useState([]);
-  
+
   // Reminder data state
   const [reminderData, setReminderData] = useState([]);
   const [reminderPagination, setReminderPagination] = useState({
     current: 1,
     pageSize: 10,
-    total: 0
+    total: 0,
   });
-  
+
   // Loading states
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [reminderLoading, setReminderLoading] = useState(false);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -106,7 +106,7 @@ const AdminDashboard = () => {
       setDashboardStats(stats || {});
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
-      message.error("Failed to load dashboard statistics");
+      message.error("Không thể tải thống kê dashboard");
       setDashboardStats({});
     }
   };
@@ -116,24 +116,26 @@ const AdminDashboard = () => {
     try {
       setUsersLoading(true);
       const users = await userService.getAllUsers(page, size);
-      setUsersData(users || {
-        content: [],
-        pageNo: 0,
-        pageSize: 10,
-        totalElements: 0,
-        totalPages: 0,
-        last: false
-      });
+      setUsersData(
+        users || {
+          content: [],
+          pageNo: 0,
+          pageSize: 10,
+          totalElements: 0,
+          totalPages: 0,
+          last: false,
+        }
+      );
     } catch (error) {
       console.error("Error fetching users data:", error);
-      message.error("Failed to load users data");
+      message.error("Không thể tải dữ liệu người dùng");
       setUsersData({
         content: [],
         pageNo: 0,
         pageSize: 10,
         totalElements: 0,
         totalPages: 0,
-        last: false
+        last: false,
       });
     } finally {
       setUsersLoading(false);
@@ -146,15 +148,18 @@ const AdminDashboard = () => {
       setFeedbackLoading(true);
       const [unreviewedFeedbacks, publishedFeedbacks] = await Promise.all([
         feedbackService.getUnreviewedFeedbacks(),
-        feedbackService.getPublishedFeedbacks()
+        feedbackService.getPublishedFeedbacks(),
       ]);
       setUnreviewedFeedbacks(unreviewedFeedbacks || []);
       setPublishedFeedbacks(publishedFeedbacks || []);
       // Keep the combined feedbackData for backward compatibility and stats
-      setFeedbackData([...(unreviewedFeedbacks || []), ...(publishedFeedbacks || [])]);
+      setFeedbackData([
+        ...(unreviewedFeedbacks || []),
+        ...(publishedFeedbacks || []),
+      ]);
     } catch (error) {
       console.error("Error fetching feedback data:", error);
-      message.error("Failed to load feedback data");
+      message.error("Không thể tải dữ liệu phản hồi");
       setUnreviewedFeedbacks([]);
       setPublishedFeedbacks([]);
       setFeedbackData([]);
@@ -168,8 +173,8 @@ const AdminDashboard = () => {
     try {
       setReminderLoading(true);
       const response = await reminderService.getAllReminders(page, size);
-      console.log('Reminder response:', response); // Debug log
-      
+      console.log("Reminder response:", response); // Debug log
+
       if (response) {
         // Check if response has success property (from catch block with mock data)
         if (response.success === true && Array.isArray(response.data)) {
@@ -178,7 +183,7 @@ const AdminDashboard = () => {
           setReminderPagination({
             current: page + 1,
             pageSize: size,
-            total: response.data.length
+            total: response.data.length,
           });
         } else if (response.content) {
           // Real API data format (after handleApiResponse)
@@ -186,7 +191,7 @@ const AdminDashboard = () => {
           setReminderPagination({
             current: (response.pageNo || 0) + 1,
             pageSize: response.pageSize || size,
-            total: response.totalElements || 0
+            total: response.totalElements || 0,
           });
         } else {
           // Fallback
@@ -194,7 +199,7 @@ const AdminDashboard = () => {
           setReminderPagination({
             current: 1,
             pageSize: size,
-            total: 0
+            total: 0,
           });
         }
       } else {
@@ -202,17 +207,17 @@ const AdminDashboard = () => {
         setReminderPagination({
           current: 1,
           pageSize: size,
-          total: 0
+          total: 0,
         });
       }
     } catch (error) {
       console.error("Error fetching reminder data:", error);
-      message.error("Failed to load reminder data");
+      message.error("Không thể tải dữ liệu nhắc nhở");
       setReminderData([]);
       setReminderPagination({
         current: 1,
         pageSize: size,
-        total: 0
+        total: 0,
       });
     } finally {
       setReminderLoading(false);
@@ -227,7 +232,7 @@ const AdminDashboard = () => {
         fetchDashboardStats(),
         fetchUsersData(0, pageSize),
         fetchFeedbackData(),
-        fetchReminderData(0, pageSize)
+        fetchReminderData(0, pageSize),
       ]);
       setLoading(false);
     };
@@ -244,45 +249,50 @@ const AdminDashboard = () => {
 
   // Handle user disable/enable
   const handleUserDisableToggle = async (record) => {
-    console.log(record)
+    console.log(record);
     try {
-      if (record.role === 'ADMIN') {
-        message.warning('Admin users cannot be disabled');
+      if (record.role === "ADMIN") {
+        message.warning("Không thể vô hiệu hóa tài khoản Admin");
         return;
       }
 
-      const action = record.status ? 'disable' : 'enable';
+      const action = record.status ? "vô hiệu hóa" : "kích hoạt";
       const response = await userService.disableUser(record.id);
-      
+
       if (response.success) {
-        message.success(`User ${action}d successfully`);
+        message.success(`${action} người dùng thành công`);
         // Refresh users data to show updated status
         fetchUsersData(currentPage - 1, pageSize);
       } else {
-        message.error(`Failed to ${action} user`);
+        message.error(`Không thể ${action} người dùng`);
       }
     } catch (error) {
-      console.error(`Error ${record.status ? 'disabling' : 'enabling'} user:`, error);
-      message.error(`Failed to ${record.status ? 'disable' : 'enable'} user`);
+      console.error(
+        `Error ${record.status ? "disabling" : "enabling"} user:`,
+        error
+      );
+      message.error(
+        `Không thể ${record.status ? "vô hiệu hóa" : "kích hoạt"} người dùng`
+      );
     }
   };
 
   // Handle user re-enable
   const handleUserReEnable = async (record) => {
     try {
-      if (record.role === 'ADMIN') {
-        message.warning('Admin users cannot be re-enabled');
+      if (record.role === "ADMIN") {
+        message.warning("Admin users cannot be re-enabled");
         return;
       }
 
       const response = await userService.reEnableUser(record.id);
-      
-        message.success('User re-enabled successfully');
-        // Refresh users data to show updated status
-        fetchUsersData(currentPage - 1, pageSize);
+
+      message.success("Người dùng đã được kích hoạt lại thành công");
+      // Refresh users data to show updated status
+      fetchUsersData(currentPage - 1, pageSize);
     } catch (error) {
-      console.error('Error re-enabling user:', error);
-      message.error('Failed to re-enable user');
+      console.error("Error re-enabling user:", error);
+      message.error("Failed to re-enable user");
     }
   };
 
@@ -291,14 +301,14 @@ const AdminDashboard = () => {
     try {
       const response = await feedbackService.approveFeedback(feedbackId);
       if (response.success) {
-        message.success('Feedback approved and published successfully');
+        message.success("Phản hồi đã được phê duyệt và xuất bản thành công");
         fetchFeedbackData(); // Refresh feedback data
       } else {
-        message.error('Failed to approve feedback');
+        message.error("Failed to approve feedback");
       }
     } catch (error) {
-      console.error('Error approving feedback:', error);
-      message.error('Failed to approve feedback');
+      console.error("Error approving feedback:", error);
+      message.error("Failed to approve feedback");
     }
   };
 
@@ -307,14 +317,14 @@ const AdminDashboard = () => {
     try {
       const response = await feedbackService.hideFeedback(feedbackId);
       if (response.success) {
-        message.success('Feedback hidden successfully');
+        message.success("Phản hồi đã được ẩn thành công");
         fetchFeedbackData(); // Refresh feedback data
       } else {
-        message.error('Failed to hide feedback');
+        message.error("Failed to hide feedback");
       }
     } catch (error) {
-      console.error('Error hiding feedback:', error);
-      message.error('Failed to hide feedback');
+      console.error("Error hiding feedback:", error);
+      message.error("Failed to hide feedback");
     }
   };
 
@@ -323,14 +333,14 @@ const AdminDashboard = () => {
     try {
       const response = await feedbackService.markFeedbackReviewed(feedbackId);
       if (response.success) {
-        message.success('Feedback marked as reviewed');
+        message.success("Feedback marked as reviewed");
         fetchFeedbackData(); // Refresh feedback data
       } else {
-        message.error('Failed to mark feedback as reviewed');
+        message.error("Failed to mark feedback as reviewed");
       }
     } catch (error) {
-      console.error('Error marking feedback as reviewed:', error);
-      message.error('Failed to mark feedback as reviewed');
+      console.error("Error marking feedback as reviewed:", error);
+      message.error("Failed to mark feedback as reviewed");
     }
   };
 
@@ -339,30 +349,40 @@ const AdminDashboard = () => {
     try {
       const response = await reminderService.createReminder(content, category);
       if (response.success) {
-        message.success('Reminder created successfully');
-        fetchReminderData(reminderPagination.current - 1, reminderPagination.pageSize);
+        message.success("Nhắc nhở đã được tạo thành công");
+        fetchReminderData(
+          reminderPagination.current - 1,
+          reminderPagination.pageSize
+        );
       } else {
-        message.error('Failed to create reminder');
+        message.error("Failed to create reminder");
       }
     } catch (error) {
-      console.error('Error creating reminder:', error);
-      message.error('Failed to create reminder');
+      console.error("Error creating reminder:", error);
+      message.error("Failed to create reminder");
     }
   };
 
   // Update existing reminder
   const handleUpdateReminder = async (reminderId, content, category) => {
     try {
-      const response = await reminderService.updateReminder(reminderId, content, category);
+      const response = await reminderService.updateReminder(
+        reminderId,
+        content,
+        category
+      );
       if (response.success) {
-        message.success('Reminder updated successfully');
-        fetchReminderData(reminderPagination.current - 1, reminderPagination.pageSize);
+        message.success("Nhắc nhở đã được cập nhật thành công");
+        fetchReminderData(
+          reminderPagination.current - 1,
+          reminderPagination.pageSize
+        );
       } else {
-        message.error('Failed to update reminder');
+        message.error("Failed to update reminder");
       }
     } catch (error) {
-      console.error('Error updating reminder:', error);
-      message.error('Failed to update reminder');
+      console.error("Error updating reminder:", error);
+      message.error("Failed to update reminder");
     }
   };
 
@@ -371,14 +391,17 @@ const AdminDashboard = () => {
     try {
       const response = await reminderService.disableReminder(reminderId);
       if (response.success) {
-        message.success('Reminder disabled successfully');
-        fetchReminderData(reminderPagination.current - 1, reminderPagination.pageSize);
+        message.success("Nhắc nhở đã được vô hiệu hóa thành công");
+        fetchReminderData(
+          reminderPagination.current - 1,
+          reminderPagination.pageSize
+        );
       } else {
-        message.error('Failed to disable reminder');
+        message.error("Failed to disable reminder");
       }
     } catch (error) {
-      console.error('Error disabling reminder:', error);
-      message.error('Failed to disable reminder');
+      console.error("Error disabling reminder:", error);
+      message.error("Failed to disable reminder");
     }
   };
 
@@ -387,23 +410,26 @@ const AdminDashboard = () => {
     try {
       const response = await reminderService.reEnableReminder(reminderId);
       if (response.success) {
-        message.success('Reminder re-enabled successfully');
-        fetchReminderData(reminderPagination.current - 1, reminderPagination.pageSize);
+        message.success("Nhắc nhở đã được kích hoạt lại thành công");
+        fetchReminderData(
+          reminderPagination.current - 1,
+          reminderPagination.pageSize
+        );
       } else {
-        message.error('Failed to re-enable reminder');
+        message.error("Failed to re-enable reminder");
       }
     } catch (error) {
-      console.error('Error re-enabling reminder:', error);
-      message.error('Failed to re-enable reminder');
+      console.error("Error re-enabling reminder:", error);
+      message.error("Failed to re-enable reminder");
     }
   };
 
   // Handle reminder pagination change
   const handleReminderPaginationChange = (page, size) => {
-    setReminderPagination(prev => ({
+    setReminderPagination((prev) => ({
       ...prev,
       current: page,
-      pageSize: size
+      pageSize: size,
     }));
     fetchReminderData(page - 1, size);
   };
@@ -413,7 +439,7 @@ const AdminDashboard = () => {
     setEditingReminder(record);
     reminderForm.setFieldsValue({
       content: record.content,
-      category: record.category
+      category: record.category,
     });
     setReminderModalVisible(true);
   };
@@ -422,20 +448,24 @@ const AdminDashboard = () => {
   const handleReminderModalSubmit = async () => {
     try {
       const values = await reminderForm.validateFields();
-      
+
       if (editingReminder) {
         // Update existing reminder
-        await handleUpdateReminder(editingReminder.id, values.content, values.category);
+        await handleUpdateReminder(
+          editingReminder.id,
+          values.content,
+          values.category
+        );
       } else {
         // Create new reminder
         await handleCreateReminder(values.content, values.category);
       }
-      
+
       setReminderModalVisible(false);
       setEditingReminder(null);
       reminderForm.resetFields();
     } catch (error) {
-      console.error('Form validation failed:', error);
+      console.error("Form validation failed:", error);
     }
   };
 
@@ -449,132 +479,136 @@ const AdminDashboard = () => {
   // Table columns for users
   const userColumns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
       width: 80,
     },
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Tên",
+      dataIndex: "name",
+      key: "name",
     },
     {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
     },
     {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
+      title: "Vai trò",
+      dataIndex: "role",
+      key: "role",
       render: (role) => (
-        <Tag color={role === 'MEMBER' ? 'blue' : role === 'COACH' ? 'green' : 'purple'}>
+        <Tag
+          color={
+            role === "MEMBER" ? "blue" : role === "COACH" ? "green" : "purple"
+          }
+        >
           {role}
         </Tag>
-      )
+      ),
     },
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
       render: (status) => (
-        <Badge 
-          status={status ? 'success' : 'error'} 
-          text={status ? 'Active' : 'Inactive'} 
+        <Badge
+          status={status ? "success" : "error"}
+          text={status ? "Hoạt động" : "Không hoạt động"}
         />
-      )
+      ),
     },
     {
-      title: 'Action',
-      key: 'action',
+      title: "Hành động",
+      key: "action",
       render: (_, record) => (
         <Space>
-          {record.role !== 'ADMIN' && record.status && (
-            <Button 
-              type="link" 
-              size="small" 
+          {record.role !== "ADMIN" && record.status && (
+            <Button
+              type="link"
+              size="small"
               danger
               onClick={() => handleUserDisableToggle(record)}
             >
               Disable
             </Button>
           )}
-          {record.role !== 'ADMIN' && !record.status && (
+          {record.role !== "ADMIN" && !record.status && (
             <>
-              <Button 
-                type="link" 
-                size="small" 
+              <Button
+                type="link"
+                size="small"
                 onClick={() => handleUserReEnable(record)}
               >
                 Enable
               </Button>
             </>
           )}
-          {record.role === 'ADMIN' && (
-            <Tooltip title="Admin users cannot be disabled">
+          {record.role === "ADMIN" && (
+            <Tooltip title="Người dùng quản trị không thể bị vô hiệu hóa">
               <Button type="link" size="small" disabled>
                 Protected
               </Button>
             </Tooltip>
           )}
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   // Table columns for unreviewed feedbacks
   const unreviewedFeedbackColumns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
       width: 80,
     },
     {
-      title: 'Content',
-      dataIndex: 'content',
-      key: 'content',
+      title: "Nội dung",
+      dataIndex: "content",
+      key: "content",
       ellipsis: true,
       render: (content) => (
         <Tooltip title={content}>
           <span>{content}</span>
         </Tooltip>
-      )
+      ),
     },
     {
-      title: 'Rating',
-      dataIndex: 'star',
-      key: 'star',
+      title: "Đánh giá",
+      dataIndex: "star",
+      key: "star",
       width: 100,
       render: (star) => (
         <div>
-          <StarOutlined style={{ color: '#faad14' }} /> {star}/5
+          <StarOutlined style={{ color: "#faad14" }} /> {star}/5
         </div>
-      )
+      ),
     },
     {
-      title: 'Coach',
-      dataIndex: ['coach', 'name'],
-      key: 'coachName',
-      render: (name, record) => name || record.coachName || 'N/A'
+      title: "Huấn luyện viên",
+      dataIndex: ["coach", "name"],
+      key: "coachName",
+      render: (name, record) => name || record.coachName || "N/A",
     },
     {
-      title: 'Member',
-      dataIndex: ['member', 'name'],
-      key: 'memberName',
-      render: (name, record) => name || record.memberName || 'N/A'
+      title: "Thành viên",
+      dataIndex: ["member", "name"],
+      key: "memberName",
+      render: (name, record) => name || record.memberName || "N/A",
     },
     {
-      title: 'Created Date',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
       width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+      render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Hành động",
+      key: "actions",
       width: 250,
       render: (_, record) => (
         <Space>
@@ -585,361 +619,365 @@ const AdminDashboard = () => {
           >
             Review
           </Button> */}
-          <Button 
-            type="default" 
+          <Button
+            type="default"
             size="small"
-            style={{ color: '#52c41a', borderColor: '#52c41a' }}
+            style={{ color: "#52c41a", borderColor: "#52c41a" }}
             onClick={() => handleFeedbackApproval(record.id)}
           >
-            Approve & Publish
+            Phê duyệt & Xuất bản
           </Button>
-          <Button 
-            type="default" 
+          <Button
+            type="default"
             size="small"
             danger
             onClick={() => handleFeedbackHide(record.id)}
           >
-            Hide
+            Ẩn
           </Button>
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   // Table columns for published feedbacks
   const publishedFeedbackColumns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
       width: 80,
     },
     {
-      title: 'Content',
-      dataIndex: 'content',
-      key: 'content',
+      title: "Nội dung",
+      dataIndex: "content",
+      key: "content",
       ellipsis: true,
       render: (content) => (
         <Tooltip title={content}>
           <span>{content}</span>
         </Tooltip>
-      )
+      ),
     },
     {
-      title: 'Rating',
-      dataIndex: 'star',
-      key: 'star',
+      title: "Đánh giá",
+      dataIndex: "star",
+      key: "star",
       width: 100,
       render: (star) => (
         <div>
-          <StarOutlined style={{ color: '#faad14' }} /> {star}/5
+          <StarOutlined style={{ color: "#faad14" }} /> {star}/5
         </div>
-      )
+      ),
     },
     {
-      title: 'Coach',
-      dataIndex: ['coach', 'name'],
-      key: 'coachName',
-      render: (name, record) => name || record.coachName || 'N/A'
+      title: "Huấn luyện viên",
+      dataIndex: ["coach", "name"],
+      key: "coachName",
+      render: (name, record) => name || record.coachName || "N/A",
     },
     {
-      title: 'Member',
-      dataIndex: ['member', 'name'],
-      key: 'memberName',
-      render: (name, record) => name || record.memberName || 'N/A'
+      title: "Thành viên",
+      dataIndex: ["member", "name"],
+      key: "memberName",
+      render: (name, record) => name || record.memberName || "N/A",
     },
     {
-      title: 'Created Date',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
       width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+      render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
     },
     {
-      title: 'Published Date',
-      dataIndex: 'publishedAt',
-      key: 'publishedAt',
+      title: "Ngày xuất bản",
+      dataIndex: "publishedAt",
+      key: "publishedAt",
       width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+      render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Hành động",
+      key: "actions",
       width: 100,
       render: (_, record) => (
-        <Button 
-          type="default" 
+        <Button
+          type="default"
           size="small"
           danger
           onClick={() => handleFeedbackHide(record.id)}
         >
-          Hide
+          Ẩn
         </Button>
-      )
-    }
+      ),
+    },
   ];
 
   // Table columns for feedbacks (legacy - for backward compatibility)
   const feedbackColumns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
       width: 80,
     },
     {
-      title: 'Content',
-      dataIndex: 'content',
-      key: 'content',
+      title: "Nội dung",
+      dataIndex: "content",
+      key: "content",
       ellipsis: true,
       render: (content) => (
         <Tooltip title={content}>
           <span>{content}</span>
         </Tooltip>
-      )
+      ),
     },
     {
-      title: 'Rating',
-      dataIndex: 'star',
-      key: 'star',
+      title: "Đánh giá",
+      dataIndex: "star",
+      key: "star",
       width: 100,
       render: (star) => (
         <div>
-          <StarOutlined style={{ color: '#faad14' }} /> {star}/5
+          <StarOutlined style={{ color: "#faad14" }} /> {star}/5
         </div>
-      )
+      ),
     },
     {
-      title: 'Coach',
-      dataIndex: ['coach', 'name'],
-      key: 'coachName',
-      render: (name, record) => name || record.coachName || 'N/A'
+      title: "Huấn luyện viên",
+      dataIndex: ["coach", "name"],
+      key: "coachName",
+      render: (name, record) => name || record.coachName || "N/A",
     },
     {
-      title: 'Member',
-      dataIndex: ['member', 'name'],
-      key: 'memberName',
-      render: (name, record) => name || record.memberName || 'N/A'
+      title: "Thành viên",
+      dataIndex: ["member", "name"],
+      key: "memberName",
+      render: (name, record) => name || record.memberName || "N/A",
     },
     {
-      title: 'Status',
-      key: 'status',
+      title: "Trạng thái",
+      key: "status",
       render: (_, record) => {
         const isPublished = record.published || record.isPublished;
         const isReviewed = record.reviewed || record.isReviewed;
-        
+
         if (isPublished) {
-          return <Tag color="green">Published</Tag>;
+          return <Tag color="green">Đã xuất bản</Tag>;
         } else if (isReviewed) {
-          return <Tag color="blue">Reviewed</Tag>;
+          return <Tag color="blue">Đã xem xét</Tag>;
         } else {
-          return <Tag color="orange">Unreviewed</Tag>;
+          return <Tag color="orange">Chưa xem xét</Tag>;
         }
-      }
+      },
     },
     {
-      title: 'Created Date',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
       width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+      render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Hành động",
+      key: "actions",
       width: 200,
       render: (_, record) => {
         const isPublished = record.published || record.isPublished;
         const isReviewed = record.reviewed || record.isReviewed;
-        
+
         return (
           <Space>
             {!isReviewed && (
-              <Button 
-                type="link" 
+              <Button
+                type="link"
                 size="small"
                 onClick={() => handleFeedbackReviewed(record.id)}
               >
-                Mark Reviewed
+                Đánh dấu đã xem xét
               </Button>
             )}
             {!isPublished && isReviewed && (
-              <Button 
-                type="link" 
+              <Button
+                type="link"
                 size="small"
-                style={{ color: '#52c41a' }}
+                style={{ color: "#52c41a" }}
                 onClick={() => handleFeedbackApproval(record.id)}
               >
-                Approve & Publish
+                Phê duyệt & Xuất bản
               </Button>
             )}
             {isPublished && (
-              <Button 
-                type="link" 
+              <Button
+                type="link"
                 size="small"
                 danger
                 onClick={() => handleFeedbackHide(record.id)}
               >
-                Hide
+                Ẩn
               </Button>
             )}
           </Space>
         );
-      }
-    }
+      },
+    },
   ];
 
   // Table columns for reminders
   const reminderColumns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
       width: 80,
     },
     {
-      title: 'Content',
-      dataIndex: 'content',
-      key: 'content',
+      title: "Nội dung",
+      dataIndex: "content",
+      key: "content",
       ellipsis: true,
       render: (content) => (
         <Tooltip title={content}>
           <span>{content}</span>
         </Tooltip>
-      )
+      ),
     },
     {
-      title: 'Category',
-      dataIndex: 'category',
-      key: 'category',
+      title: "Danh mục",
+      dataIndex: "category",
+      key: "category",
       render: (category) => {
         const colors = {
-          'HEALTH_BENEFITS': 'green',
-          'MOTIVATIONAL_QUOTES': 'blue',
-          'TIPS_AND_TRICKS': 'orange',
-          'MILESTONE_CELEBRATIONS': 'purple',
-          'SMOKING_FACTS': 'red'
+          HEALTH_BENEFITS: "green",
+          MOTIVATIONAL_QUOTES: "blue",
+          TIPS_AND_TRICKS: "orange",
+          MILESTONE_CELEBRATIONS: "purple",
+          SMOKING_FACTS: "red",
         };
         return (
-          <Tag color={colors[category] || 'default'}>
-            {category?.replace(/_/g, ' ') || 'General'}
+          <Tag color={colors[category] || "default"}>
+            {category?.replace(/_/g, " ") || "Chung"}
           </Tag>
         );
-      }
+      },
     },
     {
-      title: 'Status',
-      dataIndex: 'active',
-      key: 'active',
+      title: "Trạng thái",
+      dataIndex: "active",
+      key: "active",
       render: (active) => (
-        <Badge 
-          status={active ? 'success' : 'error'} 
-          text={active ? 'Active' : 'Inactive'} 
+        <Badge
+          status={active ? "success" : "error"}
+          text={active ? "Hoạt động" : "Không hoạt động"}
         />
-      )
+      ),
     },
     {
-      title: 'Created Date',
-      dataIndex: 'createAt',
-      key: 'createAt',
+      title: "Ngày tạo",
+      dataIndex: "createAt",
+      key: "createAt",
       width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+      render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
     },
     {
-      title: 'Updated Date',
-      dataIndex: 'updateAt',
-      key: 'updateAt',
+      title: "Ngày cập nhật",
+      dataIndex: "updateAt",
+      key: "updateAt",
       width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+      render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Hành động",
+      key: "actions",
       width: 200,
       render: (_, record) => (
         <Space>
-          <Button 
-            type="link" 
+          <Button
+            type="link"
             size="small"
             onClick={() => handleEditReminder(record)}
           >
-            Edit
+            Chỉnh sửa
           </Button>
           {record.active ? (
-            <Button 
-              type="link" 
+            <Button
+              type="link"
               size="small"
               danger
               onClick={() => handleDisableReminder(record.id)}
             >
-              Disable
+              Vô hiệu hóa
             </Button>
           ) : (
-            <Button 
-              type="link" 
+            <Button
+              type="link"
               size="small"
-              style={{ color: '#52c41a' }}
+              style={{ color: "#52c41a" }}
               onClick={() => handleReEnableReminder(record.id)}
             >
-              Enable
+              Kích hoạt
             </Button>
           )}
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   // Prepare chart data from dashboard stats
   const prepareUserRoleData = () => {
-    const { totalMembers = 0, totalCoaches = 0, totalUsers = 0 } = dashboardStats;
+    const {
+      totalMembers = 0,
+      totalCoaches = 0,
+      totalUsers = 0,
+    } = dashboardStats;
     const admins = totalUsers - totalMembers - totalCoaches;
-    
+
     return [
-      { name: 'Members', value: totalMembers, color: '#1890ff' },
-      { name: 'Coaches', value: totalCoaches, color: '#52c41a' },
-      { name: 'Admins', value: Math.max(0, admins), color: '#722ed1' }
-    ].filter(item => item.value > 0);
+      { name: "Members", value: totalMembers, color: "#1890ff" },
+      { name: "Coaches", value: totalCoaches, color: "#52c41a" },
+      { name: "Admins", value: Math.max(0, admins), color: "#722ed1" },
+    ].filter((item) => item.value > 0);
   };
 
   const prepareFeedbackData = () => {
-    const { 
-      totalFeedback = 0, 
-      reviewedFeedback = 0, 
-      unreviewedFeedback = 0, 
-      publishedFeedback = 0, 
-      unpublishedFeedback = 0 
+    const {
+      totalFeedback = 0,
+      reviewedFeedback = 0,
+      unreviewedFeedback = 0,
+      publishedFeedback = 0,
+      unpublishedFeedback = 0,
     } = dashboardStats;
-    
+
     return [
-      { name: 'Reviewed', value: reviewedFeedback, color: '#52c41a' },
-      { name: 'Unreviewed', value: unreviewedFeedback, color: '#faad14' },
-      { name: 'Published', value: publishedFeedback, color: '#1890ff' },
-      { name: 'Unpublished', value: unpublishedFeedback, color: '#ff4d4f' }
-    ].filter(item => item.value > 0);
+      { name: "Reviewed", value: reviewedFeedback, color: "#52c41a" },
+      { name: "Unreviewed", value: unreviewedFeedback, color: "#faad14" },
+      { name: "Published", value: publishedFeedback, color: "#1890ff" },
+      { name: "Unpublished", value: unpublishedFeedback, color: "#ff4d4f" },
+    ].filter((item) => item.value > 0);
   };
 
   const prepareQuitPlanData = () => {
-    const { 
+    const {
       totalQuitPlans = 0,
-      activeQuitPlans = 0, 
-      completedQuitPlans = 0, 
-      cancelledQuitPlans = 0, 
-      rejectedQuitPlans = 0 
+      activeQuitPlans = 0,
+      completedQuitPlans = 0,
+      cancelledQuitPlans = 0,
+      rejectedQuitPlans = 0,
     } = dashboardStats;
-    
+
     return [
-      { name: 'Active', value: activeQuitPlans, color: '#1890ff' },
-      { name: 'Completed', value: completedQuitPlans, color: '#52c41a' },
-      { name: 'Cancelled', value: cancelledQuitPlans, color: '#faad14' },
-      { name: 'Rejected', value: rejectedQuitPlans, color: '#ff4d4f' }
-    ].filter(item => item.value > 0);
+      { name: "Active", value: activeQuitPlans, color: "#1890ff" },
+      { name: "Completed", value: completedQuitPlans, color: "#52c41a" },
+      { name: "Cancelled", value: cancelledQuitPlans, color: "#faad14" },
+      { name: "Rejected", value: rejectedQuitPlans, color: "#ff4d4f" },
+    ].filter((item) => item.value > 0);
   };
 
   // Prepare feedback rating distribution
   const prepareFeedbackRatingData = () => {
     const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    
-    feedbackData.forEach(feedback => {
+
+    feedbackData.forEach((feedback) => {
       const rating = feedback.star || feedback.rating;
       if (rating >= 1 && rating <= 5) {
         ratingCounts[rating]++;
@@ -947,12 +985,12 @@ const AdminDashboard = () => {
     });
 
     return [
-      { name: '1 Star', value: ratingCounts[1], color: '#ff4d4f' },
-      { name: '2 Stars', value: ratingCounts[2], color: '#ff7a45' },
-      { name: '3 Stars', value: ratingCounts[3], color: '#faad14' },
-      { name: '4 Stars', value: ratingCounts[4], color: '#a0d911' },
-      { name: '5 Stars', value: ratingCounts[5], color: '#52c41a' }
-    ].filter(item => item.value > 0);
+      { name: "1 Star", value: ratingCounts[1], color: "#ff4d4f" },
+      { name: "2 Stars", value: ratingCounts[2], color: "#ff7a45" },
+      { name: "3 Stars", value: ratingCounts[3], color: "#faad14" },
+      { name: "4 Stars", value: ratingCounts[4], color: "#a0d911" },
+      { name: "5 Stars", value: ratingCounts[5], color: "#52c41a" },
+    ].filter((item) => item.value > 0);
   };
 
   // Calculate feedback status statistics
@@ -960,14 +998,14 @@ const AdminDashboard = () => {
     const totalUnreviewed = unreviewedFeedbacks.length;
     const totalPublished = publishedFeedbacks.length;
     const total = totalUnreviewed + totalPublished;
-    
+
     return {
       total,
       published: totalPublished,
       reviewed: totalPublished, // Published feedbacks are considered reviewed
       unreviewed: totalUnreviewed,
       publishedRate: total > 0 ? Math.round((totalPublished / total) * 100) : 0,
-      reviewedRate: total > 0 ? Math.round((totalPublished / total) * 100) : 0
+      reviewedRate: total > 0 ? Math.round((totalPublished / total) * 100) : 0,
     };
   };
 
@@ -984,69 +1022,73 @@ const AdminDashboard = () => {
   return (
     <div className="dashboard admin-dashboard">
       <div className="container py-4">
-        <Title level={2} className="page-title">Admin Dashboard</Title>
-        
+        <Title level={2} className="page-title">
+          Bảng điều khiển quản trị
+        </Title>
+
         {/* Overview Statistics */}
         <Row gutter={[16, 16]} className="stats-overview mb-4">
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
-              <Statistic 
-                title="Total Users"
+              <Statistic
+                title="Tổng người dùng"
                 value={dashboardStats.totalUsers || 0}
                 prefix={<TeamOutlined />}
-                valueStyle={{ color: '#1890ff' }}
+                valueStyle={{ color: "#1890ff" }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  {dashboardStats.totalMembers || 0} Members, {dashboardStats.totalCoaches || 0} Coaches
+                  {dashboardStats.totalMembers || 0} Thành viên,{" "}
+                  {dashboardStats.totalCoaches || 0} Huấn luyện viên
                 </Text>
               </div>
             </Card>
           </Col>
-          
+
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
-              <Statistic 
-                title="Active Members"
+              <Statistic
+                title="Thành viên hoạt động"
                 value={dashboardStats.activeMembers || 0}
                 prefix={<UserOutlined />}
-                valueStyle={{ color: '#52c41a' }}
+                valueStyle={{ color: "#52c41a" }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  {dashboardStats.inactiveMembers || 0} Inactive
+                  {dashboardStats.inactiveMembers || 0} Không hoạt động
                 </Text>
               </div>
             </Card>
           </Col>
-          
+
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
-              <Statistic 
-                title="Active Coaches"
+              <Statistic
+                title="Huấn luyện viên hoạt động"
                 value={dashboardStats.activeCoaches || 0}
                 prefix={<MedicineBoxOutlined />}
-                valueStyle={{ color: '#722ed1' }}
+                valueStyle={{ color: "#722ed1" }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  {dashboardStats.coachesWithActiveMembers || 0} with active members
+                  {dashboardStats.coachesWithActiveMembers || 0} có thành viên
+                  hoạt động
                 </Text>
               </div>
             </Card>
           </Col>
-          
+
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
-              <Statistic 
-                title="Total Feedback"
+              <Statistic
+                title="Tổng phản hồi"
                 value={dashboardStats.totalFeedback || 0}
                 prefix={<FileTextOutlined />}
-                valueStyle={{ color: '#faad14' }}
+                valueStyle={{ color: "#faad14" }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  Average: {dashboardStats.averageStarAll || 0} stars
+                  Trung bình: {dashboardStats.averageStarAll || 0} sao
                 </Text>
               </div>
             </Card>
@@ -1057,60 +1099,63 @@ const AdminDashboard = () => {
         <Row gutter={[16, 16]} className="stats-overview mb-4">
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
-              <Statistic 
-                title="Quit Plans"
+              <Statistic
+                title="Kế hoạch cai thuốc"
                 value={dashboardStats.totalQuitPlans || 0}
                 prefix={<TrophyOutlined />}
-                valueStyle={{ color: '#1890ff' }}
+                valueStyle={{ color: "#1890ff" }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  Success Rate: {dashboardStats.successRateOfQuitPlans || 0}%
+                  Tỷ lệ thành công: {dashboardStats.successRateOfQuitPlans || 0}
+                  %
                 </Text>
               </div>
             </Card>
           </Col>
-          
+
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
-              <Statistic 
-                title="Daily Logs"
+              <Statistic
+                title="Nhật ký hàng ngày"
                 value={dashboardStats.totalDailyLogs || 0}
                 prefix={<FileTextOutlined />}
-                valueStyle={{ color: '#52c41a' }}
+                valueStyle={{ color: "#52c41a" }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  {dashboardStats.membersWithAnyLog || 0} active loggers
+                  {dashboardStats.membersWithAnyLog || 0} người ghi nhật ký hoạt
+                  động
                 </Text>
               </div>
             </Card>
           </Col>
-          
+
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
-              <Statistic 
-                title="Members with Coach"
+              <Statistic
+                title="Thành viên có huấn luyện viên"
                 value={dashboardStats.membersWithAssignedCoach || 0}
                 prefix={<TeamOutlined />}
-                valueStyle={{ color: '#722ed1' }}
+                valueStyle={{ color: "#722ed1" }}
               />
               <div className="stat-footer">
-                <Text type="secondary">
-                  Coach assignment rate
-                </Text>
+                <Text type="secondary">Tỷ lệ phân công huấn luyện viên</Text>
               </div>
             </Card>
           </Col>
-          
         </Row>
-        
+
         <Tabs defaultActiveKey="1" className="dashboard-tabs">
-          <TabPane tab="User Management" key="1">
-            <Card title={`All Users (${usersData.totalElements || 0} total)`}>
-              <Table 
-                dataSource={usersData.content || []} 
-                columns={userColumns} 
+          <TabPane tab="Quản lý người dùng" key="1">
+            <Card
+              title={`Tất cả người dùng (Tổng cộng ${
+                usersData.totalElements || 0
+              })`}
+            >
+              <Table
+                dataSource={usersData.content || []}
+                columns={userColumns}
                 rowKey="id"
                 loading={usersLoading}
                 pagination={false}
@@ -1124,65 +1169,64 @@ const AdminDashboard = () => {
                   onShowSizeChange={handlePaginationChange}
                   showSizeChanger
                   showQuickJumper
-                  showTotal={(total, range) => 
-                    `${range[0]}-${range[1]} of ${total} users`
+                  showTotal={(total, range) =>
+                    `${range[0]}-${range[1]} của ${total} người dùng`
                   }
                 />
               </div>
             </Card>
           </TabPane>
-          
-          <TabPane tab="Feedback Management" key="2.5">
+
+          <TabPane tab="Quản lý phản hồi" key="2.5">
             <Row gutter={[16, 16]} className="mb-4">
               <Col xs={24} sm={6}>
                 <Card className="stat-card">
-                  <Statistic 
-                    title="Total Feedback"
-                    value={(unreviewedFeedbacks.length || 0) + (publishedFeedbacks.length || 0)}
+                  <Statistic
+                    title="Tổng phản hồi"
+                    value={
+                      (unreviewedFeedbacks.length || 0) +
+                      (publishedFeedbacks.length || 0)
+                    }
                     prefix={<FileTextOutlined />}
-                    valueStyle={{ color: '#1890ff' }}
+                    valueStyle={{ color: "#1890ff" }}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={6}>
                 <Card className="stat-card">
-                  <Statistic 
-                    title="Unreviewed Feedback"
+                  <Statistic
+                    title="Phản hồi chưa xem xét"
                     value={unreviewedFeedbacks.length || 0}
                     prefix={<BellOutlined />}
-                    valueStyle={{ color: '#ff4d4f' }}
+                    valueStyle={{ color: "#ff4d4f" }}
                   />
                   <div className="stat-footer">
-                    <Text type="secondary">
-                      Needs attention
-                    </Text>
+                    <Text type="secondary">Cần chú ý</Text>
                   </div>
                 </Card>
               </Col>
               <Col xs={24} sm={6}>
                 <Card className="stat-card">
-                  <Statistic 
-                    title="Published Feedback"
+                  <Statistic
+                    title="Phản hồi đã xuất bản"
                     value={publishedFeedbacks.length || 0}
                     prefix={<CheckCircleOutlined />}
-                    valueStyle={{ color: '#52c41a' }}
+                    valueStyle={{ color: "#52c41a" }}
                   />
                   <div className="stat-footer">
-                    <Text type="secondary">
-                      Live on platform
-                    </Text>
+                    <Text type="secondary">Hiển thị trên nền tảng</Text>
                   </div>
                 </Card>
               </Col>
               <Col xs={24} sm={6}>
                 <Card className="stat-card">
-                  <Statistic 
-                    title="Average Rating"
+                  <Statistic
+                    title="Đánh giá trung bình"
                     value={dashboardStats.averageStarAll || 0}
                     precision={1}
                     prefix={<StarOutlined />}
                     suffix="/ 5.0"
-                    valueStyle={{ color: '#faad14' }}
+                    valueStyle={{ color: "#faad14" }}
                   />
                 </Card>
               </Col>
@@ -1190,7 +1234,7 @@ const AdminDashboard = () => {
 
             <Row gutter={[16, 16]} className="mb-4">
               <Col xs={24} md={12}>
-                <Card title="Feedback Rating Distribution">
+                <Card title="Phân bố đánh giá phản hồi">
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={prepareFeedbackRatingData()}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -1206,30 +1250,30 @@ const AdminDashboard = () => {
                   </ResponsiveContainer>
                 </Card>
               </Col>
-              
+
               <Col xs={24} md={12}>
-                <Card title="Feedback Status Overview">
+                <Card title="Tổng quan trạng thái phản hồi">
                   <Row gutter={[16, 16]}>
                     <Col span={12}>
-                      <Statistic 
-                        title="Unreviewed"
+                      <Statistic
+                        title="Chưa xem xét"
                         value={getFeedbackStatusStats().unreviewed}
-                        valueStyle={{ color: '#ff4d4f' }}
+                        valueStyle={{ color: "#ff4d4f" }}
                       />
-                      <Progress 
-                        percent={100 - getFeedbackStatusStats().reviewedRate} 
+                      <Progress
+                        percent={100 - getFeedbackStatusStats().reviewedRate}
                         strokeColor="#ff4d4f"
                         showInfo={false}
                       />
                     </Col>
                     <Col span={12}>
-                      <Statistic 
-                        title="Reviewed"
+                      <Statistic
+                        title="Đã xem xét"
                         value={getFeedbackStatusStats().reviewed}
-                        valueStyle={{ color: '#52c41a' }}
+                        valueStyle={{ color: "#52c41a" }}
                       />
-                      <Progress 
-                        percent={getFeedbackStatusStats().reviewedRate} 
+                      <Progress
+                        percent={getFeedbackStatusStats().reviewedRate}
                         strokeColor="#52c41a"
                         showInfo={false}
                       />
@@ -1239,73 +1283,75 @@ const AdminDashboard = () => {
               </Col>
             </Row>
 
-            <Card title={`Feedback Management`}>
+            <Card title={`Quản lý phản hồi`}>
               <Tabs defaultActiveKey="unreviewed">
-                <TabPane 
+                <TabPane
                   tab={
                     <span>
                       <BellOutlined />
-                      Unreviewed ({unreviewedFeedbacks.length || 0})
+                      Chưa xem xét ({unreviewedFeedbacks.length || 0})
                     </span>
-                  } 
+                  }
                   key="unreviewed"
                 >
                   <div style={{ marginBottom: 16 }}>
                     <Text type="secondary">
-                      These feedbacks need to be reviewed and approved before they can be published.
+                      Những phản hồi này cần được xem xét và phê duyệt trước khi
+                      có thể được xuất bản.
                     </Text>
                   </div>
-                  <Table 
-                    dataSource={unreviewedFeedbacks || []} 
-                    columns={unreviewedFeedbackColumns} 
+                  <Table
+                    dataSource={unreviewedFeedbacks || []}
+                    columns={unreviewedFeedbackColumns}
                     rowKey="id"
                     loading={feedbackLoading}
                     scroll={{ x: 1200 }}
                     pagination={{
                       showSizeChanger: true,
                       showQuickJumper: true,
-                      showTotal: (total, range) => 
-                        `${range[0]}-${range[1]} of ${total} unreviewed feedback entries`
+                      showTotal: (total, range) =>
+                        `${range[0]}-${range[1]} của ${total} mục phản hồi chưa xem xét`,
                     }}
                   />
                 </TabPane>
-                
-                <TabPane 
+
+                <TabPane
                   tab={
                     <span>
                       <CheckCircleOutlined />
-                      Published ({publishedFeedbacks.length || 0})
+                      Đã xuất bản ({publishedFeedbacks.length || 0})
                     </span>
-                  } 
+                  }
                   key="published"
                 >
                   <div style={{ marginBottom: 16 }}>
                     <Text type="secondary">
-                      These feedbacks have been approved and are visible to the public.
+                      Những phản hồi này đã được phê duyệt và hiển thị công
+                      khai.
                     </Text>
                   </div>
-                  <Table 
-                    dataSource={publishedFeedbacks || []} 
-                    columns={publishedFeedbackColumns} 
+                  <Table
+                    dataSource={publishedFeedbacks || []}
+                    columns={publishedFeedbackColumns}
                     rowKey="id"
                     loading={feedbackLoading}
                     scroll={{ x: 1200 }}
                     pagination={{
                       showSizeChanger: true,
                       showQuickJumper: true,
-                      showTotal: (total, range) => 
-                        `${range[0]}-${range[1]} of ${total} published feedback entries`
+                      showTotal: (total, range) =>
+                        `${range[0]}-${range[1]} của ${total} mục phản hồi đã xuất bản`,
                     }}
                   />
                 </TabPane>
               </Tabs>
             </Card>
           </TabPane>
-          
-          <TabPane tab="User Analytics" key="3">
+
+          <TabPane tab="Phân tích người dùng" key="3">
             <Row gutter={[16, 16]}>
               <Col xs={24} md={12}>
-                <Card title="User Distribution by Role">
+                <Card title="Phân bố người dùng theo vai trò">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -1313,7 +1359,7 @@ const AdminDashboard = () => {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, value, percent }) => 
+                        label={({ name, value, percent }) =>
                           `${name}: ${value} (${(percent * 100).toFixed(1)}%)`
                         }
                         outerRadius={80}
@@ -1329,9 +1375,9 @@ const AdminDashboard = () => {
                   </ResponsiveContainer>
                 </Card>
               </Col>
-              
+
               <Col xs={24} md={12}>
-                <Card title="Feedback Status Distribution">
+                <Card title="Phân bố trạng thái phản hồi">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -1339,7 +1385,7 @@ const AdminDashboard = () => {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, value, percent }) => 
+                        label={({ name, value, percent }) =>
                           `${name}: ${value} (${(percent * 100).toFixed(1)}%)`
                         }
                         outerRadius={80}
@@ -1357,11 +1403,11 @@ const AdminDashboard = () => {
               </Col>
             </Row>
           </TabPane>
-          
-          <TabPane tab="Quit Plan Analytics" key="4">
+
+          <TabPane tab="Phân tích kế hoạch cai thuốc" key="4">
             <Row gutter={[16, 16]}>
               <Col xs={24} md={12}>
-                <Card title="Quit Plan Status Distribution">
+                <Card title="Phân bố trạng thái kế hoạch cai thuốc">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -1369,7 +1415,7 @@ const AdminDashboard = () => {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, value, percent }) => 
+                        label={({ name, value, percent }) =>
                           `${name}: ${value} (${(percent * 100).toFixed(1)}%)`
                         }
                         outerRadius={80}
@@ -1385,18 +1431,18 @@ const AdminDashboard = () => {
                   </ResponsiveContainer>
                 </Card>
               </Col>
-              
+
               <Col xs={24} md={12}>
-                <Card title="Quit Plan Statistics">
+                <Card title="Thống kê kế hoạch cai thuốc">
                   <Row gutter={[16, 16]}>
                     <Col span={24}>
-                      <Statistic 
-                        title="Success Rate"
+                      <Statistic
+                        title="Tỷ lệ thành công"
                         value={dashboardStats.successRateOfQuitPlans || 0}
                         suffix="%"
-                        valueStyle={{ color: '#52c41a' }}
+                        valueStyle={{ color: "#52c41a" }}
                       />
-                      <Progress 
+                      <Progress
                         percent={dashboardStats.successRateOfQuitPlans || 0}
                         strokeColor="#52c41a"
                         showInfo={false}
@@ -1407,23 +1453,23 @@ const AdminDashboard = () => {
               </Col>
             </Row>
           </TabPane>
-          
-          <TabPane tab="Reminders" key="5">
-            <Card 
-              title={`All Reminders (${reminderPagination.total} total)`}
+
+          <TabPane tab="Nhắc nhở" key="5">
+            <Card
+              title={`Tất cả nhắc nhở (Tổng cộng ${reminderPagination.total})`}
               extra={
-                <Button 
-                  type="primary" 
+                <Button
+                  type="primary"
                   onClick={() => setReminderModalVisible(true)}
                   icon={<PlusOutlined />}
                 >
-                  Create Reminder
+                  Tạo nhắc nhở
                 </Button>
               }
             >
-              <Table 
-                dataSource={reminderData} 
-                columns={reminderColumns} 
+              <Table
+                dataSource={reminderData}
+                columns={reminderColumns}
                 rowKey="id"
                 loading={reminderLoading}
                 pagination={false}
@@ -1437,8 +1483,8 @@ const AdminDashboard = () => {
                   onShowSizeChange={handleReminderPaginationChange}
                   showSizeChanger
                   showQuickJumper
-                  showTotal={(total, range) => 
-                    `${range[0]}-${range[1]} of ${total} reminders`
+                  showTotal={(total, range) =>
+                    `${range[0]}-${range[1]} của ${total} nhắc nhở`
                   }
                 />
               </div>
@@ -1448,7 +1494,7 @@ const AdminDashboard = () => {
 
         {/* Reminder Management Modal */}
         <Modal
-          title={editingReminder ? 'Edit Reminder' : 'Create Reminder'}
+          title={editingReminder ? "Chỉnh sửa nhắc nhở" : "Tạo nhắc nhở"}
           visible={reminderModalVisible}
           onCancel={handleReminderModalCancel}
           footer={null}
@@ -1461,37 +1507,50 @@ const AdminDashboard = () => {
           >
             <Form.Item
               name="content"
-              label="Content"
+              label="Nội dung"
               rules={[
-                { required: true, message: 'Please enter reminder content' }
+                { required: true, message: "Vui lòng nhập nội dung nhắc nhở" },
               ]}
             >
-              <Input.TextArea rows={4} placeholder="Enter reminder content..." />
+              <Input.TextArea
+                rows={4}
+                placeholder="Nhập nội dung nhắc nhở..."
+              />
             </Form.Item>
-            
+
             <Form.Item
               name="category"
-              label="Category"
+              label="Danh mục"
               rules={[
-                { required: true, message: 'Please select reminder category' }
+                { required: true, message: "Vui lòng chọn danh mục nhắc nhở" },
               ]}
             >
-              <Select placeholder="Select category">
-                <Select.Option value="HEALTH_BENEFITS">Health Benefits</Select.Option>
-                <Select.Option value="MOTIVATIONAL_QUOTES">Motivational Quotes</Select.Option>
-                <Select.Option value="TIPS_AND_TRICKS">Tips and Tricks</Select.Option>
-                <Select.Option value="SMOKING_FACTS">Smoking Facts</Select.Option>
+              <Select placeholder="Chọn danh mục">
+                <Select.Option value="HEALTH_BENEFITS">
+                  Lợi ích sức khỏe
+                </Select.Option>
+                <Select.Option value="MOTIVATIONAL_QUOTES">
+                  Trích dẫn động viên
+                </Select.Option>
+                <Select.Option value="TIPS_AND_TRICKS">
+                  Mẹo và thủ thuật
+                </Select.Option>
+                <Select.Option value="SMOKING_FACTS">
+                  Sự thật về thuốc lá
+                </Select.Option>
               </Select>
             </Form.Item>
-            
+
             <Form.Item>
               <Space>
-                <Button type="primary" htmlType="submit" loading={reminderLoading}>
-                  {editingReminder ? 'Update Reminder' : 'Create Reminder'}
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={reminderLoading}
+                >
+                  {editingReminder ? "Cập nhật nhắc nhở" : "Tạo nhắc nhở"}
                 </Button>
-                <Button onClick={handleReminderModalCancel}>
-                  Cancel
-                </Button>
+                <Button onClick={handleReminderModalCancel}>Hủy</Button>
               </Space>
             </Form.Item>
           </Form>
