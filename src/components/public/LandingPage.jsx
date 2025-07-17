@@ -287,70 +287,61 @@ const LandingPage = () => {
           </Title>
           <Row gutter={[32, 32]}>
             <Col xs={24} sm={12} lg={8}>
-              <Link
-                to="/member/smoking-status"
-                style={{ textDecoration: "none" }}
-              >
-                <Card className="feature-card-enhanced" hoverable>
-                  <div className="feature-icon-wrapper">
-                    <CheckCircleOutlined className="feature-icon-large" />
-                  </div>
-                  <Title level={4} className="feature-title-enhanced">
-                    Theo dõi tiến trình
-                  </Title>
-                  <Paragraph className="feature-description-enhanced">
-                    Theo dõi quá trình cai thuốc lá của bạn với số liệu thống kê
-                    trực quan và cập nhật liên tục.
-                  </Paragraph>
-                  <div className="feature-highlights">
-                    <div className="highlight-item">✓ Biểu đồ trực quan</div>
-                    <div className="highlight-item">✓ Thống kê chi tiết</div>
-                    <div className="highlight-item">✓ Báo cáo tiến độ</div>
-                  </div>
-                </Card>
-              </Link>
+              <Card className="feature-card-enhanced" hoverable>
+                <div className="feature-icon-wrapper">
+                  <CheckCircleOutlined className="feature-icon-large" />
+                </div>
+                <Title level={4} className="feature-title-enhanced">
+                  Theo dõi tiến trình
+                </Title>
+                <Paragraph className="feature-description-enhanced">
+                  Theo dõi quá trình cai thuốc lá của bạn với số liệu thống kê
+                  trực quan và cập nhật liên tục.
+                </Paragraph>
+                <div className="feature-highlights">
+                  <div className="highlight-item">✓ Biểu đồ trực quan</div>
+                  <div className="highlight-item">✓ Thống kê chi tiết</div>
+                  <div className="highlight-item">✓ Báo cáo tiến độ</div>
+                </div>
+              </Card>
             </Col>
             <Col xs={24} sm={12} lg={8}>
-              <Link to="/member/chat" style={{ textDecoration: "none" }}>
-                <Card className="feature-card-enhanced" hoverable>
-                  <div className="feature-icon-wrapper">
-                    <TeamOutlined className="feature-icon-large" />
-                  </div>
-                  <Title level={4} className="feature-title-enhanced">
-                    Hỗ trợ cộng đồng
-                  </Title>
-                  <Paragraph className="feature-description-enhanced">
-                    Kết nối với cộng đồng người cai thuốc lá để chia sẻ kinh
-                    nghiệm và nhận được sự động viên.
-                  </Paragraph>
-                  <div className="feature-highlights">
-                    <div className="highlight-item">✓ Diễn đàn thảo luận</div>
-                    <div className="highlight-item">✓ Nhóm hỗ trợ</div>
-                    <div className="highlight-item">✓ Chia sẻ thành tựu</div>
-                  </div>
-                </Card>
-              </Link>
+              <Card className="feature-card-enhanced" hoverable>
+                <div className="feature-icon-wrapper">
+                  <TeamOutlined className="feature-icon-large" />
+                </div>
+                <Title level={4} className="feature-title-enhanced">
+                  Hỗ trợ cộng đồng
+                </Title>
+                <Paragraph className="feature-description-enhanced">
+                  Kết nối với cộng đồng người cai thuốc lá để chia sẻ kinh
+                  nghiệm và nhận được sự động viên.
+                </Paragraph>
+                <div className="feature-highlights">
+                  <div className="highlight-item">✓ Diễn đàn thảo luận</div>
+                  <div className="highlight-item">✓ Nhóm hỗ trợ</div>
+                  <div className="highlight-item">✓ Chia sẻ thành tựu</div>
+                </div>
+              </Card>
             </Col>
             <Col xs={24} sm={12} lg={8}>
-              <Link to="/qna" style={{ textDecoration: "none" }}>
-                <Card className="feature-card-enhanced" hoverable>
-                  <div className="feature-icon-wrapper">
-                    <UserOutlined className="feature-icon-large" />
-                  </div>
-                  <Title level={4} className="feature-title-enhanced">
-                    Tư vấn chuyên gia
-                  </Title>
-                  <Paragraph className="feature-description-enhanced">
-                    Nhận tư vấn từ các chuyên gia y tế về phương pháp cai thuốc
-                    lá phù hợp với bạn.
-                  </Paragraph>
-                  <div className="feature-highlights">
-                    <div className="highlight-item">✓ Tư vấn 1-1</div>
-                    <div className="highlight-item">✓ Lịch hẹn linh hoạt</div>
-                    <div className="highlight-item">✓ Theo dõi sát sao</div>
-                  </div>
-                </Card>
-              </Link>
+              <Card className="feature-card-enhanced" hoverable>
+                <div className="feature-icon-wrapper">
+                  <UserOutlined className="feature-icon-large" />
+                </div>
+                <Title level={4} className="feature-title-enhanced">
+                  Tư vấn chuyên gia
+                </Title>
+                <Paragraph className="feature-description-enhanced">
+                  Nhận tư vấn từ các chuyên gia y tế về phương pháp cai thuốc lá
+                  phù hợp với bạn.
+                </Paragraph>
+                <div className="feature-highlights">
+                  <div className="highlight-item">✓ Tư vấn 1-1</div>
+                  <div className="highlight-item">✓ Lịch hẹn linh hoạt</div>
+                  <div className="highlight-item">✓ Theo dõi sát sao</div>
+                </div>
+              </Card>
             </Col>
           </Row>
         </section>

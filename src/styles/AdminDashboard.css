@@ -1,0 +1,1856 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+
+/* Admin Dashboard Enhanced Styles */
+.admin-dashboard {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  background: linear-gradient(
+    135deg,
+    #667eea 0%,
+    #764ba2 50%,
+    #f093fb 100%
+  ) !important;
+  min-height: 100vh;
+  position: relative;
+}
+
+.admin-dashboard::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.admin-dashboard::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.admin-dashboard > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Page Title Enhancement */
+.admin-dashboard .page-title {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800 !important;
+  margin-bottom: 32px !important;
+  text-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+}
+
+/* Primary Button Enhancements */
+.admin-dashboard .ant-btn-primary {
+  height: 42px !important;
+  border-radius: 21px !important;
+  font-weight: 600 !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3), 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.admin-dashboard .ant-btn-primary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.admin-dashboard .ant-btn-primary:hover {
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4),
+    0 6px 15px rgba(0, 0, 0, 0.15) !important;
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%) !important;
+}
+
+.admin-dashboard .ant-btn-primary:hover::before {
+  left: 100%;
+}
+
+.admin-dashboard .ant-btn-primary:focus {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3),
+    0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+}
+
+.admin-dashboard .ant-btn-primary:active {
+  transform: translateY(-1px) scale(0.98) !important;
+  transition: all 0.15s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+/* Secondary/Default Button Enhancements */
+.admin-dashboard .ant-btn-default {
+  height: 38px !important;
+  border-radius: 19px !important;
+  font-weight: 500 !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(248, 250, 252, 0.95) 100%
+  ) !important;
+  border: 1px solid rgba(102, 126, 234, 0.15) !important;
+  color: #667eea !important;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+.admin-dashboard .ant-btn-default::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.03) 0%,
+    rgba(118, 75, 162, 0.03) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-dashboard .ant-btn-default:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.08) 0%,
+    rgba(118, 75, 162, 0.08) 100%
+  ) !important;
+  border-color: #667eea !important;
+  color: #5a6fd8 !important;
+  transform: translateY(-2px) scale(1.01) !important;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15),
+    0 4px 10px rgba(0, 0, 0, 0.08) !important;
+}
+
+.admin-dashboard .ant-btn-default:hover::before {
+  opacity: 1;
+}
+
+.admin-dashboard .ant-btn-default:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+.admin-dashboard .ant-btn-default:active {
+  transform: translateY(0px) scale(0.99) !important;
+}
+
+/* Success Button (Green) */
+.admin-dashboard .ant-btn-default[style*="color: #52c41a"],
+.admin-dashboard .ant-btn-default[style*="color:#52c41a"] {
+  color: #52c41a !important;
+  border-color: rgba(82, 196, 26, 0.3) !important;
+}
+
+.admin-dashboard .ant-btn-default[style*="color: #52c41a"]:hover,
+.admin-dashboard .ant-btn-default[style*="color:#52c41a"]:hover {
+  background: rgba(82, 196, 26, 0.05) !important;
+  border-color: #52c41a !important;
+  color: #389e0d !important;
+}
+
+/* Danger Button Enhancements */
+.admin-dashboard .ant-btn-dangerous,
+.admin-dashboard .ant-btn-default.ant-btn-dangerous {
+  height: 36px !important;
+  border-radius: 18px !important;
+  font-weight: 500 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(255, 77, 79, 0.3) !important;
+  color: #ff4d4f !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-dashboard .ant-btn-dangerous:hover,
+.admin-dashboard .ant-btn-default.ant-btn-dangerous:hover {
+  background: rgba(255, 77, 79, 0.05) !important;
+  border-color: #ff4d4f !important;
+  color: #d9363e !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.15) !important;
+}
+
+/* Link Button Enhancements */
+.admin-dashboard .ant-btn-link {
+  height: auto !important;
+  padding: 4px 8px !important;
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-dashboard .ant-btn-link:hover {
+  background: rgba(102, 126, 234, 0.08) !important;
+  transform: translateY(-1px) !important;
+}
+
+.admin-dashboard .ant-btn-link.ant-btn-dangerous:hover {
+  background: rgba(255, 77, 79, 0.08) !important;
+}
+
+/* Button with Icons */
+.admin-dashboard .ant-btn .anticon {
+  margin-right: 8px;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.admin-dashboard .ant-btn:hover .anticon {
+  transform: scale(1.15) rotate(5deg);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+/* Small Size Buttons */
+.admin-dashboard .ant-btn-sm {
+  height: 34px !important;
+  border-radius: 17px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 0 18px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.admin-dashboard .ant-btn-sm::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.admin-dashboard .ant-btn-sm:hover::before {
+  transform: translateX(100%);
+}
+
+/* Enhanced Action Buttons in Tables */
+.admin-dashboard .ant-table-tbody .ant-btn {
+  position: relative;
+  overflow: hidden;
+  font-weight: 500 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.admin-dashboard .ant-table-tbody .ant-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.admin-dashboard .ant-table-tbody .ant-btn:hover::before {
+  left: 100%;
+}
+
+/* Specific Button Variants */
+.admin-dashboard .btn-edit {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(24, 144, 255, 0.3) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.admin-dashboard .btn-edit::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-dashboard .btn-edit:hover {
+  background: linear-gradient(135deg, #096dd9 0%, #1890ff 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(24, 144, 255, 0.4) !important;
+  color: white !important;
+}
+
+.admin-dashboard .btn-edit:hover::before {
+  opacity: 1;
+}
+
+.admin-dashboard .btn-delete {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%) !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(255, 77, 79, 0.3) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.admin-dashboard .btn-delete::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-dashboard .btn-delete:hover {
+  background: linear-gradient(135deg, #d9363e 0%, #ff4d4f 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(255, 77, 79, 0.4) !important;
+  color: white !important;
+}
+
+.admin-dashboard .btn-delete:hover::before {
+  opacity: 1;
+}
+
+.admin-dashboard .btn-activate {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%) !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(82, 196, 26, 0.3) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.admin-dashboard .btn-activate::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-dashboard .btn-activate:hover {
+  background: linear-gradient(135deg, #389e0d 0%, #52c41a 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(82, 196, 26, 0.4) !important;
+  color: white !important;
+}
+
+.admin-dashboard .btn-activate:hover::before {
+  opacity: 1;
+}
+
+.admin-dashboard .btn-approve {
+  background: linear-gradient(135deg, #722ed1 0%, #9254de 100%) !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(114, 46, 209, 0.3) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.admin-dashboard .btn-approve::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-dashboard .btn-approve:hover {
+  background: linear-gradient(135deg, #531dab 0%, #722ed1 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(114, 46, 209, 0.4) !important;
+  color: white !important;
+}
+
+.admin-dashboard .btn-approve:hover::before {
+  opacity: 1;
+}
+
+.admin-dashboard .btn-hide {
+  background: linear-gradient(135deg, #faad14 0%, #ffc53d 100%) !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(250, 173, 20, 0.3) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.admin-dashboard .btn-hide::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-dashboard .btn-hide:hover {
+  background: linear-gradient(135deg, #d48806 0%, #faad14 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(250, 173, 20, 0.4) !important;
+  color: white !important;
+}
+
+.admin-dashboard .btn-hide:hover::before {
+  opacity: 1;
+}
+
+.admin-dashboard .btn-protected {
+  background: linear-gradient(135deg, #8c8c8c 0%, #bfbfbf 100%) !important;
+  border: none !important;
+  color: white !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.admin-dashboard .btn-protected::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(255, 255, 255, 0.1) 4px,
+    rgba(255, 255, 255, 0.1) 8px
+  );
+}
+
+/* Floating Action Button */
+.admin-dashboard .fab-button {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4) !important;
+  z-index: 1000 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.admin-dashboard .fab-button:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.6) !important;
+}
+
+.admin-dashboard .fab-button .anticon {
+  font-size: 20px !important;
+  margin: 0 !important;
+}
+
+/* Card Enhancements */
+.admin-dashboard .stat-card .ant-card-body {
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.02) 0%,
+    rgba(118, 75, 162, 0.02) 100%
+  );
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-dashboard .stat-card .ant-card-body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.admin-dashboard .stat-card:hover .ant-card-body {
+  border-color: rgba(102, 126, 234, 0.2);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
+}
+
+.admin-dashboard .stat-card:hover .ant-card-body::before {
+  transform: scaleX(1);
+}
+
+/* Enhanced Card Variants */
+.admin-dashboard .card-gradient-blue {
+  background: linear-gradient(
+    135deg,
+    rgba(24, 144, 255, 0.05) 0%,
+    rgba(64, 169, 255, 0.05) 100%
+  ) !important;
+  border: 1px solid rgba(24, 144, 255, 0.1) !important;
+}
+
+.admin-dashboard .card-gradient-green {
+  background: linear-gradient(
+    135deg,
+    rgba(82, 196, 26, 0.05) 0%,
+    rgba(115, 209, 61, 0.05) 100%
+  ) !important;
+  border: 1px solid rgba(82, 196, 26, 0.1) !important;
+}
+
+.admin-dashboard .card-gradient-purple {
+  background: linear-gradient(
+    135deg,
+    rgba(114, 46, 209, 0.05) 0%,
+    rgba(146, 84, 222, 0.05) 100%
+  ) !important;
+  border: 1px solid rgba(114, 46, 209, 0.1) !important;
+}
+
+.admin-dashboard .card-gradient-orange {
+  background: linear-gradient(
+    135deg,
+    rgba(250, 173, 20, 0.05) 0%,
+    rgba(255, 197, 61, 0.05) 100%
+  ) !important;
+  border: 1px solid rgba(250, 173, 20, 0.1) !important;
+}
+
+/* Tab Enhancements */
+.admin-dashboard .dashboard-tabs .ant-tabs-tab {
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-dashboard
+  .dashboard-tabs
+  .ant-tabs-tab.ant-tabs-tab-active
+  .ant-tabs-tab-btn {
+  color: #667eea !important;
+}
+
+.admin-dashboard .dashboard-tabs .ant-tabs-ink-bar {
+  background: linear-gradient(
+    135deg,
+    #1e3a8a 0%,
+    #3b82f6 50%,
+    #06b6d4 100%
+  ) !important;
+}
+
+/* Table Action Buttons */
+.admin-dashboard .ant-table-tbody .ant-btn-link {
+  padding: 4px 8px !important;
+  margin: 1px 2px !important;
+  border-radius: 12px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  min-width: 45px !important;
+  height: 26px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  overflow: visible !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-dashboard .ant-table-tbody .ant-btn-link:hover {
+  transform: translateY(-1px) scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Table Container - Remove Horizontal Scroll */
+.admin-dashboard .ant-table-container {
+  overflow: visible !important;
+  width: 100% !important;
+}
+
+.admin-dashboard .ant-table-body {
+  overflow: visible !important;
+  width: 100% !important;
+}
+
+/* Table Responsive - No Scroll */
+.admin-dashboard .ant-table-wrapper {
+  overflow: visible !important;
+  width: 100% !important;
+}
+
+.admin-dashboard .ant-table {
+  overflow: visible !important;
+  width: 100% !important;
+  min-width: 100% !important;
+}
+
+/* Table Content - Responsive Text */
+.admin-dashboard .ant-table-thead > tr > th,
+.admin-dashboard .ant-table-tbody > tr > td {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.4 !important;
+}
+
+/* Action Column Specific Styling */
+.admin-dashboard .ant-table .ant-table-cell:last-child {
+  text-align: center !important;
+  padding: 12px 4px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
+  width: 140px !important;
+}
+
+/* Content Columns */
+.admin-dashboard .ant-table .ant-table-cell:not(:last-child) {
+  padding: 12px 8px !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+}
+
+/* Table Layout */
+.admin-dashboard .ant-table table {
+  table-layout: fixed !important;
+  width: 100% !important;
+}
+
+/* Modal Enhancements */
+.admin-dashboard .ant-modal-header {
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    rgba(118, 75, 162, 0.05) 100%
+  );
+  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.admin-dashboard .ant-modal-title {
+  color: #667eea !important;
+  font-weight: 600 !important;
+}
+
+/* Form Enhancements */
+.admin-dashboard .ant-form-item-label > label {
+  font-weight: 600 !important;
+  color: #2c3e50 !important;
+}
+
+.admin-dashboard .ant-input,
+.admin-dashboard .ant-select-selector,
+.admin-dashboard .ant-input-number {
+  border-radius: 8px !important;
+  border-color: rgba(102, 126, 234, 0.2) !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-dashboard .ant-input:focus,
+.admin-dashboard .ant-select-focused .ant-select-selector,
+.admin-dashboard .ant-input-number-focused {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1) !important;
+}
+
+/* Pagination Enhancements */
+.admin-dashboard .ant-pagination-item {
+  border-radius: 8px !important;
+  border-color: rgba(102, 126, 234, 0.2) !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-dashboard .ant-pagination-item:hover {
+  border-color: #667eea !important;
+  transform: translateY(-1px) !important;
+}
+
+.admin-dashboard .ant-pagination-item-active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-color: transparent !important;
+}
+
+.admin-dashboard .ant-pagination-item-active a {
+  color: white !important;
+}
+
+/* Statistic Enhancements */
+.admin-dashboard .ant-statistic-title {
+  font-weight: 600 !important;
+  color: #2c3e50 !important;
+}
+
+/* Badge and Tag Enhancements */
+.admin-dashboard .ant-tag {
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+}
+
+/* Progress Bar Enhancements */
+.admin-dashboard .ant-progress-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+/* Tooltip Enhancements */
+.admin-dashboard .ant-tooltip-inner {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%) !important;
+  border-radius: 8px !important;
+}
+
+/* Loading Enhancements */
+.admin-dashboard .loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.02) 0%,
+    rgba(118, 75, 162, 0.02) 100%
+  );
+  border-radius: 12px;
+}
+
+.admin-dashboard .spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border: 0.3em solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+  .admin-dashboard .ant-btn {
+    font-size: 13px !important;
+    padding: 0 12px !important;
+  }
+
+  .admin-dashboard .ant-btn-primary {
+    height: 36px !important;
+    border-radius: 18px !important;
+  }
+
+  .admin-dashboard .ant-btn-default {
+    height: 32px !important;
+    border-radius: 16px !important;
+  }
+
+  .admin-dashboard .fab-button {
+    bottom: 16px !important;
+    right: 16px !important;
+    width: 48px !important;
+    height: 48px !important;
+  }
+}
+
+/* Animation Keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.admin-dashboard .fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Button Loading States */
+.admin-dashboard .ant-btn-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-dashboard .ant-btn-loading::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+/* Enhanced Focus States */
+.admin-dashboard .ant-btn:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+}
+
+.admin-dashboard .btn-delete:focus {
+  box-shadow: 0 0 0 3px rgba(255, 77, 79, 0.2) !important;
+}
+
+.admin-dashboard .btn-activate:focus {
+  box-shadow: 0 0 0 3px rgba(82, 196, 26, 0.2) !important;
+}
+
+.admin-dashboard .btn-approve:focus {
+  box-shadow: 0 0 0 3px rgba(114, 46, 209, 0.2) !important;
+}
+
+/* Button Groups */
+.admin-dashboard .ant-btn-group .ant-btn {
+  border-radius: 0 !important;
+}
+
+.admin-dashboard .ant-btn-group .ant-btn:first-child {
+  border-top-left-radius: 20px !important;
+  border-bottom-left-radius: 20px !important;
+}
+
+.admin-dashboard .ant-btn-group .ant-btn:last-child {
+  border-top-right-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
+}
+
+/* Advanced Button Variants */
+.admin-dashboard .btn-gradient-orange {
+  background: linear-gradient(135deg, #ff9500 0%, #ffb340 100%) !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2) !important;
+}
+
+.admin-dashboard .btn-gradient-orange:hover {
+  background: linear-gradient(135deg, #d4670c 0%, #ff9500 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3) !important;
+  color: white !important;
+}
+
+.admin-dashboard .btn-gradient-cyan {
+  background: linear-gradient(135deg, #13c2c2 0%, #36cfc9 100%) !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(19, 194, 194, 0.2) !important;
+}
+
+.admin-dashboard .btn-gradient-cyan:hover {
+  background: linear-gradient(135deg, #08979c 0%, #13c2c2 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(19, 194, 194, 0.3) !important;
+  color: white !important;
+}
+
+/* Glass Effect Buttons */
+.admin-dashboard .btn-glass {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #667eea !important;
+  font-weight: 600 !important;
+}
+
+.admin-dashboard .btn-glass:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(102, 126, 234, 0.3) !important;
+  color: #5a6fd8 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Button with Badge */
+.admin-dashboard .btn-with-badge {
+  position: relative;
+}
+
+.admin-dashboard .btn-with-badge .ant-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+}
+
+/* Notification Buttons */
+.admin-dashboard .btn-notification {
+  position: relative;
+  animation: pulse 2s infinite;
+}
+
+/* Special Effects */
+.admin-dashboard .btn-glow {
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.5) !important;
+}
+
+.admin-dashboard .btn-glow:hover {
+  box-shadow: 0 0 30px rgba(102, 126, 234, 0.7) !important;
+}
+
+/* Special Button Variants */
+.admin-dashboard .btn-create {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%) !important;
+  border: none !important;
+  color: white !important;
+  font-weight: 600 !important;
+  height: 42px !important;
+  border-radius: 21px !important;
+  box-shadow: 0 6px 20px rgba(82, 196, 26, 0.3), 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 6px 20px rgba(82, 196, 26, 0.3), 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 8px 25px rgba(82, 196, 26, 0.5),
+      0 4px 10px rgba(0, 0, 0, 0.15);
+  }
+  100% {
+    box-shadow: 0 6px 20px rgba(82, 196, 26, 0.3), 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.admin-dashboard .btn-create::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.admin-dashboard .btn-create:hover {
+  background: linear-gradient(135deg, #389e0d 0%, #52c41a 100%) !important;
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 12px 35px rgba(82, 196, 26, 0.4), 0 6px 15px rgba(0, 0, 0, 0.15) !important;
+  color: white !important;
+}
+
+.admin-dashboard .btn-create:hover::before {
+  left: 100%;
+}
+
+.admin-dashboard .btn-create:active {
+  transform: translateY(-1px) scale(0.98) !important;
+  transition: all 0.15s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+/* Statistics Cards Enhancement */
+.admin-dashboard .stats-overview .stat-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: none !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  backdrop-filter: blur(10px) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.admin-dashboard .stats-overview .stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  z-index: 1;
+}
+
+.admin-dashboard .stats-overview .stat-card:hover {
+  transform: translateY(-8px) scale(1.02) !important;
+  box-shadow: 0 16px 48px rgba(102, 126, 234, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  background: rgba(255, 255, 255, 1) !important;
+}
+
+/* Individual Stat Card Color Variations */
+.admin-dashboard .stats-overview .stat-card:nth-child(1)::before {
+  background: transparent;
+}
+
+.admin-dashboard .stats-overview .stat-card:nth-child(2)::before {
+  background: transparent;
+}
+
+.admin-dashboard .stats-overview .stat-card:nth-child(3)::before {
+  background: transparent;
+}
+
+.admin-dashboard .stats-overview .stat-card:nth-child(4)::before {
+  background: transparent;
+}
+
+/* Statistic Value Colors */
+.admin-dashboard .ant-statistic .ant-statistic-content-value {
+  font-weight: 700 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.admin-dashboard .stat-footer {
+  margin-top: 8px !important;
+  padding-top: 8px !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Dashboard Tabs Enhancement */
+.admin-dashboard .dashboard-tabs .ant-tabs-nav {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 16px !important;
+  padding: 8px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.08) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.admin-dashboard .dashboard-tabs .ant-tabs-tab {
+  border-radius: 12px !important;
+  margin: 0 4px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  font-weight: 500 !important;
+}
+
+.admin-dashboard .dashboard-tabs .ant-tabs-tab:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.15) 0%,
+    rgba(6, 182, 212, 0.1) 100%
+  ) !important;
+  color: #1e40af !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2) !important;
+}
+
+.admin-dashboard .dashboard-tabs .ant-tabs-tab-active {
+  background: linear-gradient(
+    135deg,
+    #1e3a8a 0%,
+    #3b82f6 50%,
+    #06b6d4 100%
+  ) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+.admin-dashboard .dashboard-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: white !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Table Enhancement */
+.admin-dashboard .ant-table {
+  border-radius: 16px !important;
+  overflow: visible !important;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.08) !important;
+  width: 100% !important;
+  table-layout: auto !important;
+}
+
+.admin-dashboard .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border: none !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  padding: 16px 8px !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+}
+
+.admin-dashboard .ant-table-tbody > tr > td {
+  padding: 16px 8px !important;
+  vertical-align: middle !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow: visible !important;
+}
+
+.admin-dashboard .ant-table-tbody > tr:hover > td {
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.02) 0%,
+    rgba(118, 75, 162, 0.02) 100%
+  ) !important;
+}
+
+/* Table Action Buttons - Enhanced */
+.admin-dashboard .ant-table-tbody .ant-btn {
+  position: relative;
+  overflow: hidden;
+  font-weight: 500 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  margin: 2px 1px !important;
+  min-width: 50px !important;
+  height: 28px !important;
+  padding: 0 8px !important;
+  font-size: 11px !important;
+  border-radius: 14px !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.admin-dashboard .ant-table-tbody .ant-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.admin-dashboard .ant-table-tbody .ant-btn:hover::before {
+  left: 100%;
+}
+
+/* Table Action Column */
+.admin-dashboard .ant-table-tbody td:last-child {
+  width: 150px !important;
+  min-width: 150px !important;
+  max-width: 150px !important;
+  padding: 16px 8px !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+}
+
+/* Table Cell Content */
+.admin-dashboard .ant-table-tbody td {
+  max-width: none !important;
+  overflow: visible !important;
+}
+
+/* Card Enhancement */
+.admin-dashboard .ant-card {
+  border-radius: 20px !important;
+  border: none !important;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.admin-dashboard .ant-card:hover {
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.12),
+    0 6px 20px rgba(0, 0, 0, 0.08) !important;
+  transform: translateY(-2px) !important;
+}
+
+.admin-dashboard .ant-card-head {
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    rgba(118, 75, 162, 0.05) 100%
+  ) !important;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.1) !important;
+  border-radius: 20px 20px 0 0 !important;
+}
+
+.admin-dashboard .ant-card-head-title {
+  font-weight: 600 !important;
+  color: black !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Tags Enhancement */
+.admin-dashboard .ant-tag {
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  padding: 4px 12px !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-dashboard .ant-tag:hover {
+  transform: translateY(-1px) scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Badge Enhancement */
+.admin-dashboard .ant-badge-status-text {
+  font-weight: 500 !important;
+  margin-left: 8px !important;
+}
+
+/* Progress Enhancement */
+.admin-dashboard .ant-progress .ant-progress-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Modal Enhancement */
+.admin-dashboard .ant-modal {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15) !important;
+}
+
+.admin-dashboard .ant-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-bottom: none !important;
+}
+
+.admin-dashboard .ant-modal-title {
+  color: white !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+.admin-dashboard .ant-modal-close {
+  color: white !important;
+}
+
+.admin-dashboard .ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Animation Keyframes */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Loading Enhancement */
+.admin-dashboard .loading-container {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-height: 60vh !important;
+  background: transparent !important;
+}
+
+.admin-dashboard .spinner-border {
+  width: 3rem !important;
+  height: 3rem !important;
+  border: 4px solid rgba(102, 126, 234, 0.1) !important;
+  border-top: 4px solid #667eea !important;
+  border-radius: 50% !important;
+  animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Fade in Animation */
+.admin-dashboard .fade-in-up {
+  animation: fadeInUp 0.6s ease-out !important;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pagination Enhancement */
+.admin-dashboard .ant-pagination {
+  text-align: center !important;
+  margin-top: 24px !important;
+}
+
+.admin-dashboard .ant-pagination .ant-pagination-item {
+  border-radius: 12px !important;
+  border: 2px solid rgba(102, 126, 234, 0.1) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(5px) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  font-weight: 500 !important;
+}
+
+.admin-dashboard .ant-pagination .ant-pagination-item:hover {
+  border-color: #667eea !important;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    rgba(118, 75, 162, 0.05) 100%
+  ) !important;
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15) !important;
+}
+
+.admin-dashboard .ant-pagination .ant-pagination-item-active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-color: #667eea !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+  transform: translateY(-2px) !important;
+}
+
+.admin-dashboard .ant-pagination .ant-pagination-item-active a {
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.admin-dashboard .ant-pagination .ant-pagination-prev,
+.admin-dashboard .ant-pagination .ant-pagination-next {
+  border-radius: 12px !important;
+  border: 2px solid rgba(102, 126, 234, 0.1) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(5px) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.admin-dashboard .ant-pagination .ant-pagination-prev:hover,
+.admin-dashboard .ant-pagination .ant-pagination-next:hover {
+  border-color: #667eea !important;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    rgba(118, 75, 162, 0.05) 100%
+  ) !important;
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15) !important;
+}
+
+/* Form Enhancement */
+.admin-dashboard .ant-form-item-label > label {
+  font-weight: 600 !important;
+  color: #667eea !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.admin-dashboard .ant-input,
+.admin-dashboard .ant-input-affix-wrapper,
+.admin-dashboard .ant-select-selector {
+  border-radius: 12px !important;
+  border: 2px solid rgba(102, 126, 234, 0.1) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(5px) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  font-weight: 500 !important;
+}
+
+.admin-dashboard .ant-input:focus,
+.admin-dashboard .ant-input-affix-wrapper:focus,
+.admin-dashboard .ant-select-selector:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+  background: rgba(255, 255, 255, 1) !important;
+}
+
+.admin-dashboard .ant-input:hover,
+.admin-dashboard .ant-input-affix-wrapper:hover,
+.admin-dashboard .ant-select-selector:hover {
+  border-color: #667eea !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(248, 250, 252, 1) 100%
+  ) !important;
+}
+
+/* Select Dropdown Enhancement */
+.admin-dashboard .ant-select-dropdown {
+  border-radius: 16px !important;
+  border: none !important;
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  backdrop-filter: blur(10px) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+}
+
+.admin-dashboard .ant-select-item-option {
+  border-radius: 8px !important;
+  margin: 4px 8px !important;
+  transition: all 0.3s ease !important;
+  font-weight: 500 !important;
+}
+
+.admin-dashboard .ant-select-item-option:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.08) 0%,
+    rgba(118, 75, 162, 0.08) 100%
+  ) !important;
+  color: #667eea !important;
+}
+
+.admin-dashboard .ant-select-item-option-selected {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Notification Enhancement */
+.admin-dashboard .ant-notification {
+  border-radius: 16px !important;
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.admin-dashboard .ant-notification-notice-success {
+  background: linear-gradient(
+    135deg,
+    rgba(82, 196, 26, 0.95) 0%,
+    rgba(115, 209, 61, 0.95) 100%
+  ) !important;
+  color: white !important;
+}
+
+.admin-dashboard .ant-notification-notice-error {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 77, 79, 0.95) 0%,
+    rgba(255, 120, 117, 0.95) 100%
+  ) !important;
+  color: white !important;
+}
+
+.admin-dashboard .ant-notification-notice-warning {
+  background: linear-gradient(
+    135deg,
+    rgba(250, 173, 20, 0.95) 0%,
+    rgba(255, 197, 61, 0.95) 100%
+  ) !important;
+  color: white !important;
+}
+
+.admin-dashboard .ant-notification-notice-info {
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.95) 0%,
+    rgba(118, 75, 162, 0.95) 100%
+  ) !important;
+  color: white !important;
+}
+
+/* Tooltip Enhancement */
+.admin-dashboard .ant-tooltip {
+  border-radius: 12px !important;
+}
+
+.admin-dashboard .ant-tooltip-inner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3) !important;
+  font-weight: 500 !important;
+}
+
+.admin-dashboard .ant-tooltip-arrow-content {
+  background: #667eea !important;
+}
+
+/* Special Animation Classes */
+.admin-dashboard .animate-bounce {
+  animation: bounce 2s infinite !important;
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  53%,
+  80%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%,
+  43% {
+    transform: translate3d(0, -15px, 0);
+  }
+  70% {
+    transform: translate3d(0, -7px, 0);
+  }
+  90% {
+    transform: translate3d(0, -3px, 0);
+  }
+}
+
+.admin-dashboard .animate-glow {
+  animation: glow 2s ease-in-out infinite alternate !important;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 20px #667eea;
+  }
+  to {
+    box-shadow: 0 0 30px #764ba2, 0 0 40px #f093fb;
+  }
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+  .admin-dashboard .stats-overview .stat-card {
+    margin-bottom: 16px !important;
+  }
+
+  .admin-dashboard .dashboard-tabs .ant-tabs-nav {
+    padding: 4px !important;
+  }
+
+  .admin-dashboard .page-title {
+    font-size: 24px !important;
+    margin-bottom: 24px !important;
+  }
+}
+
+/* Chart Container Enhancement */
+.admin-dashboard .recharts-wrapper {
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(5px) !important;
+  padding: 16px !important;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.1) !important;
+}
+
+/* Enhanced Statistic Cards with Gradient Backgrounds */
+.admin-dashboard .stats-overview .stat-card:nth-child(1) {
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    rgba(118, 75, 162, 0.05) 100%
+  ) !important;
+}
+
+.admin-dashboard
+  .stats-overview
+  .stat-card:nth-child(1)
+  .ant-statistic-content-value {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.admin-dashboard .stats-overview .stat-card:nth-child(2) {
+  background: linear-gradient(
+    135deg,
+    rgba(82, 196, 26, 0.05) 0%,
+    rgba(115, 209, 61, 0.05) 100%
+  ) !important;
+}
+
+.admin-dashboard
+  .stats-overview
+  .stat-card:nth-child(2)
+  .ant-statistic-content-value {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.admin-dashboard .stats-overview .stat-card:nth-child(3) {
+  background: linear-gradient(
+    135deg,
+    rgba(114, 46, 209, 0.05) 0%,
+    rgba(146, 84, 222, 0.05) 100%
+  ) !important;
+}
+
+.admin-dashboard
+  .stats-overview
+  .stat-card:nth-child(3)
+  .ant-statistic-content-value {
+  background: linear-gradient(135deg, #722ed1 0%, #9254de 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.admin-dashboard .stats-overview .stat-card:nth-child(4) {
+  background: linear-gradient(
+    135deg,
+    rgba(250, 173, 20, 0.05) 0%,
+    rgba(255, 197, 61, 0.05) 100%
+  ) !important;
+}
+
+.admin-dashboard
+  .stats-overview
+  .stat-card:nth-child(4)
+  .ant-statistic-content-value {
+  background: linear-gradient(135deg, #faad14 0%, #ffc53d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Icon Enhancement */
+.admin-dashboard .anticon {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.1)) !important;
+}
+
+.admin-dashboard .ant-statistic-content-prefix .anticon {
+  background: linear-gradient(135deg, currentColor 0%, currentColor 100%);
+  border-radius: 50% !important;
+  padding: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Enhanced Hover Effects for All Interactive Elements */
+.admin-dashboard .ant-btn:not(:disabled):hover,
+.admin-dashboard .ant-pagination-item:hover,
+.admin-dashboard .ant-select:hover,
+.admin-dashboard .ant-input:hover {
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+/* Special Glow Effect for Important Actions - Removed for neutral styling */
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 4px 15px rgba(114, 46, 209, 0.25),
+      0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 8px 30px rgba(114, 46, 209, 0.4),
+      0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Special Background Pattern for Empty States */
+.admin-dashboard .ant-empty {
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.02) 0%,
+    rgba(118, 75, 162, 0.02) 100%
+  ) !important;
+  border-radius: 16px !important;
+  padding: 40px !important;
+  margin: 20px 0 !important;
+}
+
+.admin-dashboard .ant-empty-description {
+  color: #667eea !important;
+  font-weight: 500 !important;
+}
+
+/* Loading State Enhancement */
+.admin-dashboard .ant-spin-dot-item {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.admin-dashboard .ant-spin-lg .ant-spin-dot-item {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Container Padding and Spacing */
+.admin-dashboard .container {
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  padding: 0 24px !important;
+}
+
+.admin-dashboard .mb-4 {
+  margin-bottom: 32px !important;
+}
+
+.admin-dashboard .mt-4 {
+  margin-top: 32px !important;
+}
+
+/* Enhanced Typography */
+.admin-dashboard h1,
+.admin-dashboard h2,
+.admin-dashboard h3,
+.admin-dashboard h4,
+.admin-dashboard h5,
+.admin-dashboard h6 {
+  font-family: "Inter", sans-serif !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+}
+
+.admin-dashboard .ant-typography {
+  font-family: "Inter", sans-serif !important;
+}
+
+/* Improved Focus States */
+.admin-dashboard *:focus {
+  outline: none !important;
+}
+
+.admin-dashboard .ant-btn:focus,
+.admin-dashboard .ant-input:focus,
+.admin-dashboard .ant-select:focus {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Print Styles */
+@media print {
+  .admin-dashboard {
+    background: white !important;
+  }
+
+  .admin-dashboard::before,
+  .admin-dashboard::after {
+    display: none !important;
+  }
+
+  .admin-dashboard .ant-btn {
+    display: none !important;
+  }
+}

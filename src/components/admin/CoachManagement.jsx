@@ -44,6 +44,7 @@ import {
 } from "../../services/coachManagementService";
 import { reportCoachAbsent } from "../../services/profileService";
 import moment from "moment";
+import "../../styles/AdminDashboard.css";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -481,7 +482,7 @@ const CoachManagement = () => {
             type="primary"
             size="small"
             icon={<EyeOutlined />}
-            onClick={() => handleViewProfile(record.coachId)}
+            className="btn-edit"
           >
             Xem hồ sơ
           </Button>
@@ -489,8 +490,7 @@ const CoachManagement = () => {
             type="default"
             size="small"
             icon={<ExclamationCircleOutlined />}
-            onClick={() => showAbsentReportModal(record)}
-            style={{ borderColor: "#faad14", color: "#faad14" }}
+            className="btn-hide"
           >
             Báo cáo vắng mặt
           </Button>
@@ -530,16 +530,20 @@ const CoachManagement = () => {
       : 0;
 
   return (
-    <div className="coach-management">
+    <div className="coach-management admin-dashboard">
       <div className="container py-4">
         <Title level={2}>
           <TeamOutlined /> Quản lý Huấn luyện viên
         </Title>
 
         {/* Summary Statistics */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Row
+          gutter={16}
+          style={{ marginBottom: 24 }}
+          className="stats-overview"
+        >
           <Col span={6}>
-            <Card>
+            <Card className="stat-card">
               <Statistic
                 title="Tổng số Huấn luyện viên"
                 value={totalCoaches}
@@ -548,7 +552,7 @@ const CoachManagement = () => {
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card className="stat-card">
               <Statistic
                 title="Huấn luyện viên Có sẵn"
                 value={availableCoaches}
@@ -558,7 +562,7 @@ const CoachManagement = () => {
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card className="stat-card">
               <Statistic
                 title="Huấn luyện viên Đầy"
                 value={fullCoaches}
@@ -568,7 +572,7 @@ const CoachManagement = () => {
             </Card>
           </Col>
           <Col span={6}>
-            <Card>
+            <Card className="stat-card">
               <Statistic
                 title="TB Thành viên/Huấn luyện viên"
                 value={averageMembers}
@@ -584,7 +588,7 @@ const CoachManagement = () => {
             <Button
               type="primary"
               icon={<UserAddOutlined />}
-              onClick={showCreateModal}
+              className="btn-create"
             >
               Tạo Huấn luyện viên Mới
             </Button>
@@ -613,14 +617,12 @@ const CoachManagement = () => {
           visible={modalVisible}
           onCancel={() => setModalVisible(false)}
           footer={[
-            <Button key="back" onClick={() => setModalVisible(false)}>
-              Hủy
-            </Button>,
+            <Button key="back">Hủy</Button>,
             <Button
               key="submit"
               type="primary"
               loading={creating}
-              onClick={handleSubmit}
+              className="btn-create"
             >
               Tạo Huấn luyện viên
             </Button>,
@@ -763,8 +765,8 @@ const CoachManagement = () => {
                 <Form.Item>
                   <Button
                     type="dashed"
-                    onClick={addWorkingHour}
                     icon={<PlusOutlined />}
+                    className="btn-activate"
                   >
                     Thêm Giờ làm việc
                   </Button>
@@ -794,7 +796,7 @@ const CoachManagement = () => {
                           size="small"
                           type="text"
                           danger
-                          onClick={() => removeWorkingHour(index)}
+                          className="btn-delete"
                         >
                           Xóa
                         </Button>
@@ -972,15 +974,12 @@ const CoachManagement = () => {
           visible={absentReportModalVisible}
           onCancel={closeAbsentReportModal}
           footer={[
-            <Button key="cancel" onClick={closeAbsentReportModal}>
-              Hủy
-            </Button>,
+            <Button key="cancel">Hủy</Button>,
             <Button
               key="submit"
               type="primary"
               loading={reportingAbsent}
-              onClick={handleAbsentReport}
-              style={{ backgroundColor: "#faad14", borderColor: "#faad14" }}
+              className="btn-hide"
             >
               Gửi Báo cáo
             </Button>,

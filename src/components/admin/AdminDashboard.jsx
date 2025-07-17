@@ -32,6 +32,12 @@ import {
   MedicineBoxOutlined,
   BellOutlined,
   PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PlayCircleOutlined,
+  StopOutlined,
+  EyeInvisibleOutlined,
+  SafetyOutlined,
 } from "@ant-design/icons";
 import {
   LineChart,
@@ -53,6 +59,7 @@ import * as userService from "../../services/userService";
 import * as feedbackService from "../../services/feebackService";
 import * as reminderService from "../../services/reminderService";
 import "../../styles/Dashboard.css";
+import "../../styles/AdminDashboard.css";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -178,16 +185,26 @@ const AdminDashboard = () => {
       if (response) {
         // Check if response has success property (from catch block with mock data)
         if (response.success === true && Array.isArray(response.data)) {
-          // Mock data format
-          setReminderData(response.data);
+          // Mock data format - sort by creation date (newest first)
+          const sortedData = response.data.sort((a, b) => {
+            const dateA = new Date(a.createAt || a.createdAt || 0);
+            const dateB = new Date(b.createAt || b.createdAt || 0);
+            return dateB - dateA; // Descending order (newest first)
+          });
+          setReminderData(sortedData);
           setReminderPagination({
             current: page + 1,
             pageSize: size,
             total: response.data.length,
           });
         } else if (response.content) {
-          // Real API data format (after handleApiResponse)
-          setReminderData(response.content || []);
+          // Real API data format (after handleApiResponse) - sort by creation date (newest first)
+          const sortedContent = (response.content || []).sort((a, b) => {
+            const dateA = new Date(a.createAt || a.createdAt || 0);
+            const dateB = new Date(b.createAt || b.createdAt || 0);
+            return dateB - dateA; // Descending order (newest first)
+          });
+          setReminderData(sortedContent);
           setReminderPagination({
             current: (response.pageNo || 0) + 1,
             pageSize: response.pageSize || size,
@@ -350,10 +367,12 @@ const AdminDashboard = () => {
       const response = await reminderService.createReminder(content, category);
       if (response.success) {
         message.success("Nhắc nhở đã được tạo thành công");
-        fetchReminderData(
-          reminderPagination.current - 1,
-          reminderPagination.pageSize
-        );
+        // Reset to first page to show newest reminder
+        setReminderPagination((prev) => ({
+          ...prev,
+          current: 1,
+        }));
+        fetchReminderData(0, reminderPagination.pageSize);
       } else {
         message.error("Failed to create reminder");
       }
@@ -526,29 +545,38 @@ const AdminDashboard = () => {
         <Space>
           {record.role !== "ADMIN" && record.status && (
             <Button
-              type="link"
+              type="default"
               size="small"
-              danger
+              className="btn-delete"
+              icon={<StopOutlined />}
               onClick={() => handleUserDisableToggle(record)}
             >
-              Disable
+              Vô hiệu hóa
             </Button>
           )}
           {record.role !== "ADMIN" && !record.status && (
             <>
               <Button
-                type="link"
+                type="default"
                 size="small"
+                className="btn-activate"
+                icon={<PlayCircleOutlined />}
                 onClick={() => handleUserReEnable(record)}
               >
-                Enable
+                Kích hoạt
               </Button>
             </>
           )}
           {record.role === "ADMIN" && (
             <Tooltip title="Người dùng quản trị không thể bị vô hiệu hóa">
-              <Button type="link" size="small" disabled>
-                Protected
+              <Button
+                type="default"
+                size="small"
+                className="btn-protected"
+                icon={<SafetyOutlined />}
+                disabled
+              >
+                Được bảo vệ
               </Button>
             </Tooltip>
           )}
@@ -612,17 +640,11 @@ const AdminDashboard = () => {
       width: 250,
       render: (_, record) => (
         <Space>
-          {/* <Button 
-            type="primary" 
-            size="small"
-            onClick={() => handleFeedbackReviewed(record.id)}
-          >
-            Review
-          </Button> */}
           <Button
-            type="default"
+            type="primary"
             size="small"
-            style={{ color: "#52c41a", borderColor: "#52c41a" }}
+            className="btn-approve"
+            icon={<CheckCircleOutlined />}
             onClick={() => handleFeedbackApproval(record.id)}
           >
             Phê duyệt & Xuất bản
@@ -630,7 +652,8 @@ const AdminDashboard = () => {
           <Button
             type="default"
             size="small"
-            danger
+            className="btn-hide"
+            icon={<EyeInvisibleOutlined />}
             onClick={() => handleFeedbackHide(record.id)}
           >
             Ẩn
@@ -704,7 +727,8 @@ const AdminDashboard = () => {
         <Button
           type="default"
           size="small"
-          danger
+          className="btn-hide"
+          icon={<EyeInvisibleOutlined />}
           onClick={() => handleFeedbackHide(record.id)}
         >
           Ẩn
@@ -893,26 +917,30 @@ const AdminDashboard = () => {
       render: (_, record) => (
         <Space>
           <Button
-            type="link"
+            type="default"
             size="small"
+            className="btn-edit"
+            icon={<EditOutlined />}
             onClick={() => handleEditReminder(record)}
           >
             Chỉnh sửa
           </Button>
           {record.active ? (
             <Button
-              type="link"
+              type="default"
               size="small"
-              danger
+              className="btn-delete"
+              icon={<StopOutlined />}
               onClick={() => handleDisableReminder(record.id)}
             >
               Vô hiệu hóa
             </Button>
           ) : (
             <Button
-              type="link"
+              type="default"
               size="small"
-              style={{ color: "#52c41a" }}
+              className="btn-activate"
+              icon={<PlayCircleOutlined />}
               onClick={() => handleReEnableReminder(record.id)}
             >
               Kích hoạt
@@ -1021,7 +1049,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="dashboard admin-dashboard">
-      <div className="container py-4">
+      <div className="container py-4 fade-in-up">
         <Title level={2} className="page-title">
           Bảng điều khiển quản trị
         </Title>
@@ -1462,6 +1490,7 @@ const AdminDashboard = () => {
                   type="primary"
                   onClick={() => setReminderModalVisible(true)}
                   icon={<PlusOutlined />}
+                  className="btn-create"
                 >
                   Tạo nhắc nhở
                 </Button>
@@ -1547,6 +1576,7 @@ const AdminDashboard = () => {
                   type="primary"
                   htmlType="submit"
                   loading={reminderLoading}
+                  className="btn-create"
                 >
                   {editingReminder ? "Cập nhật nhắc nhở" : "Tạo nhắc nhở"}
                 </Button>
