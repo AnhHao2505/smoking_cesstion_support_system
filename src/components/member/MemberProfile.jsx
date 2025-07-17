@@ -265,7 +265,7 @@ const MemberProfile = () => {
                   <Card className="detail-card">
                     <Statistic 
                       title="Membership Expires" 
-                      value={formatDate(memberProfile.membershipExpiryDate)}
+                      value={formatDate(memberProfile.membershipExpiryDate) + ' - ' + memberProfile.membershipDaysLeft + ' days left'}
                     />
                     <Tag color={memberProfile.premiumMembership ? "gold" : "blue"}>
                       {memberProfile.premiumMembership ? 'Premium' : 'Basic'}

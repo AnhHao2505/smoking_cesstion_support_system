@@ -470,8 +470,8 @@ const ChatPage = () => {
           tempId: failedMessage.tempId || failedMessage.id
         };
 
-        const confirmedMessage = await webSocketService.sendPrivateMessage(selectedChatRoom.roomId, messageData);
-        
+        const confirmedMessage = await webSocketService.sendPrivateMessage(selectedChatRoom.roomId, messageData.content);
+        console.log(confirmedMessage)
         // Update message status to "sent" when confirmed
         setMessages(prev => prev.map(msg => 
           (msg.id === failedMessage.id || msg.tempId === failedMessage.tempId)
