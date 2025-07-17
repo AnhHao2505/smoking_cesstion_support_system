@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Layout,
   Typography,
@@ -22,8 +22,8 @@ import {
   Divider,
   Steps,
   DatePicker,
-  Select
-} from 'antd';
+  Select,
+} from "antd";
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -36,22 +36,25 @@ import {
   FileTextOutlined,
   CalendarOutlined,
   MedicineBoxOutlined,
-  BulbOutlined
-} from '@ant-design/icons';
-import moment from 'moment';
+  BulbOutlined,
+} from "@ant-design/icons";
+import moment from "moment";
 import {
   getNewestQuitPlan,
   acceptQuitPlan,
   denyQuitPlan,
   updateQuitPlanByCoach,
   createQuitPlan,
-  finishQuitPlan
-} from '../../services/quitPlanService';
-import { getAssignedMembers } from '../../services/coachManagementService';
-import { getLatestMemberSmokingStatus } from '../../services/memberSmokingStatusService';
-import { getDefaultPhases, createGoalsOfPhases } from '../../services/phaseService';
-import { getCurrentUser } from '../../services/authService';
-import '../../styles/Dashboard.css';
+  finishQuitPlan,
+} from "../../services/quitPlanService";
+import { getAssignedMembers } from "../../services/coachManagementService";
+import { getLatestMemberSmokingStatus } from "../../services/memberSmokingStatusService";
+import {
+  getDefaultPhases,
+  createGoalsOfPhases,
+} from "../../services/phaseService";
+import { getCurrentUser } from "../../services/authService";
+import "../../styles/Dashboard.css";
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -67,7 +70,7 @@ const QuitPlanApprovalNewFlow = () => {
   const [createPlanModalVisible, setCreatePlanModalVisible] = useState(false);
   const [viewPlanModalVisible, setViewPlanModalVisible] = useState(false);
   const [actionModalVisible, setActionModalVisible] = useState(false);
-  const [actionType, setActionType] = useState(''); // 'accept', 'deny', 'finish', 'disable'
+  const [actionType, setActionType] = useState(""); // 'accept', 'deny', 'finish', 'disable'
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm();
   const [createForm] = Form.useForm();
@@ -80,101 +83,177 @@ const QuitPlanApprovalNewFlow = () => {
       fetchAssignedMembers();
     } else {
       setLoading(false);
-      message.error('Please log in as a coach to access this feature');
+      message.error("Please log in as a coach to access this feature");
     }
   }, [coachId]);
 
   const fetchAssignedMembers = async () => {
     try {
       setLoading(true);
-      console.log('Fetching assigned members for coach:', coachId);
-      
+      console.log("Fetching assigned members for coach:", coachId);
+
       const response = await getAssignedMembers(coachId);
-      console.log('Assigned members response:', response);
-      
+      console.log("Assigned members response:", response);
+
       const members = response || [];
-      console.log('Processing', members.length, 'assigned members');
-      
+      console.log("Processing", members.length, "assigned members");
+
       // Transform member data to match UI expectations
-      const transformedMembers = members.map(member => ({
+      const transformedMembers = members.map((member) => ({
         memberId: member.memberId,
         memberName: member.name,
         memberEmail: member.email,
         latestPlanId: member.planId,
         latestInitialStatusId: member.initialStatusId,
-        planStatus: member.planId ? 'UNKNOWN' : null, // Will be updated when we fetch individual plans
-        hasInitialStatus: !!member.initialStatusId
+        planStatus: member.planId ? "UNKNOWN" : null, // Will be updated when we fetch individual plans
+        hasInitialStatus: !!member.initialStatusId,
       }));
-      
-      console.log('Transformed members:', transformedMembers);
+
+      console.log("Transformed members:", transformedMembers);
       setAssignedMembers(transformedMembers);
     } catch (error) {
-      console.error('Error fetching assigned members:', error);
-      message.error('Failed to load assigned members');
+      console.error("Error fetching assigned members:", error);
+      message.error("Failed to load assigned members");
     } finally {
       setLoading(false);
     }
   };
 
+  // Safe helper to extract plan data from API response
+  const extractPlanData = (planResponse) => {
+    if (!planResponse) {
+      console.log("No plan response received");
+      return null;
+    }
+
+    // Handle different response formats
+    let plan = null;
+    if (planResponse.success && planResponse.data) {
+      plan = planResponse.data;
+    } else if (planResponse.data) {
+      plan = planResponse.data;
+    } else if (planResponse.id) {
+      plan = planResponse;
+    } else {
+      console.log("Plan response format not recognized:", planResponse);
+      return null;
+    }
+
+    // Validate plan object
+    if (!plan || typeof plan !== "object" || !plan.id) {
+      console.log("Invalid plan object:", plan);
+      return null;
+    }
+
+    return {
+      quit_plan_id: plan.id || plan.quit_plan_id,
+      status: plan.quitPlanStatus || plan.status,
+      start_date: plan.startDate || plan.start_date,
+      end_date: plan.endDate || plan.end_date,
+      motivation: plan.motivation || "",
+      smokingTriggersToAvoid: plan.smokingTriggersToAvoid || "",
+      copingStrategies: plan.copingStrategies || "",
+      medicationsToUse: plan.medicationsToUse || "",
+      medicationInstructions: plan.medicationInstructions || "",
+      relapsePreventionStrategies: plan.relapsePreventionStrategies || "",
+      supportResources: plan.supportResources || "",
+      rewardPlan: plan.rewardPlan || "",
+      additionalNotes: plan.additionalNotes || "",
+      currentSmokingStatus: plan.currentSmokingStatus || "",
+      coachId: plan.coachId || plan.coach_id,
+      coachName: plan.coachName || plan.coach_name,
+      memberName: plan.memberName || plan.member_name,
+      // Legacy field mappings for compatibility
+      strategies_to_use: plan.copingStrategies || "",
+      medications_to_use: plan.medicationsToUse || "",
+      medication_instructions: plan.medicationInstructions || "",
+      preparation_steps: plan.relapsePreventionStrategies || "",
+      note: plan.additionalNotes || "",
+    };
+  };
+
   const fetchMemberPlan = async (memberId) => {
     try {
-      console.log('Fetching plan and status for member:', memberId);
-      
+      console.log("Fetching plan and status for member:", memberId);
+
+      // Validate memberId
+      if (!memberId) {
+        console.error("No memberId provided");
+        message.error("Invalid member ID");
+        return;
+      }
+
       // Fetch quit plan if member has a planId
       let planData = null;
-      const member = assignedMembers.find(m => m.memberId === memberId);
-      
-      if (member?.latestPlanId) {
-        console.log('Fetching plan details for planId:', member.latestPlanId);
-        const planResponse = await getNewestQuitPlan(memberId);
-        console.log('Plan response:', planResponse);
-        
-          const plan = planResponse;
-          planData = {
-            quit_plan_id: plan.id,
-            status: plan.quitPlanStatus,
-            start_date: plan.startDate,
-            end_date: plan.endDate,
-            motivation: plan.motivation,
-            smokingTriggersToAvoid: plan.smokingTriggersToAvoid,
-            copingStrategies: plan.copingStrategies,
-            medicationsToUse: plan.medicationsToUse,
-            medicationInstructions: plan.medicationInstructions,
-            relapsePreventionStrategies: plan.relapsePreventionStrategies,
-            supportResources: plan.supportResources,
-            rewardPlan: plan.rewardPlan,
-            additionalNotes: plan.additionalNotes,
-            currentSmokingStatus: plan.currentSmokingStatus,
-            coachId: plan.coachId,
-            coachName: plan.coachName,
-            memberName: plan.memberName,
-            // Legacy field mappings for compatibility
-            strategies_to_use: plan.copingStrategies,
-            medications_to_use: plan.medicationsToUse,
-            medication_instructions: plan.medicationInstructions,
-            preparation_steps: plan.relapsePreventionStrategies,
-            note: plan.additionalNotes
-          };
+      const member = assignedMembers.find((m) => m.memberId === memberId);
+
+      if (!member) {
+        console.error("Member not found in assigned members list");
+        message.error("Member not found");
+        return;
       }
-      
+
+      if (member?.latestPlanId) {
+        console.log("Fetching plan details for planId:", member.latestPlanId);
+        try {
+          const planResponse = await getNewestQuitPlan(memberId);
+          console.log("Plan response:", planResponse);
+
+          if (planResponse === null) {
+            console.log(
+              "API returned null - this is expected for coach viewing member plans"
+            );
+            message.info(
+              `Cannot load plan details for ${member.memberName}. The current API only supports members viewing their own plans.`
+            );
+          } else {
+            planData = extractPlanData(planResponse);
+
+            if (!planData) {
+              console.log("Could not extract valid plan data from response");
+              message.warning("Plan data format is not recognized");
+            }
+          }
+        } catch (planError) {
+          console.error("Error fetching plan for member:", memberId, planError);
+          message.warning(
+            "Could not fetch plan details for this member. API error occurred."
+          );
+        }
+      }
+
       // Fetch smoking status if member has initialStatusId
       let statusData = null;
       if (member?.latestInitialStatusId) {
-        console.log('Fetching smoking status for member:', memberId);
-        const statusResponse = await getLatestMemberSmokingStatus(memberId);
-        console.log('Status response:', statusResponse);
-        
-        statusData = statusResponse;
+        console.log("Fetching smoking status for member:", memberId);
+        try {
+          const statusResponse = await getLatestMemberSmokingStatus(memberId);
+          console.log("Status response:", statusResponse);
+
+          // Validate status response
+          if (statusResponse && typeof statusResponse === "object") {
+            statusData = statusResponse;
+          } else {
+            console.warn("No valid status response received:", statusResponse);
+          }
+        } catch (statusError) {
+          console.error(
+            "Error fetching smoking status for member:",
+            memberId,
+            statusError
+          );
+          message.warning("Could not fetch smoking status for this member");
+        }
       }
 
       setMemberPlan(planData);
       setMemberStatus(statusData);
-      
-      console.log('Final member plan:', planData);
-      console.log('Final member status:', statusData);
+
+      console.log("Final member plan:", planData);
+      console.log("Final member status:", statusData);
     } catch (error) {
-      console.error('Error fetching member data:', error);
-      message.error('Failed to load member plan data');
+      console.error("Error fetching member data:", error);
+      message.error("Failed to load member plan data");
     }
   };
 
@@ -182,7 +261,7 @@ const QuitPlanApprovalNewFlow = () => {
     setSelectedMember(member);
     setMemberPlan(null);
     setMemberStatus(null);
-    
+
     await fetchMemberPlan(member.memberId);
 
     if (member.latestPlanId) {
@@ -196,59 +275,76 @@ const QuitPlanApprovalNewFlow = () => {
     try {
       const values = await createForm.validateFields();
       setSubmitting(true);
-      console.log('Creating plan with values:', values);
+      console.log("Creating plan with values:", values);
 
       // Get default phases based on addiction level
-      const addictionLevel = memberStatus?.addiction || 'MODERATE';
-      console.log('Getting default phases for addiction level:', addictionLevel);
-      
+      const addictionLevel = memberStatus?.addiction || "MODERATE";
+      console.log(
+        "Getting default phases for addiction level:",
+        addictionLevel
+      );
+
       const defaultPhasesResponse = await getDefaultPhases(addictionLevel);
-      console.log('Default phases response:', defaultPhasesResponse);
+      console.log("Default phases response:", defaultPhasesResponse);
 
       if (!defaultPhasesResponse.success) {
-        message.error('Failed to get default phases');
+        message.error("Failed to get default phases");
         return;
       }
 
       const planData = {
-        motivation: values.motivation || 'Health and family',
-        smokingTriggersToAvoid: values.triggers || 'Coffee, stress',
-        copingStrategies: Array.isArray(values.strategies_to_use) ? values.strategies_to_use.join(', ') : values.strategies_to_use,
-        medicationsToUse: Array.isArray(values.medications_to_use) ? values.medications_to_use.join(', ') : (values.medications_to_use || ''),
-        medicationInstructions: values.medication_instructions || '',
+        motivation: values.motivation || "Health and family",
+        smokingTriggersToAvoid: values.triggers || "Coffee, stress",
+        copingStrategies: Array.isArray(values.strategies_to_use)
+          ? values.strategies_to_use.join(", ")
+          : values.strategies_to_use,
+        medicationsToUse: Array.isArray(values.medications_to_use)
+          ? values.medications_to_use.join(", ")
+          : values.medications_to_use || "",
+        medicationInstructions: values.medication_instructions || "",
         relapsePreventionStrategies: values.preparation_steps,
-        supportResources: values.support_resources || 'Family, friends, coach',
-        rewardPlan: values.reward_plan || 'Celebrate milestones',
-        additionalNotes: values.note || '',
-        startDate: values.start_date.format('YYYY-MM-DD'),
-        endDate: values.end_date.format('YYYY-MM-DD')
+        supportResources: values.support_resources || "Family, friends, coach",
+        rewardPlan: values.reward_plan || "Celebrate milestones",
+        additionalNotes: values.note || "",
+        startDate: values.start_date.format("YYYY-MM-DD"),
+        endDate: values.end_date.format("YYYY-MM-DD"),
       };
 
-      console.log('Plan data to create:', planData);
+      console.log("Plan data to create:", planData);
 
       // Create the quit plan
-      const createResponse = await createQuitPlan(selectedMember.memberId, planData);
-      console.log('Create plan response:', createResponse);
+      const createResponse = await createQuitPlan(
+        selectedMember.memberId,
+        planData
+      );
+      console.log("Create plan response:", createResponse);
 
       if (createResponse.success) {
         // Create goals for phases
-        const phasesWithGoals = defaultPhasesResponse.data.map((phase, index) => ({
-          ...phase,
-          goals: values.phase_goals?.[index] || phase.defaultGoal || 'Complete this phase successfully'
-        }));
+        const phasesWithGoals = defaultPhasesResponse.data.map(
+          (phase, index) => ({
+            ...phase,
+            goals:
+              values.phase_goals?.[index] ||
+              phase.defaultGoal ||
+              "Complete this phase successfully",
+          })
+        );
 
-        console.log('Creating phase goals:', phasesWithGoals);
+        console.log("Creating phase goals:", phasesWithGoals);
         await createGoalsOfPhases(createResponse.data.planId, phasesWithGoals);
 
-        message.success('Quit plan created successfully! Member will be notified.');
+        message.success(
+          "Quit plan created successfully! Member will be notified."
+        );
         setCreatePlanModalVisible(false);
         fetchAssignedMembers();
       } else {
-        message.error(createResponse.message || 'Failed to create quit plan');
+        message.error(createResponse.message || "Failed to create quit plan");
       }
     } catch (error) {
-      console.error('Error creating plan:', error);
-      message.error('Failed to create quit plan');
+      console.error("Error creating plan:", error);
+      message.error("Failed to create quit plan");
     } finally {
       setSubmitting(false);
     }
@@ -267,54 +363,67 @@ const QuitPlanApprovalNewFlow = () => {
       console.log(`Performing ${actionType} action with values:`, values);
 
       let response;
-      const planId = memberPlan.quit_plan_id;
+      const planId = memberPlan?.quit_plan_id;
+
+      if (!planId) {
+        message.error("No plan ID found. Cannot perform action.");
+        return;
+      }
 
       switch (actionType) {
-        case 'accept':
+        case "accept":
           response = await acceptQuitPlan(planId);
-          console.log('Accept plan response:', response);
+          console.log("Accept plan response:", response);
           if (response.success) {
-            message.success('Plan approved! Member can now start their quit journey.');
-            setMemberPlan({ ...memberPlan, status: 'ACTIVE' });
+            message.success(
+              "Plan approved! Member can now start their quit journey."
+            );
+            setMemberPlan({ ...memberPlan, status: "ACTIVE" });
           }
           break;
 
-        case 'deny':
+        case "deny":
           response = await denyQuitPlan(planId, { feedback: values.feedback });
-          console.log('Deny plan response:', response);
+          console.log("Deny plan response:", response);
           if (response.success) {
-            message.success('Plan denied. Member will be notified to create a new plan.');
-            setMemberPlan({ ...memberPlan, status: 'DENIED' });
+            message.success(
+              "Plan denied. Member will be notified to create a new plan."
+            );
+            setMemberPlan({ ...memberPlan, status: "DENIED" });
           }
           break;
 
-        case 'finish':
+        case "finish":
           response = await finishQuitPlan(planId, values.note);
-          console.log('Finish plan response:', response);
+          console.log("Finish plan response:", response);
           if (response.success) {
-            message.success('Plan marked as completed!');
-            setMemberPlan({ ...memberPlan, status: 'COMPLETED' });
+            message.success("Plan marked as completed!");
+            setMemberPlan({ ...memberPlan, status: "COMPLETED" });
           }
           break;
 
-        case 'update':
+        case "update":
           const updateData = {
-            copingStrategies: Array.isArray(values.strategies_to_use) ? values.strategies_to_use.join(', ') : values.strategies_to_use,
-            medicationsToUse: Array.isArray(values.medications_to_use) ? values.medications_to_use.join(', ') : values.medications_to_use,
+            copingStrategies: Array.isArray(values.strategies_to_use)
+              ? values.strategies_to_use.join(", ")
+              : values.strategies_to_use,
+            medicationsToUse: Array.isArray(values.medications_to_use)
+              ? values.medications_to_use.join(", ")
+              : values.medications_to_use,
             additionalNotes: values.note,
-            endDate: values.end_date?.format('YYYY-MM-DD')
+            endDate: values.end_date?.format("YYYY-MM-DD"),
           };
-          console.log('Update plan data:', updateData);
+          console.log("Update plan data:", updateData);
           response = await updateQuitPlanByCoach(planId, updateData);
-          console.log('Update plan response:', response);
+          console.log("Update plan response:", response);
           if (response.success) {
-            message.success('Plan updated successfully!');
+            message.success("Plan updated successfully!");
             await fetchMemberPlan(selectedMember.memberId);
           }
           break;
 
         default:
-          throw new Error('Unknown action type');
+          throw new Error("Unknown action type");
       }
 
       if (!response.success) {
@@ -332,60 +441,77 @@ const QuitPlanApprovalNewFlow = () => {
 
   const getStatusColor = (status) => {
     switch (status?.toUpperCase()) {
-      case 'ACTIVE': return 'green';
-      case 'PENDING_APPROVAL': return 'orange';
-      case 'DENIED': return 'red';
-      case 'COMPLETED': return 'blue';
-      case 'CANCELLED': return 'gray';
-      default: return 'default';
+      case "ACTIVE":
+        return "green";
+      case "PENDING_APPROVAL":
+        return "orange";
+      case "DENIED":
+        return "red";
+      case "COMPLETED":
+        return "blue";
+      case "CANCELLED":
+        return "gray";
+      default:
+        return "default";
     }
   };
 
   const getStatusText = (status) => {
     switch (status?.toUpperCase()) {
-      case 'ACTIVE': return 'Active';
-      case 'PENDING_APPROVAL': return 'Pending Approval';
-      case 'DENIED': return 'Denied';
-      case 'COMPLETED': return 'Completed';
-      case 'CANCELLED': return 'Cancelled';
-      default: return status || 'Unknown';
+      case "ACTIVE":
+        return "Active";
+      case "PENDING_APPROVAL":
+        return "Pending Approval";
+      case "DENIED":
+        return "Denied";
+      case "COMPLETED":
+        return "Completed";
+      case "CANCELLED":
+        return "Cancelled";
+      default:
+        return status || "Unknown";
     }
   };
 
   const getAddictionColor = (addiction) => {
     switch (addiction?.toUpperCase()) {
-      case 'SEVERE': return 'red';
-      case 'MODERATE': return 'orange';
-      case 'MILD': return 'yellow';
-      case 'NONE': return 'green';
-      default: return 'default';
+      case "SEVERE":
+        return "red";
+      case "MODERATE":
+        return "orange";
+      case "MILD":
+        return "yellow";
+      case "NONE":
+        return "green";
+      default:
+        return "default";
     }
   };
 
   const formatDate = (dateString) => {
-    return moment(dateString).format('DD/MM/YYYY');
+    return moment(dateString).format("DD/MM/YYYY");
   };
 
   const columns = [
     {
-      title: 'Member',
-      key: 'member',
+      title: "Member",
+      key: "member",
       render: (_, record) => (
         <Space>
           <Avatar icon={<UserOutlined />} />
           <div>
             <Text strong>{record.memberName}</Text>
             <br />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            <Text type="secondary" style={{ fontSize: "12px" }}>
               {record.memberEmail}
             </Text>
           </div>
         </Space>
-      )
+      ),
     },
     {
-      title: 'Plan Status',
-      key: 'planStatus',
+      title: "Plan Status",
+      key: "planStatus",
       render: (_, record) => (
         <div>
           {record.latestPlanId ? (
@@ -394,7 +520,7 @@ const QuitPlanApprovalNewFlow = () => {
                 {getStatusText(record.planStatus)}
               </Tag>
               <br />
-              <Text type="secondary" style={{ fontSize: '11px' }}>
+              <Text type="secondary" style={{ fontSize: "11px" }}>
                 Plan ID: {record.latestPlanId}
               </Text>
             </>
@@ -404,11 +530,11 @@ const QuitPlanApprovalNewFlow = () => {
             </Tag>
           )}
         </div>
-      )
+      ),
     },
     {
-      title: 'Initial Assessment',
-      key: 'initialStatus',
+      title: "Initial Assessment",
+      key: "initialStatus",
       render: (_, record) => (
         <div>
           {record.latestInitialStatusId ? (
@@ -417,7 +543,7 @@ const QuitPlanApprovalNewFlow = () => {
                 Completed
               </Tag>
               <br />
-              <Text type="secondary" style={{ fontSize: '11px' }}>
+              <Text type="secondary" style={{ fontSize: "11px" }}>
                 Status ID: {record.latestInitialStatusId}
               </Text>
             </>
@@ -427,11 +553,11 @@ const QuitPlanApprovalNewFlow = () => {
             </Tag>
           )}
         </div>
-      )
+      ),
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Actions",
+      key: "actions",
       render: (_, record) => (
         <Space direction="vertical" size="small">
           <Button
@@ -441,7 +567,7 @@ const QuitPlanApprovalNewFlow = () => {
             onClick={() => handleViewMember(record)}
             block
           >
-            {record.latestPlanId ? 'View Plan' : 'Create Plan'}
+            {record.latestPlanId ? "View Plan" : "Create Plan"}
           </Button>
           {!record.latestInitialStatusId && (
             <Button
@@ -455,8 +581,8 @@ const QuitPlanApprovalNewFlow = () => {
             </Button>
           )}
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   return (
@@ -466,12 +592,26 @@ const QuitPlanApprovalNewFlow = () => {
           <Title level={2}>
             <FileTextOutlined /> Assigned Members & Plans
           </Title>
-          <Badge count={assignedMembers.filter(m => !m.latestPlanId).length} offset={[10, 0]}>
+          <Badge
+            count={assignedMembers.filter((m) => !m.latestPlanId).length}
+            offset={[10, 0]}
+          >
             <Button icon={<ExclamationCircleOutlined />} type="dashed">
               Need Plans Created
             </Button>
           </Badge>
         </div>
+
+        {/* API Limitation Notice */}
+        <Alert
+          message="API Limitation Notice"
+          description="Due to current API restrictions, you can only create new plans for members. Viewing existing member plans is not supported in this version."
+          type="info"
+          showIcon
+          closable
+          className="mb-4"
+          style={{ backgroundColor: "#e6f7ff", borderColor: "#91d5ff" }}
+        />
 
         {/* Summary Statistics */}
         <Row gutter={[16, 16]} className="mb-4">
@@ -488,9 +628,12 @@ const QuitPlanApprovalNewFlow = () => {
             <Card>
               <Statistic
                 title="Active Plans"
-                value={assignedMembers.filter(m => m.planStatus === 'ACTIVE').length}
+                value={
+                  assignedMembers.filter((m) => m.planStatus === "ACTIVE")
+                    .length
+                }
                 prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: '#52c41a' }}
+                valueStyle={{ color: "#52c41a" }}
               />
             </Card>
           </Col>
@@ -498,9 +641,13 @@ const QuitPlanApprovalNewFlow = () => {
             <Card>
               <Statistic
                 title="Pending Plans"
-                value={assignedMembers.filter(m => m.planStatus === 'PENDING_APPROVAL').length}
+                value={
+                  assignedMembers.filter(
+                    (m) => m.planStatus === "PENDING_APPROVAL"
+                  ).length
+                }
                 prefix={<ClockCircleOutlined />}
-                valueStyle={{ color: '#faad14' }}
+                valueStyle={{ color: "#faad14" }}
               />
             </Card>
           </Col>
@@ -508,9 +655,9 @@ const QuitPlanApprovalNewFlow = () => {
             <Card>
               <Statistic
                 title="No Plans"
-                value={assignedMembers.filter(m => !m.latestPlanId).length}
+                value={assignedMembers.filter((m) => !m.latestPlanId).length}
                 prefix={<ExclamationCircleOutlined />}
-                valueStyle={{ color: '#ff4d4f' }}
+                valueStyle={{ color: "#ff4d4f" }}
               />
             </Card>
           </Col>
@@ -528,7 +675,7 @@ const QuitPlanApprovalNewFlow = () => {
               showSizeChanger: true,
               showQuickJumper: true,
               showTotal: (total, range) =>
-                `${range[0]}-${range[1]} of ${total} members`
+                `${range[0]}-${range[1]} of ${total} members`,
             }}
           />
         </Card>
@@ -557,7 +704,7 @@ const QuitPlanApprovalNewFlow = () => {
                     <Space wrap>
                       <Text strong>Addiction Level:</Text>
                       <Tag color={getAddictionColor(memberStatus.addiction)}>
-                        {memberStatus.addiction || 'Unknown'}
+                        {memberStatus.addiction || "Unknown"}
                       </Tag>
                       <Text strong>Daily Cigarettes:</Text>
                       <Text>{memberStatus.dailySmoking || 0}</Text>
@@ -566,7 +713,8 @@ const QuitPlanApprovalNewFlow = () => {
                     </Space>
                     {memberStatus.reasonToQuit && (
                       <div style={{ marginTop: 8 }}>
-                        <Text strong>Reason to Quit:</Text> {memberStatus.reasonToQuit}
+                        <Text strong>Reason to Quit:</Text>{" "}
+                        {memberStatus.reasonToQuit}
                       </div>
                     )}
                     {memberStatus.goal && (
@@ -595,11 +743,15 @@ const QuitPlanApprovalNewFlow = () => {
                 <Form.Item
                   name="start_date"
                   label="Start Date"
-                  rules={[{ required: true, message: 'Please select start date' }]}
+                  rules={[
+                    { required: true, message: "Please select start date" },
+                  ]}
                 >
-                  <DatePicker 
-                    style={{ width: '100%' }} 
-                    disabledDate={(current) => current && current < moment().startOf('day')}
+                  <DatePicker
+                    style={{ width: "100%" }}
+                    disabledDate={(current) =>
+                      current && current < moment().startOf("day")
+                    }
                   />
                 </Form.Item>
               </Col>
@@ -607,11 +759,15 @@ const QuitPlanApprovalNewFlow = () => {
                 <Form.Item
                   name="end_date"
                   label="Target End Date"
-                  rules={[{ required: true, message: 'Please select end date' }]}
+                  rules={[
+                    { required: true, message: "Please select end date" },
+                  ]}
                 >
-                  <DatePicker 
-                    style={{ width: '100%' }} 
-                    disabledDate={(current) => current && current < moment().startOf('day')}
+                  <DatePicker
+                    style={{ width: "100%" }}
+                    disabledDate={(current) =>
+                      current && current < moment().startOf("day")
+                    }
                   />
                 </Form.Item>
               </Col>
@@ -620,11 +776,11 @@ const QuitPlanApprovalNewFlow = () => {
             <Form.Item
               name="motivation"
               label="Motivation for Quitting"
-              rules={[{ required: true, message: 'Please enter motivation' }]}
-              initialValue={memberStatus?.reasonToQuit || ''}
+              rules={[{ required: true, message: "Please enter motivation" }]}
+              initialValue={memberStatus?.reasonToQuit || ""}
             >
-              <TextArea 
-                rows={2} 
+              <TextArea
+                rows={2}
                 placeholder="Why does the member want to quit smoking?"
                 showCount
                 maxLength={200}
@@ -634,10 +790,10 @@ const QuitPlanApprovalNewFlow = () => {
             <Form.Item
               name="triggers"
               label="Smoking Triggers to Avoid"
-              rules={[{ required: true, message: 'Please enter triggers' }]}
+              rules={[{ required: true, message: "Please enter triggers" }]}
             >
-              <TextArea 
-                rows={2} 
+              <TextArea
+                rows={2}
                 placeholder="What situations trigger the member to smoke?"
                 showCount
                 maxLength={200}
@@ -647,10 +803,12 @@ const QuitPlanApprovalNewFlow = () => {
             <Form.Item
               name="strategies_to_use"
               label="Coping Strategies"
-              rules={[{ required: true, message: 'Please select strategies' }]}
+              rules={[{ required: true, message: "Please select strategies" }]}
             >
               <Select mode="multiple" placeholder="Select coping strategies">
-                <Option value="Deep breathing exercises">Deep breathing exercises</Option>
+                <Option value="Deep breathing exercises">
+                  Deep breathing exercises
+                </Option>
                 <Option value="Physical exercise">Physical exercise</Option>
                 <Option value="Drink water">Drink water</Option>
                 <Option value="Meditation">Meditation</Option>
@@ -665,13 +823,18 @@ const QuitPlanApprovalNewFlow = () => {
               name="medications_to_use"
               label="Recommended Medications (Optional)"
             >
-              <Select mode="multiple" placeholder="Select medications if needed">
+              <Select
+                mode="multiple"
+                placeholder="Select medications if needed"
+              >
                 <Option value="Nicotine patches">Nicotine patches</Option>
                 <Option value="Nicotine gum">Nicotine gum</Option>
                 <Option value="Nicotine lozenges">Nicotine lozenges</Option>
                 <Option value="Varenicline">Varenicline</Option>
                 <Option value="Bupropion">Bupropion</Option>
-                <Option value="Vitamin C supplements">Vitamin C supplements</Option>
+                <Option value="Vitamin C supplements">
+                  Vitamin C supplements
+                </Option>
               </Select>
             </Form.Item>
 
@@ -679,8 +842,8 @@ const QuitPlanApprovalNewFlow = () => {
               name="medication_instructions"
               label="Medication Instructions"
             >
-              <TextArea 
-                rows={2} 
+              <TextArea
+                rows={2}
                 placeholder="Instructions for medication usage..."
                 showCount
                 maxLength={300}
@@ -690,46 +853,42 @@ const QuitPlanApprovalNewFlow = () => {
             <Form.Item
               name="preparation_steps"
               label="Relapse Prevention Strategies"
-              rules={[{ required: true, message: 'Please enter prevention strategies' }]}
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter prevention strategies",
+                },
+              ]}
             >
-              <TextArea 
-                rows={3} 
+              <TextArea
+                rows={3}
                 placeholder="What should the member do to prevent relapse?"
                 showCount
                 maxLength={400}
               />
             </Form.Item>
 
-            <Form.Item
-              name="support_resources"
-              label="Support Resources"
-            >
-              <TextArea 
-                rows={2} 
+            <Form.Item name="support_resources" label="Support Resources">
+              <TextArea
+                rows={2}
                 placeholder="Family, friends, support groups, etc."
                 showCount
                 maxLength={200}
               />
             </Form.Item>
 
-            <Form.Item
-              name="reward_plan"
-              label="Reward Plan"
-            >
-              <TextArea 
-                rows={2} 
+            <Form.Item name="reward_plan" label="Reward Plan">
+              <TextArea
+                rows={2}
                 placeholder="How will the member reward themselves for progress?"
                 showCount
                 maxLength={200}
               />
             </Form.Item>
 
-            <Form.Item
-              name="note"
-              label="Additional Coach Notes"
-            >
-              <TextArea 
-                rows={2} 
+            <Form.Item name="note" label="Additional Coach Notes">
+              <TextArea
+                rows={2}
                 placeholder="Any additional guidance or notes..."
                 showCount
                 maxLength={300}
@@ -745,7 +904,10 @@ const QuitPlanApprovalNewFlow = () => {
               <FileTextOutlined />
               {selectedMember?.memberName}'s Quit Plan
               {memberPlan && (
-                <Tag color={getStatusColor(memberPlan.status)} style={{ marginLeft: 8 }}>
+                <Tag
+                  color={getStatusColor(memberPlan.status)}
+                  style={{ marginLeft: 8 }}
+                >
                   {getStatusText(memberPlan.status)}
                 </Tag>
               )}
@@ -757,46 +919,58 @@ const QuitPlanApprovalNewFlow = () => {
             <Button key="close" onClick={() => setViewPlanModalVisible(false)}>
               Close
             </Button>,
-            memberPlan?.status === 'PENDING_APPROVAL' && (
+            // Only show action buttons if we have plan data
+            memberPlan && memberPlan.status === "PENDING_APPROVAL" && (
               <Space key="approval-actions">
                 <Button
                   danger
                   icon={<CloseCircleOutlined />}
-                  onClick={() => handlePlanAction('deny')}
+                  onClick={() => handlePlanAction("deny")}
                 >
                   Deny
                 </Button>
                 <Button
                   type="primary"
                   icon={<CheckCircleOutlined />}
-                  onClick={() => handlePlanAction('accept')}
+                  onClick={() => handlePlanAction("accept")}
                 >
                   Approve
                 </Button>
               </Space>
             ),
-            memberPlan?.status === 'ACTIVE' && (
+            memberPlan && memberPlan.status === "ACTIVE" && (
               <Space key="active-actions">
                 <Button
                   icon={<EditOutlined />}
-                  onClick={() => handlePlanAction('update')}
+                  onClick={() => handlePlanAction("update")}
                 >
                   Update
                 </Button>
                 <Button
                   type="primary"
                   icon={<CheckCircleOutlined />}
-                  onClick={() => handlePlanAction('finish')}
+                  onClick={() => handlePlanAction("finish")}
                 >
                   Mark Complete
                 </Button>
               </Space>
-            )
-          ]}
+            ),
+            // Show info when no plan data but planId exists
+            !memberPlan && selectedMember?.latestPlanId && (
+              <Button
+                key="api-limitation-info"
+                type="dashed"
+                disabled
+                style={{ color: "#faad14" }}
+              >
+                ⚠️ API Limitation: Cannot View Member Plans
+              </Button>
+            ),
+          ].filter(Boolean)}
           width={1000}
-          bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
+          bodyStyle={{ maxHeight: "70vh", overflowY: "auto" }}
         >
-          {memberPlan && (
+          {memberPlan ? (
             <div>
               {/* Plan Overview */}
               <Card title="Plan Overview" size="small" className="mb-3">
@@ -804,21 +978,36 @@ const QuitPlanApprovalNewFlow = () => {
                   <Col xs={24} md={8}>
                     <Statistic
                       title="Start Date"
-                      value={formatDate(memberPlan.start_date)}
+                      value={
+                        memberPlan.start_date
+                          ? formatDate(memberPlan.start_date)
+                          : "Not set"
+                      }
                       prefix={<CalendarOutlined />}
                     />
                   </Col>
                   <Col xs={24} md={8}>
                     <Statistic
                       title="Target End Date"
-                      value={formatDate(memberPlan.end_date)}
+                      value={
+                        memberPlan.end_date
+                          ? formatDate(memberPlan.end_date)
+                          : "Not set"
+                      }
                       prefix={<CalendarOutlined />}
                     />
                   </Col>
                   <Col xs={24} md={8}>
                     <Statistic
                       title="Duration"
-                      value={moment(memberPlan.end_date).diff(moment(memberPlan.start_date), 'days')}
+                      value={
+                        memberPlan.start_date && memberPlan.end_date
+                          ? moment(memberPlan.end_date).diff(
+                              moment(memberPlan.start_date),
+                              "days"
+                            )
+                          : 0
+                      }
                       suffix="days"
                       prefix={<ClockCircleOutlined />}
                     />
@@ -833,11 +1022,15 @@ const QuitPlanApprovalNewFlow = () => {
                     <Col xs={24} md={12}>
                       <Descriptions size="small" column={1}>
                         <Descriptions.Item label="Daily Smoking">
-                          <Text strong>{memberStatus.dailySmoking || 0} cigarettes/day</Text>
+                          <Text strong>
+                            {memberStatus.dailySmoking || 0} cigarettes/day
+                          </Text>
                         </Descriptions.Item>
                         <Descriptions.Item label="Addiction Level">
-                          <Tag color={getAddictionColor(memberStatus.addiction)}>
-                            {memberStatus.addiction || 'Unknown'}
+                          <Tag
+                            color={getAddictionColor(memberStatus.addiction)}
+                          >
+                            {memberStatus.addiction || "Unknown"}
                           </Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Previous Attempts">
@@ -858,7 +1051,9 @@ const QuitPlanApprovalNewFlow = () => {
                           </Descriptions.Item>
                         )}
                         <Descriptions.Item label="Current Status">
-                          <Tag color="green">{memberPlan.currentSmokingStatus || 'Unknown'}</Tag>
+                          <Tag color="green">
+                            {memberPlan.currentSmokingStatus || "Unknown"}
+                          </Tag>
                         </Descriptions.Item>
                       </Descriptions>
                     </Col>
@@ -869,13 +1064,24 @@ const QuitPlanApprovalNewFlow = () => {
               {/* Plan Details */}
               <Row gutter={[16, 16]} className="mb-3">
                 <Col xs={24} md={12}>
-                  <Card title={<><BulbOutlined /> Motivation</>} size="small">
-                    <Paragraph>{memberPlan.motivation || 'Not specified'}</Paragraph>
+                  <Card
+                    title={
+                      <>
+                        <BulbOutlined /> Motivation
+                      </>
+                    }
+                    size="small"
+                  >
+                    <Paragraph>
+                      {memberPlan.motivation || "Not specified"}
+                    </Paragraph>
                   </Card>
                 </Col>
                 <Col xs={24} md={12}>
                   <Card title="Triggers to Avoid" size="small">
-                    <Paragraph>{memberPlan.smokingTriggersToAvoid || 'Not specified'}</Paragraph>
+                    <Paragraph>
+                      {memberPlan.smokingTriggersToAvoid || "Not specified"}
+                    </Paragraph>
                   </Card>
                 </Col>
               </Row>
@@ -883,17 +1089,36 @@ const QuitPlanApprovalNewFlow = () => {
               <Row gutter={[16, 16]} className="mb-3">
                 <Col xs={24} md={12}>
                   <Card title="Coping Strategies" size="small">
-                    <Paragraph>{memberPlan.copingStrategies || memberPlan.strategies_to_use || 'Not specified'}</Paragraph>
+                    <Paragraph>
+                      {memberPlan.copingStrategies ||
+                        memberPlan.strategies_to_use ||
+                        "Not specified"}
+                    </Paragraph>
                   </Card>
                 </Col>
                 <Col xs={24} md={12}>
-                  <Card title={<><MedicineBoxOutlined /> Medications</>} size="small">
-                    <Paragraph>{memberPlan.medicationsToUse || memberPlan.medications_to_use || 'None specified'}</Paragraph>
-                    {(memberPlan.medicationInstructions || memberPlan.medication_instructions) && (
+                  <Card
+                    title={
+                      <>
+                        <MedicineBoxOutlined /> Medications
+                      </>
+                    }
+                    size="small"
+                  >
+                    <Paragraph>
+                      {memberPlan.medicationsToUse ||
+                        memberPlan.medications_to_use ||
+                        "None specified"}
+                    </Paragraph>
+                    {(memberPlan.medicationInstructions ||
+                      memberPlan.medication_instructions) && (
                       <div>
                         <Text strong>Instructions:</Text>
                         <br />
-                        <Text>{memberPlan.medicationInstructions || memberPlan.medication_instructions}</Text>
+                        <Text>
+                          {memberPlan.medicationInstructions ||
+                            memberPlan.medication_instructions}
+                        </Text>
                       </div>
                     )}
                   </Card>
@@ -903,12 +1128,18 @@ const QuitPlanApprovalNewFlow = () => {
               <Row gutter={[16, 16]} className="mb-3">
                 <Col xs={24} md={12}>
                   <Card title="Relapse Prevention" size="small">
-                    <Paragraph>{memberPlan.relapsePreventionStrategies || memberPlan.preparation_steps || 'Not specified'}</Paragraph>
+                    <Paragraph>
+                      {memberPlan.relapsePreventionStrategies ||
+                        memberPlan.preparation_steps ||
+                        "Not specified"}
+                    </Paragraph>
                   </Card>
                 </Col>
                 <Col xs={24} md={12}>
                   <Card title="Support Resources" size="small">
-                    <Paragraph>{memberPlan.supportResources || 'Not specified'}</Paragraph>
+                    <Paragraph>
+                      {memberPlan.supportResources || "Not specified"}
+                    </Paragraph>
                   </Card>
                 </Col>
               </Row>
@@ -921,7 +1152,9 @@ const QuitPlanApprovalNewFlow = () => {
 
               {(memberPlan.additionalNotes || memberPlan.note) && (
                 <Card title="Additional Notes" size="small" className="mb-3">
-                  <Paragraph>{memberPlan.additionalNotes || memberPlan.note}</Paragraph>
+                  <Paragraph>
+                    {memberPlan.additionalNotes || memberPlan.note}
+                  </Paragraph>
                 </Card>
               )}
 
@@ -939,6 +1172,61 @@ const QuitPlanApprovalNewFlow = () => {
                 </Card>
               )}
             </div>
+          ) : (
+            <div style={{ textAlign: "center", padding: "40px" }}>
+              {selectedMember?.latestPlanId ? (
+                <Alert
+                  message="API Access Limitation"
+                  description={
+                    <div>
+                      <p>
+                        This member has a quit plan (ID:{" "}
+                        {selectedMember.latestPlanId}), but the current API only
+                        allows members to view their own plans.
+                      </p>
+                      <p>
+                        <strong>Suggestion:</strong> Ask the member to share
+                        their plan details, or use the "Create Plan" feature to
+                        create a new plan.
+                      </p>
+                    </div>
+                  }
+                  type="warning"
+                  showIcon
+                  action={
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={() => {
+                        setViewPlanModalVisible(false);
+                        setCreatePlanModalVisible(true);
+                      }}
+                    >
+                      Create New Plan
+                    </Button>
+                  }
+                />
+              ) : (
+                <Alert
+                  message="No Plan Data"
+                  description="This member doesn't have any quit plan yet."
+                  type="info"
+                  showIcon
+                  action={
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={() => {
+                        setViewPlanModalVisible(false);
+                        setCreatePlanModalVisible(true);
+                      }}
+                    >
+                      Create Plan
+                    </Button>
+                  }
+                />
+              )}
+            </div>
           )}
         </Modal>
 
@@ -946,14 +1234,14 @@ const QuitPlanApprovalNewFlow = () => {
         <Modal
           title={
             <Space>
-              {actionType === 'accept' && <CheckCircleOutlined />}
-              {actionType === 'deny' && <CloseCircleOutlined />}
-              {actionType === 'finish' && <CheckCircleOutlined />}
-              {actionType === 'update' && <EditOutlined />}
-              {actionType === 'accept' && 'Approve Plan'}
-              {actionType === 'deny' && 'Deny Plan'}
-              {actionType === 'finish' && 'Complete Plan'}
-              {actionType === 'update' && 'Update Plan'}
+              {actionType === "accept" && <CheckCircleOutlined />}
+              {actionType === "deny" && <CloseCircleOutlined />}
+              {actionType === "finish" && <CheckCircleOutlined />}
+              {actionType === "update" && <EditOutlined />}
+              {actionType === "accept" && "Approve Plan"}
+              {actionType === "deny" && "Deny Plan"}
+              {actionType === "finish" && "Complete Plan"}
+              {actionType === "update" && "Update Plan"}
             </Space>
           }
           open={actionModalVisible}
@@ -961,53 +1249,65 @@ const QuitPlanApprovalNewFlow = () => {
           onOk={submitPlanAction}
           confirmLoading={submitting}
           okText={
-            actionType === 'accept' ? 'Approve' :
-              actionType === 'deny' ? 'Deny' :
-                actionType === 'finish' ? 'Mark Complete' :
-                  'Update'
+            actionType === "accept"
+              ? "Approve"
+              : actionType === "deny"
+              ? "Deny"
+              : actionType === "finish"
+              ? "Mark Complete"
+              : "Update"
           }
           okButtonProps={{
-            type: actionType === 'deny' ? 'danger' : 'primary'
+            type: actionType === "deny" ? "danger" : "primary",
           }}
         >
           <Form form={form} layout="vertical">
-            {actionType === 'deny' && (
+            {actionType === "deny" && (
               <Form.Item
                 name="feedback"
                 label="Reason for Denial"
-                rules={[{ required: true, message: 'Please provide reason for denial' }]}
+                rules={[
+                  {
+                    required: true,
+                    message: "Please provide reason for denial",
+                  },
+                ]}
               >
-                <TextArea rows={4} placeholder="Explain why this plan needs to be revised..." />
+                <TextArea
+                  rows={4}
+                  placeholder="Explain why this plan needs to be revised..."
+                />
               </Form.Item>
             )}
 
-            {actionType === 'finish' && (
-              <Form.Item
-                name="note"
-                label="Completion Notes"
-              >
-                <TextArea rows={3} placeholder="Add any final notes about the completed plan..." />
+            {actionType === "finish" && (
+              <Form.Item name="note" label="Completion Notes">
+                <TextArea
+                  rows={3}
+                  placeholder="Add any final notes about the completed plan..."
+                />
               </Form.Item>
             )}
 
-            {actionType === 'update' && (
+            {actionType === "update" && (
               <>
-                <Form.Item
-                  name="strategies_to_use"
-                  label="Update Strategies"
-                >
+                <Form.Item name="strategies_to_use" label="Update Strategies">
                   <Select mode="multiple" placeholder="Update strategies">
-                    <Option value="Nicotine Replacement Therapy">Nicotine Replacement Therapy</Option>
-                    <Option value="Behavioral Therapy">Behavioral Therapy</Option>
+                    <Option value="Nicotine Replacement Therapy">
+                      Nicotine Replacement Therapy
+                    </Option>
+                    <Option value="Behavioral Therapy">
+                      Behavioral Therapy
+                    </Option>
                     <Option value="Exercise Program">Exercise Program</Option>
                   </Select>
                 </Form.Item>
 
-                <Form.Item
-                  name="note"
-                  label="Update Notes"
-                >
-                  <TextArea rows={3} placeholder="Add notes about the update..." />
+                <Form.Item name="note" label="Update Notes">
+                  <TextArea
+                    rows={3}
+                    placeholder="Add notes about the update..."
+                  />
                 </Form.Item>
               </>
             )}

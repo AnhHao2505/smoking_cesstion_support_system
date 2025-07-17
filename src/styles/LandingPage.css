@@ -30,8 +30,9 @@
   bottom: 0;
   background: linear-gradient(
     135deg,
-    rgba(102, 126, 234, 0.9) 0%,
-    rgba(118, 75, 162, 0.9) 100%
+    rgba(30, 58, 138, 0.9) 0%,
+    /* #1e3a8a */ rgba(59, 130, 246, 0.9) 50%,
+    /* #3b82f6 */ rgba(6, 182, 212, 0.9) 100% /* #06b6d4 */
   );
   z-index: 1;
 }
@@ -318,7 +319,7 @@
 
 .feature-icon-large {
   font-size: 48px;
-  color: #667eea;
+  color: #1e3a8a;
   padding: 20px;
   background: linear-gradient(
     45deg,
@@ -409,7 +410,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  background: linear-gradient(45deg, #1e3a8a, #3b82f6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -871,6 +872,17 @@ html {
   z-index: 1000;
 }
 
+/* Blue header style - áp dụng style bạn cung cấp */
+.header-blue-style {
+  background-color: #1890ff !important;
+  padding: 0 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  color: #fff !important;
+}
+
 .logo {
   height: 32px;
   background: rgba(0, 0, 0, 0.2);
@@ -968,4 +980,143 @@ html {
   .testimonial-card .ant-rate {
     text-align: center;
   }
+}
+
+/* ================================
+   Member Layout UI Enhancements
+   ================================ */
+
+.member-layout {
+  font-family: "Inter", sans-serif;
+  background-color: #f5f9fc;
+}
+
+.ant-layout-sider {
+  background-color: #ffffff !important;
+  border-right: 1px solid #e6f0fa;
+}
+
+.ant-menu {
+  border-inline-end: none !important;
+}
+
+.ant-menu-item,
+.ant-menu-submenu-title {
+  font-weight: 500;
+  font-size: 15px;
+  color: #334155 !important;
+}
+
+.ant-menu-item:hover,
+.ant-menu-submenu-title:hover {
+  background-color: #e6f4ff !important;
+  color: #1677ff !important;
+}
+
+.ant-menu-item-selected {
+  background-color: #e6f4ff !important;
+  color: #1677ff !important;
+  font-weight: 600;
+  border-left: 3px solid #1890ff;
+}
+
+.ant-layout-header.header-blue {
+  background-color: #1890ff !important;
+  color: white !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.ant-layout-header.header-blue .ant-btn {
+  color: white !important;
+}
+
+.ant-layout-header .ant-avatar {
+  background-color: white !important;
+  color: #1890ff !important;
+}
+
+.ant-layout-header .user-name {
+  font-weight: 500;
+  color: white;
+  margin-left: 8px;
+}
+
+.ant-layout-content.content-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 24px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .ant-layout-content.content-panel {
+    margin: 16px 8px;
+    padding: 16px;
+  }
+
+  .user-name {
+    display: none;
+  }
+}
+
+/* Disable menu selection highlighting */
+.ant-menu-item-selected,
+.ant-menu-item-selected:hover,
+.ant-menu-item-selected:focus,
+.ant-menu-item-active {
+  background-color: transparent !important;
+  color: inherit !important;
+  border-left: none !important;
+  font-weight: normal !important;
+}
+
+.ant-menu-submenu-selected,
+.ant-menu-submenu-selected:hover,
+.ant-menu-submenu-selected:focus {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+.ant-menu-item:hover,
+.ant-menu-submenu-title:hover {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Admin Dashboard Tab Styling */
+.admin-dashboard .ant-tabs-tab {
+  padding: 12px 24px !important;
+  font-weight: 500 !important;
+  color: #666 !important;
+  border-bottom: 3px solid transparent !important;
+  transition: all 0.3s ease !important;
+  border-radius: 8px 8px 0 0 !important;
+  margin-right: 4px !important;
+}
+
+.admin-dashboard .ant-tabs-tab:hover {
+  color: #1890ff !important;
+  background-color: rgba(24, 144, 255, 0.04) !important;
+}
+
+.admin-dashboard .ant-tabs-tab-active {
+  color: #1890ff !important;
+  font-weight: 600 !important;
+  border-bottom: 3px solid #1890ff !important;
+  background-color: rgba(24, 144, 255, 0.06) !important;
+}
+
+.admin-dashboard .ant-tabs-ink-bar {
+  display: none !important;
+}
+
+.admin-dashboard .ant-tabs-nav {
+  border-bottom: 1px solid #f0f0f0 !important;
+  margin-bottom: 16px !important;
+}
+
+.admin-dashboard .ant-tabs-content-holder {
+  padding-top: 8px !important;
 }

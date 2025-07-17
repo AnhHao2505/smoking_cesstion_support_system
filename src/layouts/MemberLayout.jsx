@@ -25,6 +25,7 @@ import {
   MessageOutlined,
 } from "@ant-design/icons";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import "../styles/LandingPage.css"; // Import CSS cho Member Layout styles
 
 const { Header, Sider, Content } = Layout;
 
@@ -214,7 +215,7 @@ const MemberLayout = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout className="member-layout" style={{ minHeight: "100vh" }}>
       <Sider
         trigger={null}
         collapsible
@@ -222,7 +223,8 @@ const MemberLayout = () => {
         theme="light"
         width={250}
         style={{
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+          backgroundColor: "#f0f9ff", // nhẹ nhàng hơn
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.1)",
           zIndex: 10,
         }}
       >
@@ -253,9 +255,7 @@ const MemberLayout = () => {
         </div>
 
         <Menu
-          theme="light"
           mode="inline"
-          selectedKeys={[location.pathname]}
           defaultOpenKeys={[
             "quit-plan",
             "daily-tracking",
@@ -266,31 +266,41 @@ const MemberLayout = () => {
             "account",
           ]}
           items={items}
+          style={{
+            backgroundColor: "transparent",
+            fontSize: "15px",
+          }}
+          theme="light"
         />
       </Sider>
 
       <Layout>
         <Header
+          className="header-blue"
           style={{
-            background: "#fff",
             padding: "0 16px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            boxShadow: "0 1px 4px rgba(0, 0, 0, 0.12)",
           }}
         >
           <Button
             type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            icon={
+              collapsed ? (
+                <MenuUnfoldOutlined style={{ color: "#fff" }} />
+              ) : (
+                <MenuFoldOutlined style={{ color: "#fff" }} />
+              )
+            }
             onClick={() => setCollapsed(!collapsed)}
           />
 
           <div style={{ display: "flex", alignItems: "center" }}>
             <Button
               type="text"
-              icon={<BellOutlined />}
-              style={{ marginRight: 16 }}
+              icon={<BellOutlined style={{ color: "#fff", fontSize: 18 }} />}
+              style={{ marginRight: 20 }}
               badge={{ count: 5 }}
             />
 
@@ -302,21 +312,17 @@ const MemberLayout = () => {
                   alignItems: "center",
                 }}
               >
-                <Avatar icon={<UserOutlined />} />
-                <span style={{ marginLeft: 8 }}>Nguyễn Văn A</span>
+                <Avatar
+                  icon={<UserOutlined />}
+                  style={{ backgroundColor: "#fff", color: "#1890ff" }}
+                />
+                <span className="user-name">Nguyễn Văn A</span>
               </div>
             </Dropdown>
           </div>
         </Header>
 
-        <Content
-          style={{
-            margin: "24px 16px",
-            padding: 24,
-            background: "#fff",
-            minHeight: 280,
-          }}
-        >
+        <Content className="content-panel">
           <Outlet />
         </Content>
       </Layout>

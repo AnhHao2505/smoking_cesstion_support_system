@@ -60,6 +60,7 @@ import * as feedbackService from "../../services/feebackService";
 import * as reminderService from "../../services/reminderService";
 import "../../styles/Dashboard.css";
 import "../../styles/AdminDashboard.css";
+import "../../styles/LandingPage.css"; // Import cho tab styling
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
