@@ -109,6 +109,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const App = () => {
+  localStorage.removeItem('jwtToken'); // Clear JWT token on app load
   return (
     <Router>
       <AuthProvider>
