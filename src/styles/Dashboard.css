@@ -667,3 +667,3475 @@
 .member-dashboard .ant-tabs-ink-bar {
   display: none !important;
 }
+
+/* ===== ALL MEMBER PAGES UNIVERSAL STYLING ===== */
+.member-quit-plan-history,
+.member-quit-plan-flow,
+.member-daily-checkin,
+.member-daily-record,
+.member-craving-logger,
+.member-smoking-status,
+.member-progress-chart,
+.member-appointments,
+.member-chat,
+.member-transactions,
+.member-page,
+.member-container {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  min-height: 100vh;
+  position: relative;
+  padding: 24px;
+}
+
+.member-quit-plan-history::before,
+.member-quit-plan-flow::before,
+.member-daily-checkin::before,
+.member-daily-record::before,
+.member-craving-logger::before,
+.member-smoking-status::before,
+.member-progress-chart::before,
+.member-appointments::before,
+.member-chat::before,
+.member-transactions::before,
+.member-page::before,
+.member-container::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.member-quit-plan-history::after,
+.member-quit-plan-flow::after,
+.member-daily-checkin::after,
+.member-daily-record::after,
+.member-craving-logger::after,
+.member-smoking-status::after,
+.member-progress-chart::after,
+.member-appointments::after,
+.member-chat::after,
+.member-transactions::after,
+.member-page::after,
+.member-container::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.member-quit-plan-history > *,
+.member-quit-plan-flow > *,
+.member-daily-checkin > *,
+.member-daily-record > *,
+.member-craving-logger > *,
+.member-smoking-status > *,
+.member-progress-chart > *,
+.member-appointments > *,
+.member-chat > *,
+.member-transactions > *,
+.member-page > *,
+.member-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== MEMBER PAGES - PAGE HEADERS ===== */
+.member-quit-plan-history .page-header,
+.member-quit-plan-flow .page-header,
+.member-daily-checkin .page-header,
+.member-daily-record .page-header,
+.member-craving-logger .page-header,
+.member-smoking-status .page-header,
+.member-progress-chart .page-header,
+.member-appointments .page-header,
+.member-chat .page-header,
+.member-transactions .page-header,
+.member-page .page-header,
+.member-container .page-header {
+  text-align: center;
+  margin-bottom: 32px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1);
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.member-quit-plan-history .page-header:hover,
+.member-quit-plan-flow .page-header:hover,
+.member-daily-checkin .page-header:hover,
+.member-daily-record .page-header:hover,
+.member-craving-logger .page-header:hover,
+.member-smoking-status .page-header:hover,
+.member-progress-chart .page-header:hover,
+.member-appointments .page-header:hover,
+.member-chat .page-header:hover,
+.member-transactions .page-header:hover,
+.member-page .page-header:hover,
+.member-container .page-header:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(24, 144, 255, 0.15);
+}
+
+.member-quit-plan-history .page-header .header-icon,
+.member-quit-plan-flow .page-header .header-icon,
+.member-daily-checkin .page-header .header-icon,
+.member-daily-record .page-header .header-icon,
+.member-craving-logger .page-header .header-icon,
+.member-smoking-status .page-header .header-icon,
+.member-progress-chart .page-header .header-icon,
+.member-appointments .page-header .header-icon,
+.member-chat .page-header .header-icon,
+.member-transactions .page-header .header-icon,
+.member-page .page-header .header-icon,
+.member-container .page-header .header-icon {
+  font-size: 48px;
+  color: #1890ff;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.member-quit-plan-history .page-header h1,
+.member-quit-plan-flow .page-header h1,
+.member-daily-checkin .page-header h1,
+.member-daily-record .page-header h1,
+.member-craving-logger .page-header h1,
+.member-smoking-status .page-header h1,
+.member-progress-chart .page-header h1,
+.member-appointments .page-header h1,
+.member-chat .page-header h1,
+.member-transactions .page-header h1,
+.member-page .page-header h1,
+.member-container .page-header h1 {
+  color: #1890ff;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== MEMBER PAGES - CARD STYLING ===== */
+.member-quit-plan-history .ant-card,
+.member-quit-plan-flow .ant-card,
+.member-daily-checkin .ant-card,
+.member-daily-record .ant-card,
+.member-craving-logger .ant-card,
+.member-smoking-status .ant-card,
+.member-progress-chart .ant-card,
+.member-appointments .ant-card,
+.member-chat .ant-card,
+.member-transactions .ant-card,
+.member-page .ant-card,
+.member-container .ant-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.member-quit-plan-history .ant-card:hover,
+.member-quit-plan-flow .ant-card:hover,
+.member-daily-checkin .ant-card:hover,
+.member-daily-record .ant-card:hover,
+.member-craving-logger .ant-card:hover,
+.member-smoking-status .ant-card:hover,
+.member-progress-chart .ant-card:hover,
+.member-appointments .ant-card:hover,
+.member-chat .ant-card:hover,
+.member-transactions .ant-card:hover,
+.member-page .ant-card:hover,
+.member-container .ant-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(24, 144, 255, 0.15);
+  border-color: rgba(24, 144, 255, 0.2);
+}
+
+.member-quit-plan-history .ant-card-head,
+.member-quit-plan-flow .ant-card-head,
+.member-daily-checkin .ant-card-head,
+.member-daily-record .ant-card-head,
+.member-craving-logger .ant-card-head,
+.member-smoking-status .ant-card-head,
+.member-progress-chart .ant-card-head,
+.member-appointments .ant-card-head,
+.member-chat .ant-card-head,
+.member-transactions .ant-card-head,
+.member-page .ant-card-head,
+.member-container .ant-card-head {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  color: white;
+  font-weight: 600;
+}
+
+.member-quit-plan-history .ant-card-head-title,
+.member-quit-plan-flow .ant-card-head-title,
+.member-daily-checkin .ant-card-head-title,
+.member-daily-record .ant-card-head-title,
+.member-craving-logger .ant-card-head-title,
+.member-smoking-status .ant-card-head-title,
+.member-progress-chart .ant-card-head-title,
+.member-appointments .ant-card-head-title,
+.member-chat .ant-card-head-title,
+.member-transactions .ant-card-head-title,
+.member-page .ant-card-head-title,
+.member-container .ant-card-head-title {
+  color: white !important;
+  font-weight: 600;
+}
+
+.member-quit-plan-history .ant-card-body,
+.member-quit-plan-flow .ant-card-body,
+.member-daily-checkin .ant-card-body,
+.member-daily-record .ant-card-body,
+.member-craving-logger .ant-card-body,
+.member-smoking-status .ant-card-body,
+.member-progress-chart .ant-card-body,
+.member-appointments .ant-card-body,
+.member-chat .ant-card-body,
+.member-transactions .ant-card-body,
+.member-page .ant-card-body,
+.member-container .ant-card-body {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 0 0 16px 16px;
+  padding: 24px;
+}
+
+/* ===== MEMBER PAGES - BUTTONS ===== */
+.member-quit-plan-history .ant-btn,
+.member-quit-plan-flow .ant-btn,
+.member-daily-checkin .ant-btn,
+.member-daily-record .ant-btn,
+.member-craving-logger .ant-btn,
+.member-smoking-status .ant-btn,
+.member-progress-chart .ant-btn,
+.member-appointments .ant-btn,
+.member-chat .ant-btn,
+.member-transactions .ant-btn,
+.member-page .ant-btn,
+.member-container .ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+.member-quit-plan-history .ant-btn-primary,
+.member-quit-plan-flow .ant-btn-primary,
+.member-daily-checkin .ant-btn-primary,
+.member-daily-record .ant-btn-primary,
+.member-craving-logger .ant-btn-primary,
+.member-smoking-status .ant-btn-primary,
+.member-progress-chart .ant-btn-primary,
+.member-appointments .ant-btn-primary,
+.member-chat .ant-btn-primary,
+.member-transactions .ant-btn-primary,
+.member-page .ant-btn-primary,
+.member-container .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  border: none;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3);
+}
+
+.member-quit-plan-history .ant-btn-primary:hover,
+.member-quit-plan-flow .ant-btn-primary:hover,
+.member-daily-checkin .ant-btn-primary:hover,
+.member-daily-record .ant-btn-primary:hover,
+.member-craving-logger .ant-btn-primary:hover,
+.member-smoking-status .ant-btn-primary:hover,
+.member-progress-chart .ant-btn-primary:hover,
+.member-appointments .ant-btn-primary:hover,
+.member-chat .ant-btn-primary:hover,
+.member-transactions .ant-btn-primary:hover,
+.member-page .ant-btn-primary:hover,
+.member-container .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4);
+}
+
+/* ===== MEMBER PAGES - FORMS ===== */
+.member-quit-plan-history .ant-form-item-label,
+.member-quit-plan-flow .ant-form-item-label,
+.member-daily-checkin .ant-form-item-label,
+.member-daily-record .ant-form-item-label,
+.member-craving-logger .ant-form-item-label,
+.member-smoking-status .ant-form-item-label,
+.member-progress-chart .ant-form-item-label,
+.member-appointments .ant-form-item-label,
+.member-chat .ant-form-item-label,
+.member-transactions .ant-form-item-label,
+.member-page .ant-form-item-label,
+.member-container .ant-form-item-label {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.member-quit-plan-history .ant-input,
+.member-quit-plan-flow .ant-input,
+.member-daily-checkin .ant-input,
+.member-daily-record .ant-input,
+.member-craving-logger .ant-input,
+.member-smoking-status .ant-input,
+.member-progress-chart .ant-input,
+.member-appointments .ant-input,
+.member-chat .ant-input,
+.member-transactions .ant-input,
+.member-page .ant-input,
+.member-container .ant-input,
+.member-quit-plan-history .ant-select,
+.member-quit-plan-flow .ant-select,
+.member-daily-checkin .ant-select,
+.member-daily-record .ant-select,
+.member-craving-logger .ant-select,
+.member-smoking-status .ant-select,
+.member-progress-chart .ant-select,
+.member-appointments .ant-select,
+.member-chat .ant-select,
+.member-transactions .ant-select,
+.member-page .ant-select,
+.member-container .ant-select {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.member-quit-plan-history .ant-input:focus,
+.member-quit-plan-flow .ant-input:focus,
+.member-daily-checkin .ant-input:focus,
+.member-daily-record .ant-input:focus,
+.member-craving-logger .ant-input:focus,
+.member-smoking-status .ant-input:focus,
+.member-progress-chart .ant-input:focus,
+.member-appointments .ant-input:focus,
+.member-chat .ant-input:focus,
+.member-transactions .ant-input:focus,
+.member-page .ant-input:focus,
+.member-container .ant-input:focus,
+.member-quit-plan-history .ant-select:focus,
+.member-quit-plan-flow .ant-select:focus,
+.member-daily-checkin .ant-select:focus,
+.member-daily-record .ant-select:focus,
+.member-craving-logger .ant-select:focus,
+.member-smoking-status .ant-select:focus,
+.member-progress-chart .ant-select:focus,
+.member-appointments .ant-select:focus,
+.member-chat .ant-select:focus,
+.member-transactions .ant-select:focus,
+.member-page .ant-select:focus,
+.member-container .ant-select:focus {
+  border-color: #1890ff;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15);
+}
+
+/* ===== MEMBER PAGES - TABLES ===== */
+.member-quit-plan-history .ant-table,
+.member-quit-plan-flow .ant-table,
+.member-daily-checkin .ant-table,
+.member-daily-record .ant-table,
+.member-craving-logger .ant-table,
+.member-smoking-status .ant-table,
+.member-progress-chart .ant-table,
+.member-appointments .ant-table,
+.member-chat .ant-table,
+.member-transactions .ant-table,
+.member-page .ant-table,
+.member-container .ant-table {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1);
+}
+
+.member-quit-plan-history .ant-table-thead > tr > th,
+.member-quit-plan-flow .ant-table-thead > tr > th,
+.member-daily-checkin .ant-table-thead > tr > th,
+.member-daily-record .ant-table-thead > tr > th,
+.member-craving-logger .ant-table-thead > tr > th,
+.member-smoking-status .ant-table-thead > tr > th,
+.member-progress-chart .ant-table-thead > tr > th,
+.member-appointments .ant-table-thead > tr > th,
+.member-chat .ant-table-thead > tr > th,
+.member-transactions .ant-table-thead > tr > th,
+.member-page .ant-table-thead > tr > th,
+.member-container .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  color: white;
+  font-weight: 600;
+  border: none;
+}
+
+.member-quit-plan-history .ant-table-tbody > tr:hover > td,
+.member-quit-plan-flow .ant-table-tbody > tr:hover > td,
+.member-daily-checkin .ant-table-tbody > tr:hover > td,
+.member-daily-record .ant-table-tbody > tr:hover > td,
+.member-craving-logger .ant-table-tbody > tr:hover > td,
+.member-smoking-status .ant-table-tbody > tr:hover > td,
+.member-progress-chart .ant-table-tbody > tr:hover > td,
+.member-appointments .ant-table-tbody > tr:hover > td,
+.member-chat .ant-table-tbody > tr:hover > td,
+.member-transactions .ant-table-tbody > tr:hover > td,
+.member-page .ant-table-tbody > tr:hover > td,
+.member-container .ant-table-tbody > tr:hover > td {
+  background: rgba(24, 144, 255, 0.05);
+}
+
+/* ===== MEMBER PAGES - TAGS & BADGES ===== */
+.member-quit-plan-history .ant-tag,
+.member-quit-plan-flow .ant-tag,
+.member-daily-checkin .ant-tag,
+.member-daily-record .ant-tag,
+.member-craving-logger .ant-tag,
+.member-smoking-status .ant-tag,
+.member-progress-chart .ant-tag,
+.member-appointments .ant-tag,
+.member-chat .ant-tag,
+.member-transactions .ant-tag,
+.member-page .ant-tag,
+.member-container .ant-tag {
+  border-radius: 12px;
+  font-weight: 500;
+  border: none;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+.member-quit-plan-history .ant-badge,
+.member-quit-plan-flow .ant-badge,
+.member-daily-checkin .ant-badge,
+.member-daily-record .ant-badge,
+.member-craving-logger .ant-badge,
+.member-smoking-status .ant-badge,
+.member-progress-chart .ant-badge,
+.member-appointments .ant-badge,
+.member-chat .ant-badge,
+.member-transactions .ant-badge,
+.member-page .ant-badge,
+.member-container .ant-badge {
+  color: #1890ff;
+}
+
+/* ===== MEMBER PAGES - CHARTS & PROGRESS ===== */
+.member-progress-chart .chart-container,
+.member-smoking-status .chart-container,
+.member-daily-record .chart-container {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1);
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  margin-bottom: 24px;
+}
+
+.member-progress-chart .progress-item,
+.member-smoking-status .progress-item,
+.member-daily-record .progress-item {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.05);
+}
+
+/* ===== MEMBER PAGES - STATISTICS CARDS ===== */
+.member-quit-plan-history .stat-card,
+.member-quit-plan-flow .stat-card,
+.member-daily-checkin .stat-card,
+.member-daily-record .stat-card,
+.member-craving-logger .stat-card,
+.member-smoking-status .stat-card,
+.member-progress-chart .stat-card,
+.member-appointments .stat-card,
+.member-chat .stat-card,
+.member-transactions .stat-card,
+.member-page .stat-card,
+.member-container .stat-card {
+  background: linear-gradient(
+    135deg,
+    rgba(24, 144, 255, 0.05) 0%,
+    rgba(64, 169, 255, 0.05) 100%
+  );
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.member-quit-plan-history .stat-card::before,
+.member-quit-plan-flow .stat-card::before,
+.member-daily-checkin .stat-card::before,
+.member-daily-record .stat-card::before,
+.member-craving-logger .stat-card::before,
+.member-smoking-status .stat-card::before,
+.member-progress-chart .stat-card::before,
+.member-appointments .stat-card::before,
+.member-chat .stat-card::before,
+.member-transactions .stat-card::before,
+.member-page .stat-card::before,
+.member-container .stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+}
+
+.member-quit-plan-history .stat-card:hover,
+.member-quit-plan-flow .stat-card:hover,
+.member-daily-checkin .stat-card:hover,
+.member-daily-record .stat-card:hover,
+.member-craving-logger .stat-card:hover,
+.member-smoking-status .stat-card:hover,
+.member-progress-chart .stat-card:hover,
+.member-appointments .stat-card:hover,
+.member-chat .stat-card:hover,
+.member-transactions .stat-card:hover,
+.member-page .stat-card:hover,
+.member-container .stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(24, 144, 255, 0.15);
+}
+
+.member-quit-plan-history .stat-card .stat-value,
+.member-quit-plan-flow .stat-card .stat-value,
+.member-daily-checkin .stat-card .stat-value,
+.member-daily-record .stat-card .stat-value,
+.member-craving-logger .stat-card .stat-value,
+.member-smoking-status .stat-card .stat-value,
+.member-progress-chart .stat-card .stat-value,
+.member-appointments .stat-card .stat-value,
+.member-chat .stat-card .stat-value,
+.member-transactions .stat-card .stat-value,
+.member-page .stat-card .stat-value,
+.member-container .stat-card .stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1890ff;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.member-quit-plan-history .stat-card .stat-label,
+.member-quit-plan-flow .stat-card .stat-label,
+.member-daily-checkin .stat-card .stat-label,
+.member-daily-record .stat-card .stat-label,
+.member-craving-logger .stat-card .stat-label,
+.member-smoking-status .stat-card .stat-label,
+.member-progress-chart .stat-card .stat-label,
+.member-appointments .stat-card .stat-label,
+.member-chat .stat-card .stat-label,
+.member-transactions .stat-card .stat-label,
+.member-page .stat-card .stat-label,
+.member-container .stat-card .stat-label {
+  color: #666;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* ===== MEMBER PAGES - TIMELINE COMPONENTS ===== */
+.member-quit-plan-history .ant-timeline,
+.member-quit-plan-flow .ant-timeline,
+.member-daily-checkin .ant-timeline,
+.member-daily-record .ant-timeline,
+.member-craving-logger .ant-timeline,
+.member-smoking-status .ant-timeline,
+.member-progress-chart .ant-timeline,
+.member-appointments .ant-timeline,
+.member-chat .ant-timeline,
+.member-transactions .ant-timeline,
+.member-page .ant-timeline,
+.member-container .ant-timeline {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1);
+}
+
+.member-quit-plan-history .ant-timeline-item-head,
+.member-quit-plan-flow .ant-timeline-item-head,
+.member-daily-checkin .ant-timeline-item-head,
+.member-daily-record .ant-timeline-item-head,
+.member-craving-logger .ant-timeline-item-head,
+.member-smoking-status .ant-timeline-item-head,
+.member-progress-chart .ant-timeline-item-head,
+.member-appointments .ant-timeline-item-head,
+.member-chat .ant-timeline-item-head,
+.member-transactions .ant-timeline-item-head,
+.member-page .ant-timeline-item-head,
+.member-container .ant-timeline-item-head {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+/* ===== MEMBER PAGES - NOTIFICATION STYLES ===== */
+.member-quit-plan-history .notification-item,
+.member-quit-plan-flow .notification-item,
+.member-daily-checkin .notification-item,
+.member-daily-record .notification-item,
+.member-craving-logger .notification-item,
+.member-smoking-status .notification-item,
+.member-progress-chart .notification-item,
+.member-appointments .notification-item,
+.member-chat .notification-item,
+.member-transactions .notification-item,
+.member-page .notification-item,
+.member-container .notification-item {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-left: 4px solid #1890ff;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.member-quit-plan-history .notification-item:hover,
+.member-quit-plan-flow .notification-item:hover,
+.member-daily-checkin .notification-item:hover,
+.member-daily-record .notification-item:hover,
+.member-craving-logger .notification-item:hover,
+.member-smoking-status .notification-item:hover,
+.member-progress-chart .notification-item:hover,
+.member-appointments .notification-item:hover,
+.member-chat .notification-item:hover,
+.member-transactions .notification-item:hover,
+.member-page .notification-item:hover,
+.member-container .notification-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.15);
+}
+
+/* ===== MEMBER PAGES - RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .member-quit-plan-history,
+  .member-quit-plan-flow,
+  .member-daily-checkin,
+  .member-daily-record,
+  .member-craving-logger,
+  .member-smoking-status,
+  .member-progress-chart,
+  .member-appointments,
+  .member-chat,
+  .member-transactions,
+  .member-page,
+  .member-container {
+    padding: 16px;
+  }
+
+  .member-quit-plan-history .page-header,
+  .member-quit-plan-flow .page-header,
+  .member-daily-checkin .page-header,
+  .member-daily-record .page-header,
+  .member-craving-logger .page-header,
+  .member-smoking-status .page-header,
+  .member-progress-chart .page-header,
+  .member-appointments .page-header,
+  .member-chat .page-header,
+  .member-transactions .page-header,
+  .member-page .page-header,
+  .member-container .page-header {
+    padding: 24px 16px;
+    margin-bottom: 16px;
+  }
+
+  .member-quit-plan-history .page-header h1,
+  .member-quit-plan-flow .page-header h1,
+  .member-daily-checkin .page-header h1,
+  .member-daily-record .page-header h1,
+  .member-craving-logger .page-header h1,
+  .member-smoking-status .page-header h1,
+  .member-progress-chart .page-header h1,
+  .member-appointments .page-header h1,
+  .member-chat .page-header h1,
+  .member-transactions .page-header h1,
+  .member-page .page-header h1,
+  .member-container .page-header h1 {
+    font-size: 24px;
+  }
+
+  .member-quit-plan-history .ant-card,
+  .member-quit-plan-flow .ant-card,
+  .member-daily-checkin .ant-card,
+  .member-daily-record .ant-card,
+  .member-craving-logger .ant-card,
+  .member-smoking-status .ant-card,
+  .member-progress-chart .ant-card,
+  .member-appointments .ant-card,
+  .member-chat .ant-card,
+  .member-transactions .ant-card,
+  .member-page .ant-card,
+  .member-container .ant-card {
+    margin-bottom: 16px;
+  }
+
+  .member-quit-plan-history .ant-card-body,
+  .member-quit-plan-flow .ant-card-body,
+  .member-daily-checkin .ant-card-body,
+  .member-daily-record .ant-card-body,
+  .member-craving-logger .ant-card-body,
+  .member-smoking-status .ant-card-body,
+  .member-progress-chart .ant-card-body,
+  .member-appointments .ant-card-body,
+  .member-chat .ant-card-body,
+  .member-transactions .ant-card-body,
+  .member-page .ant-card-body,
+  .member-container .ant-card-body {
+    padding: 16px;
+  }
+
+  .member-quit-plan-history .stat-card,
+  .member-quit-plan-flow .stat-card,
+  .member-daily-checin .stat-card,
+  .member-daily-record .stat-card,
+  .member-craving-logger .stat-card,
+  .member-smoking-status .stat-card,
+  .member-progress-chart .stat-card,
+  .member-appointments .stat-card,
+  .member-chat .stat-card,
+  .member-transactions .stat-card,
+  .member-page .stat-card,
+  .member-container .stat-card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .member-quit-plan-history .stat-card .stat-value,
+  .member-quit-plan-flow .stat-card .stat-value,
+  .member-daily-checin .stat-card .stat-value,
+  .member-daily-record .stat-card .stat-value,
+  .member-craving-logger .stat-card .stat-value,
+  .member-smoking-status .stat-card .stat-value,
+  .member-progress-chart .stat-card .stat-value,
+  .member-appointments .stat-card .stat-value,
+  .member-chat .stat-card .stat-value,
+  .member-transactions .stat-card .stat-value,
+  .member-page .stat-card .stat-value,
+  .member-container .stat-card .stat-value {
+    font-size: 24px;
+  }
+}
+
+/* ===== QUIT PLAN HISTORY PAGE SPECIFIC STYLING ===== */
+.quit-plan-history {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  min-height: 100vh;
+  position: relative;
+  padding: 24px;
+}
+
+.quit-plan-history::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.quit-plan-history::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.quit-plan-history > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Quit Plan History - Cards */
+.quit-plan-history .ant-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.quit-plan-history .ant-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(24, 144, 255, 0.15);
+  border-color: rgba(24, 144, 255, 0.2);
+}
+
+/* Quit Plan History - Buttons */
+.quit-plan-history .ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+.quit-plan-history .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3) !important;
+  color: white !important;
+}
+
+.quit-plan-history .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4) !important;
+  color: white !important;
+}
+
+.quit-plan-history .ant-btn-default {
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.quit-plan-history .ant-btn-default:hover {
+  background: #1890ff !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3) !important;
+}
+
+/* Quit Plan History - Search and Filters */
+.quit-plan-history .ant-input {
+  border-radius: 8px !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+
+.quit-plan-history .ant-input:focus {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+}
+
+.quit-plan-history .ant-select {
+  border-radius: 8px !important;
+}
+
+.quit-plan-history .ant-select .ant-select-selector {
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+
+.quit-plan-history .ant-select:focus .ant-select-selector,
+.quit-plan-history .ant-select-focused .ant-select-selector {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+}
+
+.quit-plan-history .ant-picker {
+  border-radius: 8px !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+
+.quit-plan-history .ant-picker:focus {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+}
+
+/* Quit Plan History - Table */
+.quit-plan-history .ant-table {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1) !important;
+}
+
+.quit-plan-history .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border: none !important;
+}
+
+.quit-plan-history .ant-table-tbody > tr:hover > td {
+  background: rgba(24, 144, 255, 0.05) !important;
+}
+
+/* Quit Plan History - Tags */
+.quit-plan-history .ant-tag {
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1) !important;
+}
+
+.quit-plan-history .ant-tag-green {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%) !important;
+  color: white !important;
+}
+
+.quit-plan-history .ant-tag-blue {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  color: white !important;
+}
+
+.quit-plan-history .ant-tag-orange {
+  background: linear-gradient(135deg, #fa8c16 0%, #ffa940 100%) !important;
+  color: white !important;
+}
+
+.quit-plan-history .ant-tag-red {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%) !important;
+  color: white !important;
+}
+
+/* Quit Plan History - Progress */
+.quit-plan-history .ant-progress-bg {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+}
+
+.quit-plan-history .ant-progress-inner {
+  border-radius: 8px !important;
+}
+
+/* Quit Plan History - Statistics Cards */
+.quit-plan-history .ant-statistic-title {
+  color: #666 !important;
+  font-weight: 500 !important;
+}
+
+.quit-plan-history .ant-statistic-content {
+  color: #1890ff !important;
+  font-weight: 700 !important;
+}
+
+/* Quit Plan History - Modal */
+.quit-plan-history .ant-modal-content {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+.quit-plan-history .ant-modal-header {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  border-bottom: none !important;
+}
+
+.quit-plan-history .ant-modal-title {
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.quit-plan-history .ant-modal-close {
+  color: white !important;
+}
+
+.quit-plan-history .ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Quit Plan History - Pagination */
+.quit-plan-history .ant-pagination-item {
+  border-radius: 8px !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+}
+
+.quit-plan-history .ant-pagination-item-active {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  border-color: #1890ff !important;
+}
+
+.quit-plan-history .ant-pagination-item-active a {
+  color: white !important;
+}
+
+.quit-plan-history .ant-pagination-item:hover {
+  border-color: #1890ff !important;
+}
+
+.quit-plan-history .ant-pagination-item:hover a {
+  color: #1890ff !important;
+}
+
+/* Quit Plan History - Timeline */
+.quit-plan-history .ant-timeline {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+  border: 1px solid rgba(24, 144, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1) !important;
+}
+
+.quit-plan-history .ant-timeline-item-head {
+  background: #1890ff !important;
+  border-color: #1890ff !important;
+}
+
+/* Quit Plan History - Avatar */
+.quit-plan-history .ant-avatar {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+}
+
+/* Quit Plan History - Responsive */
+@media (max-width: 768px) {
+  .quit-plan-history {
+    padding: 16px;
+  }
+
+  .quit-plan-history .ant-card {
+    margin-bottom: 16px;
+  }
+}
+
+/* ===== MEMBER SMOKING STATUS PAGE STYLING ===== */
+.member-smoking-status {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  min-height: 100vh;
+  position: relative;
+  padding: 24px;
+}
+
+.member-smoking-status::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.member-smoking-status::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.member-smoking-status > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Smoking Status - Cards */
+.member-smoking-status .ant-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.member-smoking-status .ant-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(24, 144, 255, 0.15);
+  border-color: rgba(24, 144, 255, 0.2);
+}
+
+.member-smoking-status .ant-card-head {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  color: white;
+  font-weight: 600;
+}
+
+.member-smoking-status .ant-card-head-title {
+  color: white !important;
+  font-weight: 600;
+}
+
+/* Smoking Status - Buttons */
+.member-smoking-status .ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+.member-smoking-status .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3) !important;
+  color: white !important;
+}
+
+.member-smoking-status .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4) !important;
+  color: white !important;
+}
+
+.member-smoking-status .ant-btn-default {
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.member-smoking-status .ant-btn-default:hover {
+  background: #1890ff !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3) !important;
+}
+
+/* Smoking Status - Forms */
+.member-smoking-status .ant-form-item-label {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.member-smoking-status .ant-input,
+.member-smoking-status .ant-select,
+.member-smoking-status .ant-textarea {
+  border-radius: 8px !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+
+.member-smoking-status .ant-input:focus,
+.member-smoking-status .ant-select:focus,
+.member-smoking-status .ant-textarea:focus {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+}
+
+.member-smoking-status .ant-select .ant-select-selector {
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  border-radius: 8px !important;
+}
+
+.member-smoking-status .ant-select-focused .ant-select-selector {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+}
+
+/* Smoking Status - Progress */
+.member-smoking-status .ant-progress-bg {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+}
+
+.member-smoking-status .ant-progress-inner {
+  border-radius: 8px !important;
+}
+
+/* Smoking Status - Tags */
+.member-smoking-status .ant-tag {
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1) !important;
+}
+
+.member-smoking-status .ant-tag-green {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%) !important;
+  color: white !important;
+}
+
+.member-smoking-status .ant-tag-blue {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  color: white !important;
+}
+
+.member-smoking-status .ant-tag-orange {
+  background: linear-gradient(135deg, #fa8c16 0%, #ffa940 100%) !important;
+  color: white !important;
+}
+
+.member-smoking-status .ant-tag-red {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%) !important;
+  color: white !important;
+}
+
+/* ===== MEMBER DAILY CHECKIN PAGE STYLING ===== */
+.member-daily-checkin {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  min-height: 100vh;
+  position: relative;
+  padding: 24px;
+}
+
+.member-daily-checkin::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.member-daily-checkin::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.member-daily-checkin > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Daily Checkin - Cards */
+.member-daily-checkin .ant-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.member-daily-checkin .ant-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(24, 144, 255, 0.15);
+  border-color: rgba(24, 144, 255, 0.2);
+}
+
+.member-daily-checkin .ant-card-head {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  color: white;
+  font-weight: 600;
+}
+
+.member-daily-checkin .ant-card-head-title {
+  color: white !important;
+  font-weight: 600;
+}
+
+/* Daily Checkin - Buttons */
+.member-daily-checkin .ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+.member-daily-checkin .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3) !important;
+  color: white !important;
+}
+
+.member-daily-checkin .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4) !important;
+  color: white !important;
+}
+
+.member-daily-checkin .ant-btn-default {
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.member-daily-checkin .ant-btn-default:hover {
+  background: #1890ff !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3) !important;
+}
+
+/* Daily Checkin - Forms */
+.member-daily-checkin .ant-form-item-label {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.member-daily-checkin .ant-input,
+.member-daily-checkin .ant-select,
+.member-daily-checkin .ant-textarea {
+  border-radius: 8px !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+
+.member-daily-checkin .ant-input:focus,
+.member-daily-checkin .ant-select:focus,
+.member-daily-checkin .ant-textarea:focus {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+}
+
+.member-daily-checkin .ant-select .ant-select-selector {
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  border-radius: 8px !important;
+}
+
+.member-daily-checkin .ant-select-focused .ant-select-selector {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+}
+
+/* Daily Checkin - Checkbox */
+.member-daily-checkin .ant-checkbox-wrapper {
+  color: #333;
+  font-weight: 500;
+}
+
+.member-daily-checkin .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #1890ff !important;
+  border-color: #1890ff !important;
+}
+
+.member-daily-checkin .ant-checkbox:hover .ant-checkbox-inner {
+  border-color: #1890ff !important;
+}
+
+/* Daily Checkin - Calendar */
+.member-daily-checkin .ant-picker-calendar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(24, 144, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1) !important;
+}
+
+.member-daily-checkin .ant-picker-cell-selected .ant-picker-cell-inner {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  color: white !important;
+}
+
+/* ===== MEMBER DAILY RECORD PAGE STYLING ===== */
+.member-daily-record {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  min-height: 100vh;
+  position: relative;
+  padding: 24px;
+}
+
+.member-daily-record::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.member-daily-record::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.member-daily-record > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Daily Record - Cards */
+.member-daily-record .ant-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.member-daily-record .ant-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(24, 144, 255, 0.15);
+  border-color: rgba(24, 144, 255, 0.2);
+}
+
+.member-daily-record .ant-card-head {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  color: white;
+  font-weight: 600;
+}
+
+.member-daily-record .ant-card-head-title {
+  color: white !important;
+  font-weight: 600;
+}
+
+/* Daily Record - Buttons */
+.member-daily-record .ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+.member-daily-record .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3) !important;
+  color: white !important;
+}
+
+/* ===========================
+   CORRECTED MEMBER PAGE STYLES
+   ========================== */
+
+/* Member Smoking Status Page Styling */
+.smoking-status-tracker {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  min-height: 100vh;
+  padding: 0;
+}
+
+.smoking-status-tracker .container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+  padding: 30px;
+}
+
+.smoking-status-tracker .ant-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(24, 144, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.1);
+  backdrop-filter: blur(5px);
+  margin-bottom: 20px;
+}
+
+.smoking-status-tracker .ant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(24, 144, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+.smoking-status-tracker .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.smoking-status-tracker .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff, #69c0ff);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.4);
+}
+
+.smoking-status-tracker .ant-btn-default {
+  border: 1px solid #1890ff;
+  color: #1890ff;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.smoking-status-tracker .ant-btn-default:hover {
+  background: rgba(24, 144, 255, 0.1);
+  border-color: #40a9ff;
+  color: #40a9ff;
+}
+
+.smoking-status-tracker .ant-table {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+}
+
+.smoking-status-tracker .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  color: white;
+  border: none;
+  font-weight: 600;
+}
+
+.smoking-status-tracker .ant-table-tbody > tr:hover > td {
+  background: rgba(24, 144, 255, 0.05);
+}
+
+.smoking-status-tracker .ant-statistic {
+  text-align: center;
+}
+
+.smoking-status-tracker .ant-statistic-content {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.smoking-status-tracker .ant-progress-bg {
+  background: linear-gradient(to right, #1890ff, #40a9ff) !important;
+}
+
+.smoking-status-tracker .ant-tag {
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+}
+
+.smoking-status-tracker .ant-alert {
+  border-radius: 10px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+  background: rgba(24, 144, 255, 0.05);
+}
+
+.smoking-status-tracker .ant-select-selector {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.smoking-status-tracker .ant-select-selector:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.smoking-status-tracker .ant-timeline-item-tail {
+  border-left: 2px solid #1890ff;
+}
+
+.smoking-status-tracker .ant-timeline-item-head {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+/* Member Daily Checkin Page Styling */
+.daily-checkin {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  min-height: 100vh;
+  padding: 0;
+}
+
+.daily-checkin .container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+  padding: 30px;
+}
+
+.daily-checkin .ant-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(24, 144, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.1);
+  backdrop-filter: blur(5px);
+  margin-bottom: 20px;
+}
+
+.daily-checkin .ant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(24, 144, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+.daily-checkin .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.daily-checkin .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff, #69c0ff);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.4);
+}
+
+.daily-checkin .ant-btn-default {
+  border: 1px solid #1890ff;
+  color: #1890ff;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.daily-checkin .ant-btn-default:hover {
+  background: rgba(24, 144, 255, 0.1);
+  border-color: #40a9ff;
+  color: #40a9ff;
+}
+
+.daily-checkin .ant-form-item-label > label {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.daily-checkin .ant-input {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.daily-checkin .ant-input:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.daily-checkin .ant-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.daily-checkin .ant-radio-button-wrapper {
+  border-radius: 6px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+  color: #1890ff;
+}
+
+.daily-checkin .ant-radio-button-wrapper-checked {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  border-color: #1890ff;
+  color: white;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+}
+
+.daily-checkin .ant-steps-item-process .ant-steps-item-icon {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  border-color: #1890ff;
+}
+
+.daily-checkin .ant-steps-item-finish .ant-steps-item-icon {
+  background: #52c41a;
+  border-color: #52c41a;
+}
+
+.daily-checkin .ant-progress-bg {
+  background: linear-gradient(to right, #1890ff, #40a9ff) !important;
+}
+
+.daily-checkin .step-content {
+  padding: 20px;
+  background: rgba(24, 144, 255, 0.02);
+  border-radius: 10px;
+  border: 1px solid rgba(24, 144, 255, 0.1);
+}
+
+.daily-checkin .ant-divider {
+  border-color: rgba(24, 144, 255, 0.2);
+}
+
+/* Member Daily Log Page Styling */
+.daily-log {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  min-height: 100vh;
+  padding: 0;
+}
+
+.daily-log .container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+  padding: 30px;
+}
+
+.daily-log .ant-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(24, 144, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.1);
+  backdrop-filter: blur(5px);
+  margin-bottom: 20px;
+}
+
+.daily-log .ant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(24, 144, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+.daily-log .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.daily-log .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff, #69c0ff);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.4);
+}
+
+.daily-log .ant-btn-default {
+  border: 1px solid #1890ff;
+  color: #1890ff;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.daily-log .ant-btn-default:hover {
+  background: rgba(24, 144, 255, 0.1);
+  border-color: #40a9ff;
+  color: #40a9ff;
+}
+
+.daily-log .ant-form-item-label > label {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.daily-log .ant-input {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.daily-log .ant-input:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.daily-log .ant-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.daily-log .ant-select-selector {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.daily-log .ant-select-selector:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.daily-log .ant-slider-track {
+  background: linear-gradient(to right, #1890ff, #40a9ff);
+}
+
+.daily-log .ant-slider-handle {
+  border-color: #1890ff;
+}
+
+.daily-log .ant-slider-handle:hover {
+  border-color: #40a9ff;
+}
+
+.daily-log .ant-input-number {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.daily-log .ant-input-number:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.daily-log .ant-input-number:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.daily-log .ant-switch-checked {
+  background-color: #1890ff;
+}
+
+.daily-log .ant-statistic {
+  text-align: center;
+}
+
+.daily-log .ant-statistic-content {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.daily-log .ant-progress-bg {
+  background: linear-gradient(to right, #1890ff, #40a9ff) !important;
+}
+
+.daily-log .ant-divider {
+  border-color: rgba(24, 144, 255, 0.2);
+}
+
+.daily-log .ant-divider-horizontal.ant-divider-with-text::before,
+.daily-log .ant-divider-horizontal.ant-divider-with-text::after {
+  border-top-color: rgba(24, 144, 255, 0.3);
+}
+
+.daily-log .ant-divider-inner-text {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+/* Member Craving Logger Page Styling */
+.craving-logger {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  min-height: 100vh;
+  padding: 0;
+}
+
+.craving-logger .container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+  padding: 30px;
+}
+
+.craving-logger .ant-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(24, 144, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.1);
+  backdrop-filter: blur(5px);
+  margin-bottom: 20px;
+}
+
+.craving-logger .ant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(24, 144, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+.craving-logger .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.craving-logger .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff, #69c0ff);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.4);
+}
+
+.craving-logger .ant-btn-default {
+  border: 1px solid #1890ff;
+  color: #1890ff;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.craving-logger .ant-btn-default:hover {
+  background: rgba(24, 144, 255, 0.1);
+  border-color: #40a9ff;
+  color: #40a9ff;
+}
+
+.craving-logger .ant-form-item-label > label {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.craving-logger .ant-input {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.craving-logger .ant-input:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.craving-logger .ant-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.craving-logger .ant-select-selector {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.craving-logger .ant-select-selector:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.craving-logger .ant-slider-track {
+  background: linear-gradient(to right, #1890ff, #40a9ff);
+}
+
+.craving-logger .ant-slider-handle {
+  border-color: #1890ff;
+}
+
+.craving-logger .ant-slider-handle:hover {
+  border-color: #40a9ff;
+}
+
+.craving-logger .ant-rate {
+  color: #1890ff;
+}
+
+.craving-logger .ant-rate-star:hover {
+  color: #40a9ff;
+}
+
+.craving-logger .ant-statistic {
+  text-align: center;
+}
+
+.craving-logger .ant-statistic-content {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.craving-logger .ant-progress-bg {
+  background: linear-gradient(to right, #1890ff, #40a9ff) !important;
+}
+
+.craving-logger .ant-tag {
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+}
+
+.craving-logger .ant-alert {
+  border-radius: 10px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+  background: rgba(24, 144, 255, 0.05);
+}
+
+.craving-logger .ant-timeline-item-tail {
+  border-left: 2px solid #1890ff;
+}
+
+.craving-logger .ant-timeline-item-head {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.craving-logger .ant-table {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+}
+
+.craving-logger .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  color: white;
+  border: none;
+  font-weight: 600;
+}
+
+.craving-logger .ant-table-tbody > tr:hover > td {
+  background: rgba(24, 144, 255, 0.05);
+}
+
+.craving-logger .ant-date-picker {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.craving-logger .ant-date-picker:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.craving-logger .ant-time-picker {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.craving-logger .ant-time-picker:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+/* Daily Record Form Styling */
+.daily-record-form {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(24, 144, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.1);
+  backdrop-filter: blur(5px);
+  margin-bottom: 20px;
+}
+
+.daily-record-form:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(24, 144, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+.daily-record-form .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.daily-record-form .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff, #69c0ff);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.4);
+}
+
+.daily-record-form .ant-form-item-label > label {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.daily-record-form .ant-input {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.daily-record-form .ant-input:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.daily-record-form .ant-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.daily-record-form .ant-select-selector {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.daily-record-form .ant-select-selector:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.daily-record-form .ant-input-number {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.daily-record-form .ant-input-number:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.daily-record-form .ant-switch-checked {
+  background-color: #1890ff;
+}
+
+/* Member Quit Plan History Page Styling */
+.quit-plan-history {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  min-height: 100vh;
+  padding: 0;
+}
+
+.quit-plan-history .container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+  padding: 30px;
+}
+
+.quit-plan-history .ant-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(24, 144, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.1);
+  backdrop-filter: blur(5px);
+  margin-bottom: 20px;
+}
+
+.quit-plan-history .ant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(24, 144, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+.quit-plan-history .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.quit-plan-history .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff, #69c0ff);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.4);
+}
+
+.quit-plan-history .ant-btn-default {
+  border: 1px solid #1890ff;
+  color: #1890ff;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.quit-plan-history .ant-btn-default:hover {
+  background: rgba(24, 144, 255, 0.1);
+  border-color: #40a9ff;
+  color: #40a9ff;
+}
+
+.quit-plan-history .ant-table {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+}
+
+.quit-plan-history .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  color: white;
+  border: none;
+  font-weight: 600;
+}
+
+.quit-plan-history .ant-table-tbody > tr:hover > td {
+  background: rgba(24, 144, 255, 0.05);
+}
+
+.quit-plan-history .ant-statistic {
+  text-align: center;
+}
+
+.quit-plan-history .ant-statistic-content {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.quit-plan-history .ant-progress-bg {
+  background: linear-gradient(to right, #1890ff, #40a9ff) !important;
+}
+
+.quit-plan-history .ant-tag {
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+}
+
+.quit-plan-history .ant-input {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.quit-plan-history .ant-input:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.quit-plan-history .ant-input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.quit-plan-history .ant-select-selector {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.quit-plan-history .ant-select-selector:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.quit-plan-history .ant-picker {
+  border-radius: 8px;
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
+
+.quit-plan-history .ant-picker:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.quit-plan-history .ant-timeline-item-tail {
+  border-left: 2px solid #1890ff;
+}
+
+.quit-plan-history .ant-timeline-item-head {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.member-daily-record .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4) !important;
+  color: white !important;
+}
+
+.member-daily-record .ant-btn-default {
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.member-daily-record .ant-btn-default:hover {
+  background: #1890ff !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3) !important;
+}
+
+/* Daily Record - Forms */
+.member-daily-record .ant-form-item-label {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.member-daily-record .ant-input,
+.member-daily-record .ant-select,
+.member-daily-record .ant-textarea,
+.member-daily-record .ant-input-number {
+  border-radius: 8px !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+
+.member-daily-record .ant-input:focus,
+.member-daily-record .ant-select:focus,
+.member-daily-record .ant-textarea:focus,
+.member-daily-record .ant-input-number:focus {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+}
+
+.member-daily-record .ant-select .ant-select-selector {
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  border-radius: 8px !important;
+}
+
+.member-daily-record .ant-select-focused .ant-select-selector {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+}
+
+/* Daily Record - Rate */
+.member-daily-record .ant-rate {
+  color: #faad14 !important;
+  font-size: 24px;
+}
+
+.member-daily-record
+  .ant-rate-star:not(.ant-rate-star-zero)
+  .ant-rate-star-first,
+.member-daily-record
+  .ant-rate-star:not(.ant-rate-star-zero)
+  .ant-rate-star-second {
+  color: #faad14 !important;
+}
+
+/* Daily Record - Date Picker */
+.member-daily-record .ant-picker {
+  border-radius: 8px !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+
+.member-daily-record .ant-picker:focus {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+}
+
+/* ===== MEMBER CRAVING LOGGER PAGE STYLING ===== */
+.member-craving-logger {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  min-height: 100vh;
+  position: relative;
+  padding: 24px;
+}
+
+.member-craving-logger::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.member-craving-logger::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.member-craving-logger > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Craving Logger - Cards */
+.member-craving-logger .ant-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.member-craving-logger .ant-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(24, 144, 255, 0.15);
+  border-color: rgba(24, 144, 255, 0.2);
+}
+
+.member-craving-logger .ant-card-head {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  color: white;
+  font-weight: 600;
+}
+
+.member-craving-logger .ant-card-head-title {
+  color: white !important;
+  font-weight: 600;
+}
+
+/* Craving Logger - Buttons */
+.member-craving-logger .ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+.member-craving-logger .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3) !important;
+  color: white !important;
+}
+
+.member-craving-logger .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4) !important;
+  color: white !important;
+}
+
+.member-craving-logger .ant-btn-default {
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.member-craving-logger .ant-btn-default:hover {
+  background: #1890ff !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3) !important;
+}
+
+/* Craving Logger - Forms */
+.member-craving-logger .ant-form-item-label {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.member-craving-logger .ant-input,
+.member-craving-logger .ant-select,
+.member-craving-logger .ant-textarea,
+.member-craving-logger .ant-slider {
+  border-radius: 8px !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+
+.member-craving-logger .ant-input:focus,
+.member-craving-logger .ant-select:focus,
+.member-craving-logger .ant-textarea:focus {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+}
+
+.member-craving-logger .ant-select .ant-select-selector {
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  border-radius: 8px !important;
+}
+
+.member-craving-logger .ant-select-focused .ant-select-selector {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15) !important;
+}
+
+/* Craving Logger - Slider */
+.member-craving-logger .ant-slider-rail {
+  background-color: rgba(24, 144, 255, 0.1) !important;
+}
+
+.member-craving-logger .ant-slider-track {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+}
+
+.member-craving-logger .ant-slider-handle {
+  border: 2px solid #1890ff !important;
+  background-color: white !important;
+}
+
+.member-craving-logger .ant-slider-handle:hover,
+.member-craving-logger .ant-slider-handle:focus {
+  border-color: #40a9ff !important;
+  box-shadow: 0 0 0 5px rgba(24, 144, 255, 0.1) !important;
+}
+
+/* Craving Logger - Timeline */
+.member-craving-logger .ant-timeline {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+  border: 1px solid rgba(24, 144, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1) !important;
+}
+
+.member-craving-logger .ant-timeline-item-head {
+  background: #1890ff !important;
+  border-color: #1890ff !important;
+}
+
+/* Craving Logger - Alert */
+.member-craving-logger .ant-alert {
+  border-radius: 12px !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.1) !important;
+}
+
+.member-craving-logger .ant-alert-info {
+  background: rgba(24, 144, 255, 0.05) !important;
+  border-color: rgba(24, 144, 255, 0.2) !important;
+}
+
+.member-craving-logger .ant-alert-success {
+  background: rgba(82, 196, 26, 0.05) !important;
+  border-color: rgba(82, 196, 26, 0.2) !important;
+}
+
+.member-craving-logger .ant-alert-warning {
+  background: rgba(250, 140, 22, 0.05) !important;
+  border-color: rgba(250, 140, 22, 0.2) !important;
+}
+
+.member-craving-logger .ant-alert-error {
+  background: rgba(255, 77, 79, 0.05) !important;
+  border-color: rgba(255, 77, 79, 0.2) !important;
+}
+
+/* =================================================================
+   PROGRESS CHART PAGE STYLING
+   ================================================================= */
+
+/* Progress Chart - Main Container */
+.progress-chart {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  padding: 24px !important;
+}
+
+.progress-chart .container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Progress Chart - Page Header */
+.progress-chart .d-flex.justify-content-between.align-items-center.mb-4 h2 {
+  color: white !important;
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  margin: 0 !important;
+}
+
+/* Progress Chart - Cards */
+.progress-chart .ant-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.15) !important;
+  transition: all 0.3s ease !important;
+  margin-bottom: 24px !important;
+}
+
+.progress-chart .ant-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 48px rgba(24, 144, 255, 0.25) !important;
+  border-color: rgba(24, 144, 255, 0.3) !important;
+}
+
+/* Progress Chart - Card Headers */
+.progress-chart .ant-card-head {
+  background: rgba(24, 144, 255, 0.1) !important;
+  border-bottom: 1px solid rgba(24, 144, 255, 0.15) !important;
+  border-radius: 16px 16px 0 0 !important;
+}
+
+.progress-chart .ant-card-head-title {
+  color: #1890ff !important;
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
+}
+
+/* Progress Chart - Statistics Cards */
+.progress-chart .ant-statistic-title {
+  color: #666 !important;
+  font-weight: 500 !important;
+  margin-bottom: 8px !important;
+}
+
+.progress-chart .ant-statistic-content {
+  color: #1890ff !important;
+  font-weight: 700 !important;
+}
+
+.progress-chart .ant-statistic-content-value {
+  font-size: 1.5rem !important;
+}
+
+/* Progress Chart - Buttons */
+.progress-chart .ant-btn {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15) !important;
+  transition: all 0.3s ease !important;
+}
+
+.progress-chart .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff, #40a9ff) !important;
+  border: none !important;
+  color: white !important;
+}
+
+.progress-chart .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff, #1890ff) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3) !important;
+}
+
+.progress-chart .ant-btn-default {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  color: #1890ff !important;
+}
+
+.progress-chart .ant-btn-default:hover {
+  background: rgba(24, 144, 255, 0.1) !important;
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Progress Chart - Radio Buttons */
+.progress-chart .ant-radio-button-wrapper {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  color: #1890ff !important;
+  border-radius: 6px !important;
+  margin-right: 8px !important;
+}
+
+.progress-chart .ant-radio-button-wrapper:hover {
+  background: rgba(24, 144, 255, 0.1) !important;
+  border-color: #1890ff !important;
+}
+
+.progress-chart .ant-radio-button-wrapper-checked {
+  background: #1890ff !important;
+  border-color: #1890ff !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3) !important;
+}
+
+/* Progress Chart - Select Dropdown */
+.progress-chart .ant-select {
+  border-radius: 8px !important;
+}
+
+.progress-chart .ant-select-selector {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  border-radius: 8px !important;
+}
+
+.progress-chart .ant-select-selector:hover,
+.progress-chart .ant-select-focused .ant-select-selector {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1) !important;
+}
+
+/* Progress Chart - Date Picker */
+.progress-chart .ant-picker {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  border-radius: 8px !important;
+}
+
+.progress-chart .ant-picker:hover,
+.progress-chart .ant-picker-focused {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1) !important;
+}
+
+/* Progress Chart - Switch */
+.progress-chart .ant-switch {
+  background: rgba(0, 0, 0, 0.25) !important;
+}
+
+.progress-chart .ant-switch-checked {
+  background: #1890ff !important;
+}
+
+/* Progress Chart - Progress Bars */
+.progress-chart .ant-progress-bg {
+  background: linear-gradient(to right, #1890ff, #40a9ff) !important;
+}
+
+.progress-chart .ant-progress-success-bg {
+  background: linear-gradient(to right, #52c41a, #73d13d) !important;
+}
+
+/* Progress Chart - Tags */
+.progress-chart .ant-tag {
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.progress-chart .ant-tag-green {
+  background: linear-gradient(135deg, #52c41a, #73d13d) !important;
+  color: white !important;
+}
+
+.progress-chart .ant-tag-red {
+  background: linear-gradient(135deg, #ff4d4f, #ff7875) !important;
+  color: white !important;
+}
+
+.progress-chart .ant-tag-orange {
+  background: linear-gradient(135deg, #faad14, #ffc53d) !important;
+  color: white !important;
+}
+
+.progress-chart .ant-tag-blue {
+  background: linear-gradient(135deg, #1890ff, #40a9ff) !important;
+  color: white !important;
+}
+
+/* Progress Chart - Typography */
+.progress-chart .ant-typography {
+  color: #333 !important;
+}
+
+.progress-chart .ant-typography h1,
+.progress-chart .ant-typography h2,
+.progress-chart .ant-typography h3,
+.progress-chart .ant-typography h4,
+.progress-chart .ant-typography h5 {
+  color: #1890ff !important;
+  font-weight: 600 !important;
+}
+
+/* Progress Chart - Chart Container */
+.progress-chart .recharts-wrapper {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+}
+
+/* Progress Chart - Weekly Summary Cards */
+.progress-chart .weekly-summary .ant-card {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(24, 144, 255, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+
+.progress-chart .weekly-summary .ant-card:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  border-color: rgba(24, 144, 255, 0.3) !important;
+}
+
+/* Progress Chart - Tooltips */
+.progress-chart .ant-tooltip-inner {
+  background: rgba(24, 144, 255, 0.9) !important;
+  border-radius: 8px !important;
+}
+
+/* Progress Chart - Loading State */
+.progress-chart .ant-spin-dot-item {
+  background-color: white !important;
+}
+
+/* Progress Chart - Text */
+.progress-chart .ant-typography-caption {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* =================================================================
+   APPOINTMENT MANAGEMENT PAGE STYLING (COACH SELECTION)
+   ================================================================= */
+
+/* Coach Selection - Main Container */
+.coach-selection {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  padding: 24px !important;
+}
+
+.coach-selection .container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Coach Selection - Page Header */
+.coach-selection .d-flex.justify-content-between.align-items-center.mb-4 h2,
+.coach-selection h2 {
+  color: white !important;
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  margin: 0 !important;
+}
+
+.coach-selection .ant-typography {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Coach Selection - Cards */
+.coach-selection .ant-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.15) !important;
+  transition: all 0.3s ease !important;
+  margin-bottom: 24px !important;
+}
+
+.coach-selection .ant-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 48px rgba(24, 144, 255, 0.25) !important;
+  border-color: rgba(24, 144, 255, 0.3) !important;
+}
+
+/* Coach Selection - Card Headers */
+.coach-selection .ant-card-head {
+  background: rgba(24, 144, 255, 0.1) !important;
+  border-bottom: 1px solid rgba(24, 144, 255, 0.15) !important;
+  border-radius: 16px 16px 0 0 !important;
+}
+
+.coach-selection .ant-card-head-title {
+  color: #1890ff !important;
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
+}
+
+/* Coach Selection - Statistics Cards */
+.coach-selection .ant-statistic-title {
+  color: #666 !important;
+  font-weight: 500 !important;
+  margin-bottom: 8px !important;
+}
+
+.coach-selection .ant-statistic-content {
+  color: #1890ff !important;
+  font-weight: 700 !important;
+}
+
+.coach-selection .ant-statistic-content-value {
+  font-size: 1.5rem !important;
+}
+
+/* Coach Selection - Buttons */
+.coach-selection .ant-btn {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15) !important;
+  transition: all 0.3s ease !important;
+}
+
+.coach-selection .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff, #40a9ff) !important;
+  border: none !important;
+  color: white !important;
+}
+
+.coach-selection .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff, #1890ff) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3) !important;
+}
+
+.coach-selection .ant-btn-default {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  color: #1890ff !important;
+}
+
+.coach-selection .ant-btn-default:hover {
+  background: rgba(24, 144, 255, 0.1) !important;
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Coach Selection - Table */
+.coach-selection .ant-table {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.coach-selection .ant-table-thead > tr > th {
+  background: rgba(24, 144, 255, 0.1) !important;
+  color: #1890ff !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid rgba(24, 144, 255, 0.15) !important;
+}
+
+.coach-selection .ant-table-tbody > tr > td {
+  border-bottom: 1px solid rgba(24, 144, 255, 0.05) !important;
+}
+
+.coach-selection .ant-table-tbody > tr:hover > td {
+  background: rgba(24, 144, 255, 0.05) !important;
+}
+
+/* Coach Selection - Progress Bars */
+.coach-selection .ant-progress-bg {
+  background: linear-gradient(to right, #1890ff, #40a9ff) !important;
+}
+
+.coach-selection .ant-progress-success-bg {
+  background: linear-gradient(to right, #52c41a, #73d13d) !important;
+}
+
+/* Coach Selection - Badges */
+.coach-selection .ant-badge-status-success {
+  background-color: #52c41a !important;
+}
+
+.coach-selection .ant-badge-status-error {
+  background-color: #ff4d4f !important;
+}
+
+.coach-selection .ant-badge-status-warning {
+  background-color: #faad14 !important;
+}
+
+/* Coach Selection - Tags */
+.coach-selection .ant-tag {
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Coach Selection - Rate (Stars) */
+.coach-selection .ant-rate {
+  color: #faad14 !important;
+}
+
+/* Coach Selection - Modals */
+.coach-selection .ant-modal-content {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.15) !important;
+}
+
+.coach-selection .ant-modal-header {
+  background: rgba(24, 144, 255, 0.1) !important;
+  border-bottom: 1px solid rgba(24, 144, 255, 0.15) !important;
+  border-radius: 16px 16px 0 0 !important;
+}
+
+.coach-selection .ant-modal-title {
+  color: #1890ff !important;
+  font-weight: 600 !important;
+}
+
+/* =================================================================
+   CHAT PAGE STYLING
+   ================================================================= */
+
+/* Chat Page - Main Container */
+.chat-page {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  min-height: 100vh !important;
+}
+
+.chat-page .ant-layout {
+  background: transparent !important;
+}
+
+/* Chat Page - Sidebar */
+.chat-page .ant-layout-sider {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border-right: 1px solid rgba(24, 144, 255, 0.2) !important;
+  box-shadow: 2px 0 8px rgba(24, 144, 255, 0.1) !important;
+}
+
+/* Chat Page - Sidebar Header */
+.chat-page .ant-typography h4 {
+  color: #1890ff !important;
+  font-weight: 600 !important;
+}
+
+/* Chat Page - Tab Buttons */
+.chat-page .ant-btn {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+}
+
+.chat-page .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff, #40a9ff) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2) !important;
+}
+
+.chat-page .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff, #1890ff) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3) !important;
+}
+
+.chat-page .ant-btn-default {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  color: #1890ff !important;
+}
+
+.chat-page .ant-btn-default:hover {
+  background: rgba(24, 144, 255, 0.1) !important;
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+}
+
+/* Chat Page - Chat Room List */
+.chat-page .ant-list-item {
+  border-radius: 12px !important;
+  margin-bottom: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+.chat-page .ant-list-item:hover {
+  background: rgba(24, 144, 255, 0.1) !important;
+  transform: translateX(4px) !important;
+}
+
+/* Chat Page - Selected Chat Room */
+.chat-page .ant-list-item[style*="backgroundColor: #e6f7ff"] {
+  background: rgba(24, 144, 255, 0.15) !important;
+  border-left: 3px solid #1890ff !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2) !important;
+}
+
+/* Chat Page - Badges */
+.chat-page .ant-badge-status-success {
+  background-color: #52c41a !important;
+}
+
+.chat-page .ant-badge-status-error {
+  background-color: #ff4d4f !important;
+}
+
+/* Chat Page - Main Content Area */
+.chat-page .ant-layout-content {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  margin: 8px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.15) !important;
+  overflow: hidden !important;
+}
+
+/* Chat Page - Chat Header */
+.chat-page .ant-layout-content > div:first-child {
+  background: rgba(24, 144, 255, 0.1) !important;
+  border-bottom: 1px solid rgba(24, 144, 255, 0.15) !important;
+}
+
+.chat-page .ant-typography h5 {
+  color: #1890ff !important;
+  font-weight: 600 !important;
+}
+
+/* Chat Page - Message Cards */
+.chat-page .ant-card {
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.chat-page .ant-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Chat Page - Message Input */
+.chat-page .ant-input {
+  border-radius: 8px !important;
+  border: 1px solid rgba(24, 144, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.chat-page .ant-input:focus,
+.chat-page .ant-input-focused {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1) !important;
+}
+
+/* Chat Page - Send Button */
+.chat-page .ant-btn[type="primary"][icon] {
+  border-radius: 8px !important;
+  background: linear-gradient(135deg, #1890ff, #40a9ff) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2) !important;
+}
+
+.chat-page .ant-btn[type="primary"][icon]:hover {
+  background: linear-gradient(135deg, #40a9ff, #1890ff) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3) !important;
+}
+
+/* Chat Page - Tags */
+.chat-page .ant-tag {
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.chat-page .ant-tag-green {
+  background: linear-gradient(135deg, #52c41a, #73d13d) !important;
+  color: white !important;
+}
+
+.chat-page .ant-tag-orange {
+  background: linear-gradient(135deg, #faad14, #ffc53d) !important;
+  color: white !important;
+}
+
+.chat-page .ant-tag-red {
+  background: linear-gradient(135deg, #ff4d4f, #ff7875) !important;
+  color: white !important;
+}
+
+/* Chat Page - Empty State */
+.chat-page .ant-empty {
+  margin-top: 50px !important;
+}
+
+.chat-page .ant-empty-description {
+  color: #666 !important;
+}
+
+/* Chat Page - Loading State */
+.chat-page .ant-spin-dot-item {
+  background-color: #1890ff !important;
+}
+
+/* Chat Page - Community Chat */
+.chat-page .ant-avatar[style*="backgroundColor: #52c41a"] {
+  background: linear-gradient(135deg, #52c41a, #73d13d) !important;
+}
+
+/* Responsive for all pages */
+@media (max-width: 768px) {
+  .member-smoking-status,
+  .member-daily-checkin,
+  .member-daily-record,
+  .member-craving-logger,
+  .progress-chart,
+  .coach-selection,
+  .chat-page {
+    padding: 16px;
+  }
+
+  .member-smoking-status .ant-card,
+  .member-daily-checkin .ant-card,
+  .member-daily-record .ant-card,
+  .member-craving-logger .ant-card,
+  .progress-chart .ant-card,
+  .coach-selection .ant-card,
+  .chat-page .ant-card {
+    margin-bottom: 16px;
+  }
+
+  .progress-chart .d-flex.justify-content-between.align-items-center.mb-4 h2,
+  .coach-selection h2 {
+    font-size: 1.5rem !important;
+  }
+
+  .chat-page .ant-layout-sider {
+    width: 280px !important;
+  }
+}
+
+/* ===== MEMBER PROFILE PAGE STYLES ===== */
+.member-profile {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  min-height: 100vh;
+  padding: 20px 0;
+}
+
+.member-profile .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.member-profile .ant-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  transition: all 0.3s ease;
+}
+
+.member-profile .ant-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.member-profile .ant-card-head {
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px 16px 0 0;
+}
+
+.member-profile .ant-card-head-title {
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.member-profile .ant-card-body {
+  color: rgba(255, 255, 255, 0.9);
+  padding: 32px;
+}
+
+.member-profile .profile-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.member-profile .profile-avatar {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.member-profile .profile-avatar .ant-avatar {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #40a9ff 0%, #096dd9 100%);
+}
+
+.member-profile .profile-avatar .ant-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+}
+
+.member-profile .profile-info {
+  flex: 1;
+  min-width: 250px;
+}
+
+.member-profile .profile-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.member-profile .profile-name-row .ant-typography {
+  color: white !important;
+  margin: 0;
+}
+
+.member-profile .profile-badges {
+  margin-top: 16px;
+}
+
+.member-profile .profile-badges .ant-tag {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 20px;
+  padding: 4px 16px;
+  font-weight: 500;
+}
+
+.member-profile .profile-badges .ant-tag[color="gold"] {
+  background: linear-gradient(135deg, #faad14 0%, #d48806 100%);
+  border-color: #faad14;
+  color: white;
+  box-shadow: 0 4px 12px rgba(250, 173, 20, 0.3);
+}
+
+.member-profile .detail-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.member-profile .detail-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.member-profile .detail-card .ant-statistic-title {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-weight: 500;
+}
+
+.member-profile .detail-card .ant-statistic-content {
+  color: white !important;
+  font-weight: 600;
+}
+
+.member-profile .text-center {
+  text-align: center;
+  padding: 24px;
+}
+
+.member-profile .text-center .anticon {
+  margin-bottom: 16px;
+  display: block;
+}
+
+.member-profile .text-center .ant-typography {
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin-bottom: 16px;
+}
+
+.member-profile .text-center .ant-typography-title {
+  color: white !important;
+  margin-bottom: 16px;
+}
+
+.member-profile .ant-form {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.member-profile .ant-form-item-label > label {
+  color: white !important;
+  font-weight: 500;
+}
+
+.member-profile .ant-form-item-explain-error {
+  color: #ff7875 !important;
+}
+
+.member-profile .ant-input {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.member-profile .ant-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.member-profile .ant-input:hover,
+.member-profile .ant-input:focus {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.member-profile .ant-input:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.member-profile .ant-input-prefix {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.member-profile .ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  height: auto;
+  padding: 8px 20px;
+}
+
+.member-profile .ant-btn-primary {
+  background: linear-gradient(135deg, #40a9ff 0%, #096dd9 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(64, 169, 255, 0.3);
+}
+
+.member-profile .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #69c0ff 0%, #1890ff 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(64, 169, 255, 0.4);
+}
+
+.member-profile .ant-btn-default {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.member-profile .ant-btn-default:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.member-profile .ant-divider {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.member-profile .ant-divider-inner-text {
+  color: white;
+  font-weight: 500;
+}
+
+.member-profile .ant-typography {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.member-profile .ant-typography-title {
+  color: white !important;
+  font-weight: 600;
+}
+
+.member-profile .loading-container {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.member-profile .loading-container .ant-spin {
+  color: white;
+}
+
+.member-profile .loading-container .ant-spin-dot-item {
+  background-color: white;
+}
+
+/* Responsive Design for Member Profile */
+@media (max-width: 768px) {
+  .member-profile {
+    padding: 10px 0;
+  }
+
+  .member-profile .container {
+    padding: 0 15px;
+  }
+
+  .member-profile .ant-card-body {
+    padding: 20px;
+  }
+
+  .member-profile .profile-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .member-profile .profile-name-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .member-profile .ant-col {
+    margin-bottom: 16px;
+  }
+}
