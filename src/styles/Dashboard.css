@@ -3857,9 +3857,9 @@
 }
 
 .member-profile .ant-card {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   margin-bottom: 24px;
@@ -3869,6 +3869,7 @@
 .member-profile .ant-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 1);
 }
 
 .member-profile .ant-card-head {
@@ -3878,13 +3879,13 @@
 }
 
 .member-profile .ant-card-head-title {
-  color: white;
+  color: #1890ff;
   font-weight: 600;
   font-size: 18px;
 }
 
 .member-profile .ant-card-body {
-  color: rgba(255, 255, 255, 0.9);
+  color: #666;
   padding: 32px;
 }
 
@@ -3929,7 +3930,7 @@
 }
 
 .member-profile .profile-name-row .ant-typography {
-  color: white !important;
+  color: #1890ff !important;
   margin: 0;
 }
 
@@ -3938,9 +3939,9 @@
 }
 
 .member-profile .profile-badges .ant-tag {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
+  background: rgba(24, 144, 255, 0.1);
+  border: 1px solid #1890ff;
+  color: #1890ff;
   border-radius: 20px;
   padding: 4px 16px;
   font-weight: 500;
@@ -3954,25 +3955,27 @@
 }
 
 .member-profile .detail-card {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .member-profile .detail-card:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 1);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .member-profile .detail-card .ant-statistic-title {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: #666 !important;
   font-weight: 500;
 }
 
 .member-profile .detail-card .ant-statistic-content {
-  color: white !important;
+  color: #1890ff !important;
   font-weight: 600;
 }
 
@@ -3987,24 +3990,24 @@
 }
 
 .member-profile .text-center .ant-typography {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: #666 !important;
   margin-bottom: 16px;
 }
 
 .member-profile .text-center .ant-typography-title {
-  color: white !important;
+  color: #1890ff !important;
   margin-bottom: 16px;
 }
 
 .member-profile .ant-form {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(24, 144, 255, 0.05);
   padding: 24px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(24, 144, 255, 0.1);
 }
 
 .member-profile .ant-form-item-label > label {
-  color: white !important;
+  color: #1890ff !important;
   font-weight: 500;
 }
 
@@ -4013,32 +4016,32 @@
 }
 
 .member-profile .ant-input {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(24, 144, 255, 0.3);
   border-radius: 8px;
-  color: white;
+  color: #333;
   backdrop-filter: blur(10px);
 }
 
 .member-profile .ant-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(102, 102, 102, 0.6);
 }
 
 .member-profile .ant-input:hover,
 .member-profile .ant-input:focus {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 1);
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
 }
 
 .member-profile .ant-input:disabled {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.5);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(245, 245, 245, 0.8);
+  color: rgba(102, 102, 102, 0.5);
+  border-color: rgba(217, 217, 217, 0.5);
 }
 
 .member-profile .ant-input-prefix {
-  color: rgba(255, 255, 255, 0.7);
+  color: #1890ff;
 }
 
 .member-profile .ant-btn {
@@ -4062,34 +4065,34 @@
 }
 
 .member-profile .ant-btn-default {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(24, 144, 255, 0.3);
+  color: #1890ff;
   backdrop-filter: blur(10px);
 }
 
 .member-profile .ant-btn-default:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.5);
-  color: white;
+  background: rgba(255, 255, 255, 1);
+  border-color: #1890ff;
+  color: #1890ff;
   transform: translateY(-1px);
 }
 
 .member-profile .ant-divider {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(24, 144, 255, 0.2);
 }
 
 .member-profile .ant-divider-inner-text {
-  color: white;
+  color: #1890ff;
   font-weight: 500;
 }
 
 .member-profile .ant-typography {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: #666 !important;
 }
 
 .member-profile .ant-typography-title {
-  color: white !important;
+  color: #1890ff !important;
   font-weight: 600;
 }
 
