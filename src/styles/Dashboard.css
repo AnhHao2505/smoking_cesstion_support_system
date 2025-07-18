@@ -48,8 +48,8 @@
   border-radius: 12px;
   padding: 2px 8px;
   font-size: 12px;
-  background-color: #e6f7ff;
-  color: #1890ff;
+  background-color: #06b6d4;
+  color: #1e3a8a;
   margin-right: 4px;
   white-space: nowrap;
 }
@@ -75,7 +75,7 @@
 
 .bar {
   width: 20px;
-  background-color: #1890ff;
+  background-color: #1e3a8a;
   transition: height 0.3s ease;
   border-radius: 2px 2px 0 0;
 }
@@ -87,10 +87,58 @@
 }
 
 /* Coach Dashboard specific styles */
+.coach-dashboard {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  min-height: calc(100vh - 64px);
+  position: relative;
+}
+
+.coach-dashboard::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.coach-dashboard::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.coach-dashboard > * {
+  position: relative;
+  z-index: 1;
+}
+
 .coach-dashboard .coach-profile-card {
-  background-color: #fff;
-  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    rgba(24, 144, 255, 0.05) 0%,
+    rgba(64, 169, 255, 0.05) 100%
+  ) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(24, 144, 255, 0.1) !important;
+  border: 1px solid rgba(24, 144, 255, 0.1) !important;
   overflow: hidden;
+  transition: all 0.3s ease !important;
+}
+
+.coach-dashboard .coach-profile-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 30px rgba(24, 144, 255, 0.15) !important;
 }
 
 .coach-dashboard .dashboard-tabs {
@@ -98,20 +146,56 @@
 }
 
 .coach-dashboard .ant-tabs-nav {
-  margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+.coach-dashboard .ant-tabs-tab {
+  border-radius: 8px !important;
+  margin: 0 4px !important;
+  padding: 12px 20px !important;
+  font-weight: 500 !important;
+  color: #666 !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+}
+
+.coach-dashboard .ant-tabs-tab:hover {
+  color: #1890ff !important;
+  background: rgba(24, 144, 255, 0.05) !important;
+}
+
+.coach-dashboard .ant-tabs-tab-active {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3) !important;
+}
+
+.coach-dashboard .ant-tabs-tab-active:hover {
+  color: white !important;
+}
+
+.coach-dashboard .ant-tabs-ink-bar {
+  display: none !important;
 }
 
 .coach-dashboard .ant-list-item {
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  margin-bottom: 16px !important;
+  box-shadow: 0 2px 12px rgba(24, 144, 255, 0.06) !important;
+  border: 1px solid rgba(24, 144, 255, 0.1) !important;
+  transition: all 0.3s ease !important;
 }
 
 .coach-dashboard .ant-list-item:hover {
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.3s;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(24, 144, 255, 0.12) !important;
+  border-color: rgba(24, 144, 255, 0.2) !important;
 }
 
 .coach-dashboard .loading-container {
@@ -119,6 +203,12 @@
   justify-content: center;
   align-items: center;
   height: 400px;
+  background: linear-gradient(
+    135deg,
+    rgba(24, 144, 255, 0.02) 0%,
+    rgba(64, 169, 255, 0.02) 100%
+  );
+  border-radius: 12px;
 }
 
 .coach-dashboard .bar-chart {
@@ -127,6 +217,10 @@
   align-items: flex-end;
   height: 200px;
   margin-top: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.06);
 }
 
 .coach-dashboard .bar-container {
@@ -138,14 +232,21 @@
 
 .coach-dashboard .bar {
   width: 30px;
-  background-color: #1890ff;
+  background: linear-gradient(135deg, #06b6d4 0%, #40a9ff 100%);
   border-radius: 3px 3px 0 0;
   margin-bottom: 8px;
-  transition: height 0.5s ease;
+  transition: all 0.5s ease;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
+}
+
+.coach-dashboard .bar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
 }
 
 .coach-dashboard .bar-label {
   font-weight: 500;
+  color: #1890ff;
 }
 
 /* Member Dashboard specific styles */
@@ -203,7 +304,7 @@
 
 .member-dashboard .bar {
   width: 30px;
-  background-color: #1890ff;
+  background-color: #1e3a8a;
   border-radius: 3px 3px 0 0;
   margin-bottom: 8px;
   transition: height 0.5s ease;
@@ -249,6 +350,138 @@
   margin-right: 16px;
 }
 
+/* Coach Dashboard Enhanced Styles */
+.coach-dashboard .ant-statistic {
+  text-align: center !important;
+}
+
+.coach-dashboard .ant-statistic-title {
+  color: #666 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.coach-dashboard .ant-statistic-content {
+  color: #1890ff !important;
+  font-size: 24px !important;
+  font-weight: 700 !important;
+}
+
+/* Coach Action Buttons */
+.coach-dashboard .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.coach-dashboard .ant-btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 15px rgba(24, 144, 255, 0.4) !important;
+}
+
+.coach-dashboard .ant-btn-default {
+  border-radius: 8px !important;
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+  font-weight: 500 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.coach-dashboard .ant-btn-default:hover {
+  background: #1890ff !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3) !important;
+}
+
+/* Coach Cards General */
+.coach-dashboard .ant-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(24, 144, 255, 0.08) !important;
+  border: 1px solid rgba(24, 144, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  transition: all 0.3s ease !important;
+}
+
+.coach-dashboard .ant-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 40px rgba(24, 144, 255, 0.15) !important;
+}
+
+.coach-dashboard .ant-card-head {
+  background: linear-gradient(
+    135deg,
+    rgba(24, 144, 255, 0.05) 0%,
+    rgba(64, 169, 255, 0.05) 100%
+  ) !important;
+  border-bottom: 1px solid rgba(24, 144, 255, 0.1) !important;
+  border-radius: 16px 16px 0 0 !important;
+}
+
+.coach-dashboard .ant-card-head-title {
+  color: #1890ff !important;
+  font-weight: 600 !important;
+}
+
+/* Coach Table Enhancement */
+.coach-dashboard .ant-table {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 20px rgba(24, 144, 255, 0.08) !important;
+}
+
+.coach-dashboard .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border: none !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  padding: 16px !important;
+}
+
+.coach-dashboard .ant-table-tbody > tr > td {
+  padding: 16px !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.coach-dashboard .ant-table-tbody > tr:hover > td {
+  background: rgba(24, 144, 255, 0.02) !important;
+}
+
+/* Coach Tags and Progress */
+.coach-dashboard .ant-tag {
+  border-radius: 12px !important;
+  padding: 4px 12px !important;
+  font-weight: 500 !important;
+  border: none !important;
+}
+
+.coach-dashboard .ant-tag-blue {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  color: white !important;
+}
+
+.coach-dashboard .ant-tag-green {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%) !important;
+  color: white !important;
+}
+
+.coach-dashboard .ant-progress-bg {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+}
+
+.coach-dashboard .ant-progress-inner {
+  border-radius: 8px !important;
+}
+
+.coach-dashboard .ant-rate {
+  color: #faad14 !important;
+}
+
 /* Add these styles for the admin dashboard */
 
 .admin-dashboard .dashboard-title {
@@ -286,17 +519,17 @@
 }
 
 .member-quit-plan-flow .phases-container .ant-card {
-  border-left: 4px solid #1890ff;
+  border-left: 4px solid #06b6d4;
   transition: all 0.3s ease;
 }
 
 .member-quit-plan-flow .phases-container .ant-card:hover {
-  border-left-color: #40a9ff;
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+  border-left-color: #1e3a8a;
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
 }
 
 .member-quit-plan-flow .phases-container .ant-card-head {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+  background: linear-gradient(135deg, #f0f9ff 0%, #1e3a8a 100%);
   border-bottom: 1px solid #d9d9d9;
 }
 
@@ -344,4 +577,93 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ===== MEMBER DASHBOARD ENHANCEMENTS ===== */
+.member-dashboard {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  min-height: calc(100vh - 64px);
+  position: relative;
+}
+
+.member-dashboard::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.member-dashboard::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.member-dashboard > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Member Dashboard Cards */
+.member-dashboard .ant-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(24, 144, 255, 0.08) !important;
+  border: 1px solid rgba(24, 144, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  transition: all 0.3s ease !important;
+}
+
+.member-dashboard .ant-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 40px rgba(24, 144, 255, 0.15) !important;
+}
+
+/* Member Dashboard Tabs */
+.member-dashboard .ant-tabs-nav {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+.member-dashboard .ant-tabs-tab {
+  border-radius: 8px !important;
+  margin: 0 4px !important;
+  padding: 12px 20px !important;
+  font-weight: 500 !important;
+  color: #666 !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+}
+
+.member-dashboard .ant-tabs-tab:hover {
+  color: #1890ff !important;
+  background: rgba(24, 144, 255, 0.05) !important;
+}
+
+.member-dashboard .ant-tabs-tab-active {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3) !important;
+}
+
+.member-dashboard .ant-tabs-tab-active:hover {
+  color: white !important;
+}
+
+.member-dashboard .ant-tabs-ink-bar {
+  display: none !important;
 }
