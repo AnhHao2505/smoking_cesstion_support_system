@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Card, Avatar, Typography, Row, Col, Statistic, Badge, 
-  List, Tag, Divider, Form, Input, Button, message, Modal, Spin
+  List, Tag, Divider, Form, Input, Button, message, Modal, Spin,
+  Upload, Tooltip
 } from 'antd';
 import { 
   UserOutlined, MailOutlined, PhoneOutlined, 
-  TrophyOutlined, EditOutlined, SaveOutlined, CrownOutlined
+  TrophyOutlined, EditOutlined, SaveOutlined, CrownOutlined,
+  UploadOutlined
 } from '@ant-design/icons';
 import { getMyProfile, updateMemberProfile } from '../../services/memberProfileService';
 import { getCurrentUser } from '../../services/authService';
 import { upgradeToPremium } from '../../services/userService';
 import PaymentModal from '../payment/PaymentModal';
+import { getProfileImage, uploadProfileImage } from '../../services/profileService';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -21,6 +24,8 @@ const MemberProfile = () => {
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [form] = Form.useForm();
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [uploading, setUploading] = useState(false);
   
   // Get member ID from current user
   const getMemberId = () => {
@@ -34,18 +39,35 @@ const MemberProfile = () => {
     const fetchMemberProfile = async () => {
       try {
         setLoading(true);
-        // Use getMyProfile since we're getting current user's profile
         const profile = await getMyProfile();
-        
         if (profile) {
           setMemberProfile(profile);
-          
-          // Initialize form with profile data
           form.setFieldsValue({
             name: profile.name,
             email: profile.email,
             contactNumber: profile.contactNumber
           });
+          const imgRes = await getProfileImage(getMemberId());
+          console.log(typeof imgRes, imgRes);
+          // Nếu là string (URL) thì gán trực tiếp, nếu là Blob/File thì dùng createObjectURL
+          if (imgRes) {
+            if (typeof imgRes === 'string') {
+              // Tạo Blob từ chuỗi binary
+              const byteCharacters = imgRes;
+              const byteNumbers = new Array(byteCharacters.length);
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+              }
+              const byteArray = new Uint8Array(byteNumbers);
+              const blob = new Blob([byteArray], { type: 'image/png' });
+              const imgUrl = URL.createObjectURL(blob);
+              console.log(imgUrl)
+              setAvatarUrl(imgUrl);
+            } else if (imgRes instanceof Blob || imgRes instanceof File) {
+              const imgUrl = URL.createObjectURL(imgRes);
+              setAvatarUrl(imgUrl);
+            }
+          }
         }
       } catch (error) {
         console.error("Error fetching member profile:", error);
@@ -54,8 +76,6 @@ const MemberProfile = () => {
         setLoading(false);
       }
     };
-
-    // Only fetch if user is authenticated
     if (memberId) {
       fetchMemberProfile();
     }
@@ -139,6 +159,34 @@ const MemberProfile = () => {
     setIsEditing(false);
   };
 
+  // Handler cho upload avatar
+  const handleAvatarUpload = async (info) => {
+    if (info.file.status === 'uploading') {
+      setUploading(true);
+      return;
+    }
+    if (info.file.status === 'done') {
+      try {
+        const file = info.file.originFileObj;
+        const userId = getMemberId();
+        const response = await uploadProfileImage(userId, file);
+        if(!response.success) {
+          throw new Error(response.message || 'Upload failed');
+        }
+        const imgRes = await getProfileImage(userId);
+        setAvatarUrl(imgRes);
+        message.success('Cập nhật ảnh đại diện thành công');
+      } catch (error) {
+        message.error(error);
+      } finally {
+        setUploading(false);
+      }
+    } else if (info.file.status === 'error') {
+      setUploading(false);
+      message.error('Không thể tải lên ảnh đại diện');
+    }
+  };
+
   if (loading || !memberProfile) {
     return (
       <div className="loading-container" style={{ textAlign: 'center', padding: '50px' }}>
@@ -166,7 +214,39 @@ const MemberProfile = () => {
                   <Avatar 
                     size={120} 
                     icon={<UserOutlined />} 
+                    src={avatarUrl}
                   />
+                  {/* Upload avatar button */}
+                  <div style={{ marginTop: 12 }}>
+                    <Upload
+                      showUploadList={false}
+                      accept="image/*"
+                      customRequest={({ file, onSuccess, onError }) => {
+                        // Tích hợp với antd Upload
+                        uploadProfileImage(getMemberId(), file)
+                          .then(() => {
+                            onSuccess("ok");
+                          })
+                          .catch(onError);
+                      }}
+                      onChange={async (info) => {
+                        if (info.file.status === 'done') {
+                          const imgRes = await getProfileImage(getMemberId());
+                          setAvatarUrl(imgRes);
+                          message.success('Cập nhật ảnh đại diện thành công');
+                        } else if (info.file.status === 'error') {
+                          message.error('Không thể tải lên ảnh đại diện');
+                        }
+                      }}
+                      disabled={uploading}
+                    >
+                      <Tooltip title="Đổi ảnh đại diện">
+                        <Button icon={<UploadOutlined />} loading={uploading} size="small">
+                          Đổi ảnh đại diện
+                        </Button>
+                      </Tooltip>
+                    </Upload>
+                  </div>
                   {memberProfile.premiumMembership && (
                     <Badge 
                       count={<CrownOutlined style={{ color: '#faad14' }} />} 
@@ -196,7 +276,7 @@ const MemberProfile = () => {
                           disabled
                         />
                       </Form.Item>
-                      <Form.Item 
+                      {/* <Form.Item 
                         name="contactNumber" 
                         rules={[{ required: true, message: 'Please enter your contact number' }]}
                       >
@@ -205,7 +285,7 @@ const MemberProfile = () => {
                           placeholder="Contact Number" 
                           disabled
                         />
-                      </Form.Item>
+                      </Form.Item> */}
                       <div>
                         <Button 
                           type="primary" 
@@ -236,9 +316,9 @@ const MemberProfile = () => {
                         <MailOutlined /> {memberProfile.email}
                       </Text>
                       <br />
-                      <Text type="secondary">
+                      {/* <Text type="secondary">
                         <PhoneOutlined /> {memberProfile.contactNumber || 'Not provided'}
-                      </Text>
+                      </Text> */}
                       <div className="profile-badges">
                         <Tag color={memberProfile.premiumMembership ? "gold" : "blue"}>
                           {memberProfile.premiumMembership ? 'Premium' : 'Basic'} Member

@@ -120,9 +120,9 @@ const AppointmentManagement = () => {
       setSelecting(true);
       const response = await chooseCoach(selectedCoach.coachId);
 
-      if (response) {
+      if (response.success) {
         message.success(
-          `Successfully selected ${selectedCoach.name} as your coach!`
+          response.message || "Chọn huấn luyện viên thành công!"
         );
         setConfirmModalVisible(false);
 
@@ -131,6 +131,10 @@ const AppointmentManagement = () => {
 
         // Optionally redirect to dashboard or appointment booking page
         // navigate('/member/dashboard');
+      }else {
+        message.error(
+          response.message
+        );
       }
     } catch (error) {
       console.error("Error choosing coach:", error);
@@ -434,7 +438,7 @@ const AppointmentManagement = () => {
                 Đánh giá
               </Button>
             </Space>
-            <Space size="small" style={{ width: "100%" }}>
+            {/* <Space size="small" style={{ width: "100%" }}>
               <Button
                 type="default"
                 icon={<EyeOutlined />}
@@ -444,7 +448,7 @@ const AppointmentManagement = () => {
               >
                 Xem thành viên
               </Button>
-            </Space>
+            </Space> */}
             <Space size="small" style={{ width: '100%' }}>
               <Button 
                 type="default" 

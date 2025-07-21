@@ -1093,6 +1093,44 @@ export const register = async (registrationData) => {
 };
 
 /**
+ * Get profile image by user ID
+ * Endpoint: GET /profile/image
+ * Summary: Retrieve profile image for a user
+ */
+export const getProfileImage = async (userId) => {
+  try {
+    const response = await axiosInstance.get('/profile/image', {
+      params: { userId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Upload profile image for a user
+ * Endpoint: POST /profile/image
+ * Params: userId, image (multipart file)
+ */
+export const uploadProfileImage = async (userId, imageFile) => {
+  try {
+    const formData = new FormData();
+    formData.append('userId', userId);
+    formData.append('image', imageFile);
+
+    const response = await axiosInstance.patch('/profile/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+/**
  * User logout
  * Endpoint: POST /auth/logout
  * Summary: Logout current user
