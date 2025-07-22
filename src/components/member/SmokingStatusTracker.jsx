@@ -54,16 +54,29 @@ const SmokingStatusTracker = () => {
       // Map craving levels to numeric values (1-10)
       const getCravingLevel = (level) => {
         switch(level?.toLowerCase()) {
-          case 'thấp': return 2;
+          case 'none': return 1;
+          case 'low': return 3;
+          case 'moderate': return 5;
+          case 'high': return 7;
+          case 'very_high': return 9;
+          // Legacy Vietnamese values (fallback)
+          case 'thấp': return 3;
           case 'trung bình': return 5;
-          case 'cao': return 8;
-          default: return 3;
+          case 'cao': return 7;
+          default: return 1; // Default to lowest level
         }
       };
 
       // Map emotions to mood scores
       const getMoodFromEmotion = (emotion) => {
         switch(emotion?.toLowerCase()) {
+          case 'very_happy': return 'very_good';
+          case 'happy': return 'good';
+          case 'neutral': return 'normal';
+          case 'sad': return 'bad';
+          case 'anxious': return 'bad';
+          case 'stressed': return 'very_bad';
+          // Legacy Vietnamese values (fallback)
           case 'rất tốt': return 'very_good';
           case 'tốt': return 'good';
           case 'bình thường': return 'normal';
@@ -150,6 +163,7 @@ const SmokingStatusTracker = () => {
       
       if (recordsData && Array.isArray(recordsData) && recordsData.length > 0) {
         // Transform API data to match component expectations
+        console.log('Raw API data:', recordsData);
         finalRecords = transformApiDataToRecords(recordsData);
         console.log('Transformed records:', finalRecords);
       } else {
@@ -197,12 +211,17 @@ const SmokingStatusTracker = () => {
 
       setRecords(finalRecords);
 
+      // Calculate dynamic addiction level based on recent records
+      const dynamicAddictionLevel = calculateDynamicAddictionLevel(finalRecords);
+      console.log('Calculated dynamic addiction level:', dynamicAddictionLevel);
+
       // Handle latestData - it contains initial status info, not daily records
       if (latestData) {
         // Create a status summary from the initial status data
         const statusSummary = {
           memberName: latestData.memberName,
-          addiction: latestData.addiction,
+          addiction: dynamicAddictionLevel, // Use calculated addiction level instead of static
+          originalAddiction: latestData.addiction, // Keep original for reference
           dailySmoking: latestData.dailySmoking,
           initialStatusId: latestData.initialStatusId,
           goal: latestData.goal,
@@ -211,13 +230,93 @@ const SmokingStatusTracker = () => {
         setLatestStatus(statusSummary);
       } else {
         // Fallback to the latest record if no status data
-        setLatestStatus(finalRecords[0] || null);
+        const fallbackStatus = finalRecords[0] || null;
+        if (fallbackStatus) {
+          fallbackStatus.addiction = dynamicAddictionLevel;
+        }
+        setLatestStatus(fallbackStatus);
       }
       
       setLoading(false);
     } catch (error) {
       console.error('Error fetching smoking data:', error);
       setLoading(false);
+    }
+  };
+
+  // Calculate dynamic addiction level based on recent records
+  const calculateDynamicAddictionLevel = (recentRecords) => {
+    if (!recentRecords || recentRecords.length === 0) {
+      return 'NONE'; // Default level
+    }
+
+    // Get last 7 days of records
+    const lastWeekRecords = recentRecords
+      .filter(record => moment(record.record_date).isAfter(moment().subtract(7, 'days')))
+      .slice(0, 7);
+
+    if (lastWeekRecords.length === 0) {
+      return 'NONE';
+    }
+
+    // Calculate average daily cigarettes
+    const totalCigarettes = lastWeekRecords.reduce((sum, record) => sum + (record.cigarettes_count || 0), 0);
+    const avgDailyCigarettes = totalCigarettes / lastWeekRecords.length;
+
+    // Calculate average craving intensity (1-10 scale)
+    const totalCraving = lastWeekRecords.reduce((sum, record) => sum + (record.craving_intensity || 1), 0);
+    const avgCraving = totalCraving / lastWeekRecords.length;
+
+    // Calculate smoke-free days percentage
+    const smokeFreeDays = lastWeekRecords.filter(record => record.cigarettes_count === 0).length;
+    const smokeFreePercentage = (smokeFreeDays / lastWeekRecords.length) * 100;
+
+    // Calculate addiction score based on multiple factors
+    let addictionScore = 0;
+    
+    // Factor 1: Average daily cigarettes (0-30 points)
+    if (avgDailyCigarettes <= 7) {
+      addictionScore += avgDailyCigarettes; // 0-7 points
+    } else if (avgDailyCigarettes <= 15) {
+      addictionScore += 7 + (avgDailyCigarettes - 7) * 1.125; // 8-16 points  
+    } else if (avgDailyCigarettes <= 25) {
+      addictionScore += 16 + (avgDailyCigarettes - 15) * 0.9; // 17-25 points
+    } else {
+      addictionScore += 25 + Math.min(5, (avgDailyCigarettes - 25) * 0.2); // 26-30 points max
+    }
+
+    // Factor 2: Average craving intensity (0-10 points)
+    addictionScore += avgCraving;
+
+    // Factor 3: Smoke-free days penalty/bonus (-10 to +5 points)
+    if (smokeFreePercentage >= 80) {
+      addictionScore -= 5; // Bonus for high smoke-free rate
+    } else if (smokeFreePercentage >= 50) {
+      addictionScore -= 2; // Small bonus
+    } else if (smokeFreePercentage <= 20) {
+      addictionScore += 5; // Penalty for low smoke-free rate
+    }
+
+    // Ensure score is within bounds
+    addictionScore = Math.max(0, Math.min(40, addictionScore));
+
+    console.log('Addiction calculation details:', {
+      avgDailyCigarettes,
+      avgCraving,
+      smokeFreePercentage,
+      addictionScore
+    });
+
+    // Map score to backend levels
+    // NONE: 0-7, LIGHT: 8-15, MEDIUM: 16-25, SEVERE: 26+
+    if (addictionScore <= 7) {
+      return 'NONE';
+    } else if (addictionScore <= 15) {
+      return 'LIGHT';
+    } else if (addictionScore <= 25) {
+      return 'MEDIUM';
+    } else {
+      return 'SEVERE';
     }
   };
 
@@ -303,6 +402,23 @@ const SmokingStatusTracker = () => {
       default:
         return <MehOutlined />;
     }
+  };
+
+  // Get addiction level explanation
+  const getAddictionExplanation = (level, records) => {
+    if (!records || records.length === 0) return '';
+    
+    const lastWeekRecords = records
+      .filter(record => moment(record.record_date).isAfter(moment().subtract(7, 'days')))
+      .slice(0, 7);
+    
+    if (lastWeekRecords.length === 0) return '';
+    
+    const totalCigarettes = lastWeekRecords.reduce((sum, record) => sum + (record.cigarettes_count || 0), 0);
+    const avgDailyCigarettes = (totalCigarettes / lastWeekRecords.length).toFixed(1);
+    const smokeFreeDays = lastWeekRecords.filter(record => record.cigarettes_count === 0).length;
+    
+    return `TB ${avgDailyCigarettes} điếu/ngày, ${smokeFreeDays}/${lastWeekRecords.length} ngày không hút`;
   };
 
   const calculateStats = () => {
@@ -440,13 +556,7 @@ const SmokingStatusTracker = () => {
             >
               Cập nhật hôm nay
             </Button>
-            <Button 
-              icon={<CalendarOutlined />}
-              onClick={() => navigate('/member/craving-logger')}
-            >
-              Ghi nhận cơn thèm
-            </Button>
-          </Space>
+            </Space>
         </div>
 
         {/* Today's Status Alert */}
@@ -458,10 +568,17 @@ const SmokingStatusTracker = () => {
                 <Space direction="vertical">
                   <Space>
                     <Text strong>Mức độ nghiện:</Text>
-                    <Tag color={latestStatus.addiction === 'SEVERE' ? 'red' : latestStatus.addiction === 'MODERATE' ? 'orange' : 'green'}>
-                      {latestStatus.addiction === 'SEVERE' ? 'Nghiêm trọng' : 
-                       latestStatus.addiction === 'MODERATE' ? 'Trung bình' : 'Nhẹ'}
-                    </Tag>
+                    <Tooltip title={`Được tính toán dựa trên dữ liệu 7 ngày qua. ${getAddictionExplanation(latestStatus.addiction, records)}`}>
+                      <Tag color={
+                        latestStatus.addiction === 'SEVERE' ? 'red' : 
+                        latestStatus.addiction === 'MEDIUM' ? 'orange' : 
+                        latestStatus.addiction === 'LIGHT' ? 'yellow' : 'green'
+                      }>
+                        {latestStatus.addiction === 'SEVERE' ? 'Nghiêm trọng' : 
+                         latestStatus.addiction === 'MEDIUM' ? 'Trung bình' : 
+                         latestStatus.addiction === 'LIGHT' ? 'Nhẹ' : 'Không nghiện'}
+                      </Tag>
+                    </Tooltip>
                   </Space>
                   <Space>
                     <Text strong>Số điếu/ngày:</Text>
@@ -490,8 +607,12 @@ const SmokingStatusTracker = () => {
                 </Space>
               )
             }
-            type={latestStatus.addiction === 'SEVERE' ? 'error' : latestStatus.addiction ? 'warning' : 
-                  latestStatus.smoking_status === 'smoke_free' ? 'success' : 'warning'}
+            type={
+              latestStatus.addiction === 'SEVERE' ? 'error' : 
+              latestStatus.addiction === 'MEDIUM' ? 'warning' : 
+              latestStatus.addiction === 'LIGHT' ? 'info' : 
+              latestStatus.smoking_status === 'smoke_free' ? 'success' : 'warning'
+            }
             showIcon
             className="mb-4"
           />
