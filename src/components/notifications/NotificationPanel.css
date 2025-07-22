@@ -179,6 +179,54 @@
   background-color: #dbeafe;
 }
 
+.notification-item.important {
+  background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+  border-left: 4px solid #f59e0b;
+  position: relative;
+}
+
+.notification-item.important:hover {
+  background: linear-gradient(135deg, #fde68a 0%, #fdba74 100%);
+}
+
+.notification-item.important.unread {
+  background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+  border-left: 4px solid #f59e0b;
+}
+
+.notification-item.important.unread:hover {
+  background: linear-gradient(135deg, #fde68a 0%, #fdba74 100%);
+}
+
+.notification-item.important::before {
+  content: "⚠️";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+.important-indicator {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+.important-indicator::before {
+  content: "⭐";
+  margin-right: 4px;
+  font-size: 0.7rem;
+}
+
 .notification-content,
 .reminder-content {
   flex: 1;
@@ -269,6 +317,49 @@
 
 .delete-btn:hover {
   background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.mark-read-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.mark-read-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+}
+
+.notification-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.remove-btn {
+  background: none;
+  border: 1px solid #d1d5db;
+  color: #6b7280;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.remove-btn:hover {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
   color: #dc2626;
 }
 

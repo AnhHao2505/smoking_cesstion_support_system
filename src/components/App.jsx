@@ -45,8 +45,7 @@ import ReminderCalendar from './member/ReminderCalendar';
 
 // Daily Tracking Flow components - ADD THESE IMPORTS
 import DailyCheckIn from './member/DailyCheckin';
-import SmokingStatusTracker from './member/SmokingStatusTracker';
-import ProgressChart from './member/ProgressChart';
+import SmokingStatusComprehensive from './member/SmokingStatusComprehensive';
 
 // Import blog pages
 import BlogListPage from '../pages/blog/BlogListPage';
@@ -225,7 +224,7 @@ const App = () => {
 
               {/* Daily Tracking Flow Routes - ADD THESE */}
               <Route 
-                path="/member/daily-checkin" 
+                path="/member/initial-addiction-smoking" 
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
                     <DailyCheckIn />
@@ -237,16 +236,7 @@ const App = () => {
                 path="/member/smoking-status" 
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
-                    <SmokingStatusTracker />
-                  </PrivateRoute>
-                }
-              />
-              
-              <Route 
-                path="/member/progress-chart" 
-                element={
-                  <PrivateRoute allowedRoles={['MEMBER']}>
-                    <ProgressChart />
+                    <SmokingStatusComprehensive />
                   </PrivateRoute>
                 }
               />

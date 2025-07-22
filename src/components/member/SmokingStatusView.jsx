@@ -1,0 +1,1 @@
+import React from 'react';import SmokingStatusComprehensive from './SmokingStatusComprehensive';// Redirect to the new comprehensive componentconst SmokingStatusView = () => {  return <SmokingStatusComprehensive />;};export default SmokingStatusView;

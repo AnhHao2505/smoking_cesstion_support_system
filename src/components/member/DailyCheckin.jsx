@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import {
   Card, Form, Button, Typography, Row, Col, Input, message,
-  Steps, Progress, Tag, Modal, Radio, Space, Divider
+  Steps, Progress, Tag, Modal, Radio, Space, Divider, Alert
 } from 'antd';
 import {
   CheckCircleOutlined, HeartOutlined, SmileOutlined,
-  ClockCircleOutlined, TrophyOutlined, QuestionCircleOutlined
+  ClockCircleOutlined, TrophyOutlined, QuestionCircleOutlined,
+  BarChartOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
-  createMemberSmokingStatus, 
-  updateLatestMemberSmokingStatus,
-  getLatestMemberSmokingStatus 
-} from '../../services/memberSmokingStatusService';
-import { getQuitPlanData } from '../../services/memberDashboardService';
+  submitAddictionAssessment,
+  updateAddictionAssessment,
+  calculateAddictionScore,
+  getAddictionLevel,
+  shouldShowCongratulations
+} from '../../services/dailyCheckinService';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -27,45 +29,17 @@ const DailyCheckIn = () => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [quitPlan, setQuitPlan] = useState(null);
-  const [latestStatus, setLatestStatus] = useState(null);
   const [showCongrats, setShowCongrats] = useState(false);
   const navigate = useNavigate();
   
   const userId = currentUser?.userId;
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const [planData, statusData] = await Promise.all([
-          getQuitPlanData(userId),
-          getLatestMemberSmokingStatus(userId)
-        ]);
-        
-        setQuitPlan(planData);
-        setLatestStatus(statusData);
-        
-        // Check if already submitted assessment today
-        if (statusData && moment(statusData.record_date).isSame(moment(), 'day')) {
-          message.info('Bạn đã hoàn thành đánh giá hôm nay rồi!');
-          // navigate('/member/smoking-status');
-        }
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [userId, navigate]);
+    // DailyCheckin không cần fetch data thống kê
+    // Chỉ tập trung vào form đánh giá nghiện thuốc
+    // Data thống kê sẽ được hiển thị ở SmokingStatusView
+    setLoading(false);
+  }, [userId]);
 
   const checkInSteps = [
     {
@@ -323,26 +297,11 @@ const DailyCheckIn = () => {
   };
 
   const calculateTotalPoints = (values) => {
-    const points = [
-      values.startSmokingAge || 0,
-      values.dailySmoking || 0,
-      values.yearsSmoking || 0,
-      values.withdrawalSymptoms || 0,
-      values.stressSmoking || 0,
-      values.addictionFeeling || 0,
-      values.smokingTime || 0,
-      values.healthProblems || 0,
-      values.previousAttempts || 0,
-      values.desireToQuit || 0
-    ];
-    return points.reduce((sum, point) => sum + point, 0);
+    return calculateAddictionScore(values);
   };
 
-  const getAddictionLevel = (totalPoints) => {
-    if (totalPoints <= 7) return 'Không nghiện';
-    if (totalPoints <= 15) return 'Nghiện nhẹ';
-    if (totalPoints <= 25) return 'Nghiện trung bình';
-    return 'Nghiện nặng';
+  const getAddictionLevelFromPoints = (totalPoints) => {
+    return getAddictionLevel(totalPoints);
   };
 
   const handleSubmit = async () => {
@@ -356,7 +315,7 @@ const DailyCheckIn = () => {
 
       // Calculate total points based on new scoring system
       const totalPoints = calculateTotalPoints(values);
-      const addictionLevel = getAddictionLevel(totalPoints);
+      const addictionLevel = getAddictionLevelFromPoints(totalPoints);
 
       const statusData = {
         point: totalPoints,
@@ -374,15 +333,12 @@ const DailyCheckIn = () => {
       };
 
       let response;
-      if (latestStatus) {
-        response = await updateLatestMemberSmokingStatus(statusData);
-      } else {
-        response = await createMemberSmokingStatus(statusData);
-      }
+      // DailyCheckin chỉ tạo đánh giá mới, không cập nhật
+      response = await submitAddictionAssessment(statusData);
 
       if (response.success) {
         // Show congratulations based on addiction level and desire to quit
-        if (values.desireToQuit === 1 || totalPoints <= 15) {
+        if (shouldShowCongratulations(values, totalPoints)) {
           setShowCongrats(true);
         }
         
@@ -402,7 +358,7 @@ const DailyCheckIn = () => {
   };
 
   const getDaysSmokeFree = () => {
-    return quitPlan?.days_smoke_free || 0;
+    return 0; // Không cần tính toán, để SmokingStatusView lo
   };
 
   if (loading) {
@@ -429,36 +385,28 @@ const DailyCheckIn = () => {
             </Text>
           </div>
 
-          {/* Progress indicator */}
-          <Row gutter={[16, 16]} className="mb-4">
-            <Col xs={24} md={8}>
-              <Card size="small" className="stat-mini">
-                <Text strong>Ngày không thuốc</Text>
-                <br />
-                <Text style={{ fontSize: '24px', color: '#52c41a' }}>
-                  {getDaysSmokeFree()}
-                </Text>
-              </Card>
-            </Col>
-            <Col xs={24} md={8}>
-              <Card size="small" className="stat-mini">
-                <Text strong>Giai đoạn hiện tại</Text>
-                <br />
-                <Tag color="blue">{quitPlan?.current_phase?.phase_name || 'Chuẩn bị'}</Tag>
-              </Card>
-            </Col>
-            <Col xs={24} md={8}>
-              <Card size="small" className="stat-mini">
-                <Text strong>Tiến độ tổng thể</Text>
-                <br />
-                <Progress 
-                  percent={quitPlan?.progress || 0} 
+          <Alert
+            message="Xem thống kê chi tiết"
+            description={
+              <div>
+                Sau khi hoàn thành đánh giá, bạn có thể xem thống kê chi tiết, lịch sử đánh giá và xu hướng thay đổi tại{' '}
+                <Button 
+                  type="link" 
                   size="small" 
-                  format={percent => `${percent}%`}
-                />
-              </Card>
-            </Col>
-          </Row>
+                  icon={<BarChartOutlined />}
+                  onClick={() => navigate('/member/smoking-status')}
+                  style={{ padding: 0 }}
+                >
+                  Trạng thái nghiện thuốc
+                </Button>
+              </div>
+            }
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+
+          {/* Removed progress indicators - moved to SmokingStatusView */}
 
           <Steps current={currentStep} className="mb-4">
             {checkInSteps.map((step, index) => (

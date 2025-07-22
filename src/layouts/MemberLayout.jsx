@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Layout, Menu, Avatar, Dropdown, Button } from "antd";
+import { Layout, Menu, Avatar, Dropdown, Button, Badge } from "antd";
 import {
   UserOutlined,
   CalendarOutlined,
@@ -25,13 +25,17 @@ import {
   MessageOutlined,
 } from "@ant-design/icons";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { useNotification } from "../contexts/NotificationContext";
+import NotificationPanel from "../components/notifications/NotificationPanel";
 
 const { Header, Sider, Content } = Layout;
 
 const MemberLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { unreadCount, refreshNotifications } = useNotification();
 
   const handleLogout = () => {
     // In a real app, call logout API and clear auth tokens
@@ -84,8 +88,8 @@ const MemberLayout = () => {
       label: "Theo dõi hàng ngày",
       children: [
         {
-          key: "/member/daily-checkin",
-          label: <Link to="/member/daily-checkin">Check-in hàng ngày</Link>,
+          key: "/member/initial-addiction-smoking",
+          label: <Link to="/member/initial-addiction-smoking">Đánh giá nghiện ban đầu</Link>,
         },
         {
           key: "/member/daily-record",
@@ -283,12 +287,17 @@ const MemberLayout = () => {
           />
 
           <div style={{ display: "flex", alignItems: "center" }}>
-            <Button
-              type="text"
-              icon={<BellOutlined />}
-              style={{ marginRight: 16 }}
-              badge={{ count: 5 }}
-            />
+            <Badge count={unreadCount} size="small">
+              <Button
+                type="text"
+                icon={<BellOutlined />}
+                style={{ marginRight: 16 }}
+                onClick={() => {
+                  setNotificationPanelOpen(true);
+                  refreshNotifications();
+                }}
+              />
+            </Badge>
 
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <div
@@ -316,6 +325,12 @@ const MemberLayout = () => {
           <Outlet />
         </Content>
       </Layout>
+      
+      {/* Notification Panel */}
+      <NotificationPanel 
+        isOpen={notificationPanelOpen} 
+        onClose={() => setNotificationPanelOpen(false)} 
+      />
     </Layout>
   );
 };

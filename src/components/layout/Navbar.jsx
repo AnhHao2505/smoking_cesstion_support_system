@@ -87,16 +87,9 @@ const NavBar = () => {
       label: 'Theo dõi hàng ngày',
       icon: <HeartOutlined />,
       items: [
-        { key: '/member/daily-checkin', label: 'Đánh giá mức độ nghiện', path: '/member/daily-checkin' },
+        { key: '/member/initial-addiction-smoking', label: 'Đánh giá mức độ nghiện', path: '/member/initial-addiction-smoking' },
         { key: '/member/daily-record', label: 'Nhật ký hàng ngày', path: '/member/daily-record' },
         { key: '/member/smoking-status', label: 'Tình trạng hút thuốc', path: '/member/smoking-status' }
-      ]
-    },
-    progress: {
-      label: 'Tiến độ & Thống kê',
-      icon: <BarChartOutlined />,
-      items: [
-        { key: '/member/progress-chart', label: 'Biểu đồ tiến độ', path: '/member/progress-chart' }
       ]
     },
     support: {

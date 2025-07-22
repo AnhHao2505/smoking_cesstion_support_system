@@ -33,11 +33,11 @@ export const getMemberDailyLogs = async () => {
   }
 };
 
-// Get member's daily log by date - Updated to match new API
-export const getMemberDailyLogByDate = async (memberId, date) => {
+// Get member's daily log by date - Updated to match new API endpoint
+export const getMemberDailyLogByDate = async (date) => {
   try {
     const response = await axiosInstance.get('/api/daily-logs/member/date', {
-      params: { memberId, date }
+      data: date // API expects date in request body as LocalDate
     });
     return handleApiResponse(response);
   } catch (error) {

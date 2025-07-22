@@ -29,12 +29,16 @@ const TransactionHistory = () => {
       setLoading(true);
       const response = await getMyTransactions(page, size);
       
-    setTransactions(response.content || []);
-    setPagination({
+      // Debug: log the API response
+      console.log('API Response:', response);
+      console.log('Transactions:', response.content);
+      
+      setTransactions(response.content || []);
+      setPagination({
         current: page,
         pageSize: size,
         total: response.totalElements || 0
-    });
+      });
     } catch (error) {
       console.error('Error fetching transactions:', error);
     } finally {
@@ -51,14 +55,19 @@ const TransactionHistory = () => {
   };
 
   const getStatusTag = (status) => {
+    // Debug: log the actual status value
+    console.log('Transaction status:', JSON.stringify(status), 'Type:', typeof status);
+    
+    // Normalize the status by trimming whitespace and converting to uppercase
+    const normalizedStatus = status ? status.toString().trim().toUpperCase() : '';
+    
     const statusConfig = {
       'SUCCESS': { color: 'green', icon: <CheckCircleOutlined />, text: 'Thành công' },
-      'FAILED': { color: 'red', icon: <CloseCircleOutlined />, text: 'Thất bại' },
       'PENDING': { color: 'orange', icon: <ClockCircleOutlined />, text: 'Đang xử lý' },
-      'CANCELLED': { color: 'default', icon: <CloseCircleOutlined />, text: 'Đã hủy' }
+      'EXPIRED': { color: 'red', icon: <CloseCircleOutlined />, text: 'Đã quá hạn' }
     };
     
-    const config = statusConfig[status] || statusConfig['PENDING'];
+    const config = statusConfig[normalizedStatus] || statusConfig['PENDING'];
     
     return (
       <Tag color={config.color} icon={config.icon}>

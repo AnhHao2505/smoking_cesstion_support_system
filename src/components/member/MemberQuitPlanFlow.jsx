@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Layout,
   Typography,
@@ -40,7 +41,6 @@ import moment from 'moment';
 import {
   getMemberQuitPlanWithActions,
   processMemberQuitPlanAction,
-  getOldPlansOfMember,
   getQuitPlanNotification,
   quitPlanWorkflow
 } from '../../services/quitPlanService';
@@ -52,14 +52,13 @@ const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
 
 const MemberQuitPlanFlow = () => {
+  const navigate = useNavigate();
   const [currentPlan, setCurrentPlan] = useState(null);
   const [planPhases, setPlanPhases] = useState([]);
-  const [planHistory, setPlanHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionModalVisible, setActionModalVisible] = useState(false);
   const [actionType, setActionType] = useState(''); // 'accept' or 'deny'
   const [submitting, setSubmitting] = useState(false);
-  const [historyModalVisible, setHistoryModalVisible] = useState(false);
 
   const user = getCurrentUser();
   const memberId = user?.userId;
@@ -133,20 +132,9 @@ const MemberQuitPlanFlow = () => {
           setPlanPhases([]);
         }
       }
-
-      // Fetch plan history
-      try {
-        const historyResponse = await getOldPlansOfMember(memberId, 0, 5);
-        if (historyResponse.success) {
-          setPlanHistory(historyResponse.data.content || []);
-        }
-      } catch (historyError) {
-        console.warn('Could not fetch plan history:', historyError);
-        setPlanHistory([]);
-      }
     } catch (error) {
       console.error('Error fetching member quit plan data:', error);
-      message.error('Failed to load quit plan data');
+      // No error message shown - UI will show appropriate state based on data
       setCurrentPlan(null);
     } finally {
       setLoading(false);
@@ -277,7 +265,7 @@ const MemberQuitPlanFlow = () => {
           <Space>
             <Button
               icon={<FileTextOutlined />}
-              onClick={() => setHistoryModalVisible(true)}
+              onClick={() => navigate('/member/quit-plan-history')}
             >
               Lịch sử kế hoạch
             </Button>
@@ -507,7 +495,7 @@ const MemberQuitPlanFlow = () => {
                   <Button
                     block
                     icon={<CheckCircleOutlined />}
-                    onClick={() => window.location.href = '/member/daily-checkin'}
+                    onClick={() => window.location.href = '/member/daily-record'}
                   >
                     Báo cáo hàng ngày
                   </Button>
@@ -521,7 +509,7 @@ const MemberQuitPlanFlow = () => {
                   <Button
                     block
                     icon={<TrophyOutlined />}
-                    onClick={() => window.location.href = '/member/progress-chart'}
+                    onClick={() => window.location.href = '/member/smoking-status'}
                   >
                     Xem tiến độ
                   </Button>
@@ -572,53 +560,6 @@ const MemberQuitPlanFlow = () => {
             type={actionType === 'accept' ? 'success' : 'warning'}
             showIcon
           />
-        </Modal>
-
-        {/* History Modal */}
-        <Modal
-          title="Quit Plan History"
-          open={historyModalVisible}
-          onCancel={() => setHistoryModalVisible(false)}
-          footer={[
-            <Button key="close" onClick={() => setHistoryModalVisible(false)}>
-              Close
-            </Button>
-          ]}
-          width={800}
-        >
-          <Timeline>
-            {planHistory.map((plan, index) => (
-              <Timeline.Item
-                key={plan.quit_plan_id}
-                color={getStatusColor(plan.status)}
-                dot={
-                  plan.status === 'COMPLETED' ? <CheckCircleOutlined /> :
-                    plan.status === 'REJECTED' ? <CloseCircleOutlined /> :
-                      <ClockCircleOutlined />
-                }
-              >
-                <div>
-                  <Text strong>
-                    Plan #{plan.quit_plan_id} - {formatDate(plan.start_date)}
-                  </Text>
-                  <br />
-                  <Tag color={getStatusColor(plan.status)}>
-                    {getStatusText(plan.status)}
-                  </Tag>
-                  <br />
-                  <Text type="secondary">
-                    Duration: {moment(plan.end_date).diff(moment(plan.start_date), 'days')} days
-                  </Text>
-                </div>
-              </Timeline.Item>
-            ))}
-          </Timeline>
-
-          {planHistory.length === 0 && (
-            <div className="text-center py-4">
-              <Text type="secondary">No previous plans found</Text>
-            </div>
-          )}
         </Modal>
       </div>
     </div>
