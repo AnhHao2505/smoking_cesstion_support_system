@@ -23,12 +23,10 @@ export const getLogsByPhase = async (phaseId) => {
   }
 };
 
-// Get all daily logs of a member - Updated to match new API
-export const getMemberDailyLogs = async (memberId) => {
+// Get all daily logs of current authenticated member - Updated to match new API
+export const getMemberDailyLogs = async () => {
   try {
-    const response = await axiosInstance.get('/api/daily-logs/member', {
-      params: { memberId }
-    });
+    const response = await axiosInstance.get('/api/daily-logs/member');
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);

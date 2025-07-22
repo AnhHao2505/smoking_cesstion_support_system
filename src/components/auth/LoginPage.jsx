@@ -19,9 +19,17 @@ const LoginPage = () => {
   
   useEffect(() => {
     const fetchTestUsers = async () => {
-      const response = await authService.getTesters();
-      console.log(response)
-      setTestUsers(response || {});
+      try {
+        // Temporarily disabled to allow frontend to run without backend
+        // const response = await authService.getTesters();
+        // console.log(response);
+        // setTestUsers(response || {});
+        setTestUsers({});
+      } catch (error) {
+        console.error('Failed to fetch test users:', error);
+        // Set empty object if API fails
+        setTestUsers({});
+      }
     };
     
     fetchTestUsers();
