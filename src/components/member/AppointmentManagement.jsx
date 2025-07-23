@@ -44,7 +44,7 @@ import {
   submitFeedbackToAnyCoach,
   submitFeedbackToPlatform,
 } from "../../services/feebackService";
-import { getCoachProfile } from '../../services/profileService';
+import { getCoachProfile } from "../../services/profileService";
 import { useAuth } from "../../contexts/AuthContext";
 
 const { Title, Text, Paragraph } = Typography;
@@ -69,13 +69,13 @@ const AppointmentManagement = () => {
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 30,
-    total: 0
+    total: 0,
   });
   const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [coachProfile, setCoachProfile] = useState(null);
   const [totalCoaches, setTotalCoaches] = useState(0);
-  
+
   const userId = currentUser?.userId;
 
   useEffect(() => {
@@ -211,7 +211,7 @@ const AppointmentManagement = () => {
       const response = await getCoachProfile(coach.coachId);
       setCoachProfile(response.data || response);
     } catch (error) {
-      message.error('Không thể tải thông tin huấn luyện viên');
+      message.error("Không thể tải thông tin huấn luyện viên");
       setCoachProfile(null);
     } finally {
       setProfileLoading(false);
@@ -434,20 +434,10 @@ const AppointmentManagement = () => {
                 Đánh giá
               </Button>
             </Space>
+            {/* Đã xóa nút Xem thành viên */}
             <Space size="small" style={{ width: "100%" }}>
               <Button
                 type="default"
-                icon={<EyeOutlined />}
-                onClick={() => handleViewAssignedMembers(record)}
-                size="small"
-                style={{ flex: 1 }}
-              >
-                Xem thành viên
-              </Button>
-            </Space>
-            <Space size="small" style={{ width: '100%' }}>
-              <Button 
-                type="default" 
                 icon={<EyeOutlined />}
                 onClick={() => handleViewProfile(record)}
                 size="small"
@@ -857,35 +847,49 @@ const AppointmentManagement = () => {
             setCoachProfile(null);
           }}
           footer={[
-            <Button key="close" onClick={() => {
-              setProfileModalVisible(false);
-              setCoachProfile(null);
-            }}>
+            <Button
+              key="close"
+              onClick={() => {
+                setProfileModalVisible(false);
+                setCoachProfile(null);
+              }}
+            >
               Đóng
-            </Button>
+            </Button>,
           ]}
           width={600}
         >
           {profileLoading ? (
-            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <div style={{ textAlign: "center", padding: "40px 0" }}>
               <Spin size="large" />
             </div>
           ) : coachProfile ? (
             <div>
               <Card size="small" style={{ marginBottom: 16 }}>
                 <Space>
-                  <Avatar size="large" src={coachProfile.photo_url} icon={<UserOutlined />} />
+                  <Avatar
+                    size="large"
+                    src={coachProfile.photo_url}
+                    icon={<UserOutlined />}
+                  />
                   <div>
-                    <Text strong style={{ fontSize: '16px' }}>{coachProfile.full_name}</Text>
+                    <Text strong style={{ fontSize: "16px" }}>
+                      {coachProfile.full_name}
+                    </Text>
                     <br />
                     <Text type="secondary">{coachProfile.email}</Text>
                     <br />
-                    <Text type="secondary">Liên hệ: {coachProfile.contactNumber || coachProfile.contact_number}</Text>
+                    <Text type="secondary">
+                      Liên hệ:{" "}
+                      {coachProfile.contactNumber ||
+                        coachProfile.contact_number}
+                    </Text>
                   </div>
                 </Space>
               </Card>
               <div style={{ marginBottom: 12 }}>
-                <Text strong>Chuyên môn:</Text> <Tag color="blue">{coachProfile.specialty}</Tag>
+                <Text strong>Chuyên môn:</Text>{" "}
+                <Tag color="blue">{coachProfile.specialty}</Tag>
               </div>
               <div style={{ marginBottom: 12 }}>
                 <Text strong>Chứng chỉ:</Text>
@@ -895,18 +899,25 @@ const AppointmentManagement = () => {
               <div style={{ marginBottom: 12 }}>
                 <Text strong>Giờ làm việc:</Text>
                 <br />
-                {coachProfile.workingHour && coachProfile.workingHour.length > 0
-                  ? coachProfile.workingHour.map((schedule, idx) => (
-                      <div key={idx}>
-                        <Text>{schedule.dayOfWeek}: {schedule.startTime} - {schedule.endTime}</Text>
-                      </div>
-                    ))
-                  : <Text type="secondary">Không có lịch trình</Text>
-                }
+                {coachProfile.workingHour &&
+                coachProfile.workingHour.length > 0 ? (
+                  coachProfile.workingHour.map((schedule, idx) => (
+                    <div key={idx}>
+                      <Text>
+                        {schedule.dayOfWeek}: {schedule.startTime} -{" "}
+                        {schedule.endTime}
+                      </Text>
+                    </div>
+                  ))
+                ) : (
+                  <Text type="secondary">Không có lịch trình</Text>
+                )}
               </div>
               <div style={{ marginBottom: 12 }}>
                 <Text strong>Giới thiệu:</Text>
-                <Paragraph>{coachProfile.bio || 'Chưa có thông tin.'}</Paragraph>
+                <Paragraph>
+                  {coachProfile.bio || "Chưa có thông tin."}
+                </Paragraph>
               </div>
             </div>
           ) : (
@@ -925,38 +936,38 @@ const styles = `
   .coach-selection .ant-table-tbody > tr:hover > td {
     background-color: #f5f5f5;
   }
-  
+ 
   .coach-selection .ant-progress-text {
     font-size: 10px !important;
   }
-  
+ 
   .coach-selection .ant-statistic-content {
     font-size: 20px;
   }
-  
+ 
   .coach-selection .ant-card {
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
-  
+ 
   .coach-selection .ant-table-thead > tr > th {
     background-color: #fafafa;
     font-weight: 600;
   }
-  
+ 
   .coach-selection .ant-table {
     width: 100% !important;
     min-width: 1500px;
   }
-  
+ 
   .coach-selection .ant-table-wrapper {
     width: 100%;
     overflow-x: auto;
   }
-  
+ 
   .coach-selection .ant-card-body {
     padding: 24px;
   }
-  
+ 
   .coach-selection .container {
     max-width: 100%;
     width: 100%;

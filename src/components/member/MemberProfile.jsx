@@ -1,16 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Card, Avatar, Typography, Row, Col, Statistic, Badge, 
-  List, Tag, Divider, Form, Input, Button, message, Modal, Spin
-} from 'antd';
-import { 
-  UserOutlined, MailOutlined, PhoneOutlined, 
-  TrophyOutlined, EditOutlined, SaveOutlined, CrownOutlined
-} from '@ant-design/icons';
-import { getMyProfile, updateMemberProfile } from '../../services/memberProfileService';
-import { getCurrentUser } from '../../services/authService';
-import { upgradeToPremium } from '../../services/userService';
-import PaymentModal from '../payment/PaymentModal';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  Avatar,
+  Typography,
+  Row,
+  Col,
+  Statistic,
+  Badge,
+  List,
+  Tag,
+  Divider,
+  Form,
+  Input,
+  Button,
+  message,
+  Modal,
+  Spin,
+} from "antd";
+import {
+  UserOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  TrophyOutlined,
+  EditOutlined,
+  SaveOutlined,
+  CrownOutlined,
+} from "@ant-design/icons";
+import {
+  getMyProfile,
+  updateMemberProfile,
+} from "../../services/memberProfileService";
+import { getCurrentUser } from "../../services/authService";
+import { upgradeToPremium } from "../../services/userService";
+import PaymentModal from "../payment/PaymentModal";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -21,7 +43,7 @@ const MemberProfile = () => {
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [form] = Form.useForm();
-  
+
   // Get member ID from current user
   const getMemberId = () => {
     const user = getCurrentUser();
@@ -36,15 +58,15 @@ const MemberProfile = () => {
         setLoading(true);
         // Use getMyProfile since we're getting current user's profile
         const profile = await getMyProfile();
-        
+
         if (profile) {
           setMemberProfile(profile);
-          
+
           // Initialize form with profile data
           form.setFieldsValue({
             name: profile.name,
             email: profile.email,
-            contactNumber: profile.contactNumber
+            contactNumber: profile.contactNumber,
           });
         }
       } catch (error) {
@@ -68,17 +90,17 @@ const MemberProfile = () => {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      
+
       // Only update name as per API specification
       const response = await updateMemberProfile(values.name);
-      
+
       if (response) {
         // Update local state with new name
-        setMemberProfile(prev => ({
+        setMemberProfile((prev) => ({
           ...prev,
-          name: values.name
+          name: values.name,
         }));
-        
+
         message.success("Profile updated successfully");
         setIsEditing(false);
       } else {
@@ -102,23 +124,23 @@ const MemberProfile = () => {
     try {
       setPaymentModalVisible(false);
       setUpgradeLoading(true);
-      
+
       // Call the upgrade API to update backend
       const response = await upgradeToPremium();
-      
+
       if (response) {
         message.success("Successfully upgraded to Premium!");
         // Update local state
-        setMemberProfile(prev => ({
+        setMemberProfile((prev) => ({
           ...prev,
-          premiumMembership: true
+          premiumMembership: true,
         }));
-        
+
         // Update user data in localStorage if needed
         const user = getCurrentUser();
         if (user) {
           const updatedUser = { ...user, isPremiumMembership: true };
-          localStorage.setItem('user', JSON.stringify(updatedUser));
+          localStorage.setItem("user", JSON.stringify(updatedUser));
         }
       }
     } catch (error) {
@@ -134,25 +156,28 @@ const MemberProfile = () => {
     form.setFieldsValue({
       name: memberProfile.name,
       email: memberProfile.email,
-      contactNumber: memberProfile.contactNumber
+      contactNumber: memberProfile.contactNumber,
     });
     setIsEditing(false);
   };
 
   if (loading || !memberProfile) {
     return (
-      <div className="loading-container" style={{ textAlign: 'center', padding: '50px' }}>
+      <div
+        className="loading-container"
+        style={{ textAlign: "center", padding: "50px" }}
+      >
         <Spin size="large" />
-        <div style={{ marginTop: '16px' }}>Loading profile...</div>
+        <div style={{ marginTop: "16px" }}>Loading profile...</div>
       </div>
     );
   }
 
   // Format date for display
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('vi-VN', options);
+    if (!dateString) return "N/A";
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return new Date(dateString).toLocaleDateString("vi-VN", options);
   };
 
   return (
@@ -163,13 +188,10 @@ const MemberProfile = () => {
             <Card>
               <div className="profile-header">
                 <div className="profile-avatar">
-                  <Avatar 
-                    size={120} 
-                    icon={<UserOutlined />} 
-                  />
+                  <Avatar size={120} icon={<UserOutlined />} />
                   {memberProfile.premiumMembership && (
-                    <Badge 
-                      count={<CrownOutlined style={{ color: '#faad14' }} />} 
+                    <Badge
+                      count={<CrownOutlined style={{ color: "#faad14" }} />}
                       offset={[-10, 10]}
                     />
                   )}
@@ -177,56 +199,70 @@ const MemberProfile = () => {
                 <div className="profile-info">
                   {isEditing ? (
                     <Form form={form} layout="vertical">
-                      <Form.Item 
-                        name="name" 
-                        rules={[{ required: true, message: 'Please enter your name' }]}
-                      >
-                        <Input prefix={<UserOutlined />} placeholder="Full Name" />
-                      </Form.Item>
-                      <Form.Item 
-                        name="email" 
+                      <Form.Item
+                        name="name"
                         rules={[
-                          { required: true, message: 'Please enter your email' },
-                          { type: 'email', message: 'Please enter a valid email' }
+                          { required: true, message: "Please enter your name" },
                         ]}
                       >
-                        <Input 
-                          prefix={<MailOutlined />} 
-                          placeholder="Email Address" 
+                        <Input
+                          prefix={<UserOutlined />}
+                          placeholder="Full Name"
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        name="email"
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please enter your email",
+                          },
+                          {
+                            type: "email",
+                            message: "Please enter a valid email",
+                          },
+                        ]}
+                      >
+                        <Input
+                          prefix={<MailOutlined />}
+                          placeholder="Email Address"
                           disabled
                         />
                       </Form.Item>
-                      <Form.Item 
-                        name="contactNumber" 
-                        rules={[{ required: true, message: 'Please enter your contact number' }]}
+                      <Form.Item
+                        name="contactNumber"
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please enter your contact number",
+                          },
+                        ]}
                       >
-                        <Input 
-                          prefix={<PhoneOutlined />} 
-                          placeholder="Contact Number" 
+                        <Input
+                          prefix={<PhoneOutlined />}
+                          placeholder="Contact Number"
                           disabled
                         />
                       </Form.Item>
                       <div>
-                        <Button 
-                          type="primary" 
-                          icon={<SaveOutlined />} 
+                        <Button
+                          type="primary"
+                          icon={<SaveOutlined />}
                           onClick={handleSave}
                           style={{ marginRight: 8 }}
                         >
                           Save Changes
                         </Button>
-                        <Button onClick={handleCancel}>
-                          Cancel
-                        </Button>
+                        <Button onClick={handleCancel}>Cancel</Button>
                       </div>
                     </Form>
                   ) : (
                     <>
                       <div className="profile-name-row">
                         <Title level={2}>{memberProfile.name}</Title>
-                        <Button 
-                          type="primary" 
-                          icon={<EditOutlined />} 
+                        <Button
+                          type="primary"
+                          icon={<EditOutlined />}
                           onClick={handleEdit}
                         >
                           Edit Profile
@@ -237,11 +273,19 @@ const MemberProfile = () => {
                       </Text>
                       <br />
                       <Text type="secondary">
-                        <PhoneOutlined /> {memberProfile.contactNumber || 'Not provided'}
+                        <PhoneOutlined />{" "}
+                        {memberProfile.contactNumber || "Not provided"}
                       </Text>
                       <div className="profile-badges">
-                        <Tag color={memberProfile.premiumMembership ? "gold" : "blue"}>
-                          {memberProfile.premiumMembership ? 'Premium' : 'Basic'} Member
+                        <Tag
+                          color={
+                            memberProfile.premiumMembership ? "gold" : "blue"
+                          }
+                        >
+                          {memberProfile.premiumMembership
+                            ? "Premium"
+                            : "Basic"}{" "}
+                          Member
                         </Tag>
                       </div>
                     </>
@@ -255,20 +299,27 @@ const MemberProfile = () => {
               <Row gutter={[16, 16]}>
                 <Col xs={24} sm={12}>
                   <Card className="detail-card">
-                    <Statistic 
-                      title="Current Plan" 
-                      value={memberProfile.planName || 'Basic Plan'}
+                    <Statistic
+                      title="Current Plan"
+                      value={memberProfile.planName || "Basic Plan"}
                     />
                   </Card>
                 </Col>
                 <Col xs={24} sm={12}>
                   <Card className="detail-card">
-                    <Statistic 
-                      title="Membership Expires" 
-                      value={formatDate(memberProfile.membershipExpiryDate) + ' - ' + memberProfile.membershipDaysLeft + ' days left'}
+                    <Statistic
+                      title="Membership Expires"
+                      value={
+                        formatDate(memberProfile.membershipExpiryDate) +
+                        " - " +
+                        memberProfile.membershipDaysLeft +
+                        " days left"
+                      }
                     />
-                    <Tag color={memberProfile.premiumMembership ? "gold" : "blue"}>
-                      {memberProfile.premiumMembership ? 'Premium' : 'Basic'}
+                    <Tag
+                      color={memberProfile.premiumMembership ? "gold" : "blue"}
+                    >
+                      {memberProfile.premiumMembership ? "Premium" : "Basic"}
                     </Tag>
                   </Card>
                 </Col>
@@ -281,23 +332,28 @@ const MemberProfile = () => {
               <div className="text-center">
                 {memberProfile.premiumMembership ? (
                   <>
-                    <CrownOutlined style={{ fontSize: '48px', color: '#faad14' }} />
+                    <CrownOutlined
+                      style={{ fontSize: "48px", color: "#faad14" }}
+                    />
                     <Title level={3}>Premium Member</Title>
                     <Paragraph>
-                      You have access to all premium features including personalized coaching,
-                      advanced analytics, and priority support.
+                      You have access to all premium features including
+                      personalized coaching, advanced analytics, and priority
+                      support.
                     </Paragraph>
                   </>
                 ) : (
                   <>
-                    <UserOutlined style={{ fontSize: '48px', color: '#1890ff' }} />
+                    <UserOutlined
+                      style={{ fontSize: "48px", color: "#1890ff" }}
+                    />
                     <Title level={3}>Basic Member</Title>
                     <Paragraph>
-                      Upgrade to Premium to unlock advanced features and get the most
-                      out of your quit smoking journey.
+                      Upgrade to Premium to unlock advanced features and get the
+                      most out of your quit smoking journey.
                     </Paragraph>
-                    <Button 
-                      type="primary" 
+                    <Button
+                      type="primary"
                       size="large"
                       loading={upgradeLoading}
                       onClick={handleUpgradeToPremium}
@@ -311,7 +367,7 @@ const MemberProfile = () => {
           </Col>
         </Row>
       </div>
-      
+
       {/* Payment Modal */}
       <PaymentModal
         visible={paymentModalVisible}

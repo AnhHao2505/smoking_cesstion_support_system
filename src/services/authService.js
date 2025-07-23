@@ -1,31 +1,42 @@
-import axiosInstance, { isTokenValid, clearAuthData } from '../utils/axiosConfig';
-import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
-import { getCurrentAuthUser, getCurrentAuthToken, getCurrentUserId } from '../utils/authUtils';
+import axiosInstance, {
+  isTokenValid,
+  clearAuthData,
+} from "../utils/axiosConfig";
+import {
+  API_ENDPOINTS,
+  handleApiResponse,
+  handleApiError,
+} from "../utils/apiEndpoints";
+import {
+  getCurrentAuthUser,
+  getCurrentAuthToken,
+  getCurrentUserId,
+} from "../utils/authUtils";
 
 // Helper function to parse JWT token
 const parseJwtTokenInternal = (token) => {
   try {
     // JWT has 3 parts separated by dots: header.payload.signature
-    const parts = token.split('.');
+    const parts = token.split(".");
     if (parts.length !== 3) {
-      throw new Error('Invalid JWT token format');
+      throw new Error("Invalid JWT token format");
     }
-    
+
     // Decode the payload (second part)
     const payload = parts[1];
-    
+
     // Add padding if needed for base64 decoding
-    const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
-    
+    const paddedPayload = payload + "=".repeat((4 - (payload.length % 4)) % 4);
+
     // Decode from base64
     const decodedPayload = atob(paddedPayload);
-    
+
     // Parse JSON
     const parsedPayload = JSON.parse(decodedPayload);
-    
+
     return parsedPayload;
   } catch (error) {
-    console.error('Error parsing JWT token:', error);
+    console.error("Error parsing JWT token:", error);
     return null;
   }
 };
@@ -36,65 +47,68 @@ export const login = async (email, password) => {
     // Exact request body structure as specified in API
     const requestBody = {
       email: email,
-      password: password
+      password: password,
     };
 
-    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.LOGIN, requestBody);
-    
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.AUTH.LOGIN,
+      requestBody
+    );
+
     const data = handleApiResponse(response);
-    
+
     // Handle successful login response based on the new format
     if (data && data.token) {
       // Parse JWT token to extract user information
       console.log(parseJwtTokenInternal(data.token));
       const tokenPayload = parseJwtTokenInternal(data.token);
-      
+
       if (!tokenPayload) {
-        throw new Error('Invalid token format');
+        throw new Error("Invalid token format");
       }
-      
+
       // Extract user information from token payload
       const user = {
         email: tokenPayload.sub || email, // Use 'sub' from token or fallback to login email
         userId: tokenPayload.userId || null,
-        role: tokenPayload.role || 'MEMBER',
+        role: tokenPayload.role || "MEMBER",
         isPremiumMembership: tokenPayload.isPremiumMember || false,
       };
-      
+
       // Store auth token and user data
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
+      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("user", JSON.stringify(user));
+
       // Store reminder if present for displaying in toast
       if (data.reminder) {
-        localStorage.setItem('loginReminder', data.reminder);
+        localStorage.setItem("loginReminder", data.reminder);
       }
-      
+
       return {
         success: true,
         user: user,
         token: data.token,
         reminder: data.reminder || null,
-        message: 'Login successful'
+        message: "Login successful",
       };
     } else {
-      throw new Error('Login failed: Invalid response format');
+      throw new Error("Login failed: Invalid response format");
     }
   } catch (error) {
-    console.error('Login error:', error);
-    
+    console.error("Login error:", error);
+
     // Handle different error response formats
-    let errorMessage = 'Login failed. Please check your credentials.';
-    
+    let errorMessage = "Login failed. Please check your credentials.";
+
     if (error.response?.data?.message) {
       errorMessage = error.response.data.message;
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
+
     throw {
       success: false,
-      message: errorMessage
+      message: errorMessage,
     };
   }
 };
@@ -106,37 +120,42 @@ export const register = async (name, email, password) => {
     const requestBody = {
       name: name,
       email: email,
-      password: password
+      password: password,
     };
 
-    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, requestBody);
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.AUTH.REGISTER,
+      requestBody
+    );
     const data = handleApiResponse(response);
-    
+
     // Successful registration
     const result = {
       success: true,
-      message: data.message || 'Registration successful. Please verify your email to activate your account.'
+      message:
+        data.message ||
+        "Registration successful. Please verify your email to activate your account.",
     };
-    
+
     // Redirect to login page
-    window.location.href = '/login';
-    
+    window.location.href = "/login";
+
     return result;
   } catch (error) {
-    console.error('Registration error:', error);
-    
+    console.error("Registration error:", error);
+
     // Handle different error response formats
-    let errorMessage = 'Registration failed. Please try again.';
-    
+    let errorMessage = "Registration failed. Please try again.";
+
     if (error.response?.data?.message) {
       errorMessage = error.response.data.message;
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
+
     throw {
       success: false,
-      message: errorMessage
+      message: errorMessage,
     };
   }
 };
@@ -147,24 +166,24 @@ export const logout = async () => {
     // Call logout endpoint to invalidate token on server
     await axiosInstance.post(API_ENDPOINTS.AUTH.LOGOUT);
   } catch (error) {
-    console.error('Logout API error:', error);
+    console.error("Logout API error:", error);
     // Continue with local logout even if API call fails
   } finally {
     // Clear local storage using helper function
     clearAuthData();
   }
-  
-  return { 
-    success: true, 
-    message: 'Logged out successfully' 
+
+  return {
+    success: true,
+    message: "Logged out successfully",
   };
 };
 
 // Check if user is authenticated
 export const isAuthenticated = () => {
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem("authToken");
   const user = getCurrentUser();
-  
+
   // Check if both token and user exist, and token is valid
   return !!token && !!user && isTokenValid(token);
 };
@@ -186,7 +205,7 @@ export const verifyToken = async () => {
     const data = handleApiResponse(response);
     return data.valid === true;
   } catch (error) {
-    console.error('Token verification failed:', error);
+    console.error("Token verification failed:", error);
     return false;
   }
 };
@@ -196,20 +215,20 @@ export const refreshToken = async () => {
   try {
     const response = await axiosInstance.post(API_ENDPOINTS.AUTH.REFRESH_TOKEN);
     const data = handleApiResponse(response);
-    
+
     if (data.success && data.token) {
-      localStorage.setItem('authToken', data.token);
+      localStorage.setItem("authToken", data.token);
       if (data.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
       return data.token;
     }
-    throw new Error('Token refresh failed');
+    throw new Error("Token refresh failed");
   } catch (error) {
-    console.error('Token refresh error:', error);
+    console.error("Token refresh error:", error);
     // Clear invalid tokens
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
     throw error;
   }
 };
@@ -217,17 +236,20 @@ export const refreshToken = async () => {
 // Forgot password
 export const forgotPassword = async (email) => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
+      { email }
+    );
     const data = handleApiResponse(response);
     return {
       success: true,
-      message: data.message || 'Password reset email sent successfully'
+      message: data.message || "Password reset email sent successfully",
     };
   } catch (error) {
-    console.error('Forgot password error:', error);
+    console.error("Forgot password error:", error);
     throw {
       success: false,
-      message: error.message || 'Failed to send password reset email'
+      message: error.message || "Failed to send password reset email",
     };
   }
 };
@@ -235,15 +257,19 @@ export const forgotPassword = async (email) => {
 // Verify account with OTP
 export const verifyAccount = async (email, otpInput) => {
   try {
-    const response = await axiosInstance.patch(API_ENDPOINTS.AUTH.VERIFY_ACCOUNT, null, {
-      params: { email, otpInput }
-    });
+    const response = await axiosInstance.patch(
+      API_ENDPOINTS.AUTH.VERIFY_ACCOUNT,
+      null,
+      {
+        params: { email, otpInput },
+      }
+    );
     return handleApiResponse(response);
   } catch (error) {
-    console.error('Account verification error:', error);
+    console.error("Account verification error:", error);
     throw {
       success: false,
-      message: error.message || 'Account verification failed'
+      message: error.message || "Account verification failed",
     };
   }
 };
@@ -251,15 +277,18 @@ export const verifyAccount = async (email, otpInput) => {
 // Send verification OTP
 export const sendVerifyOtp = async (email) => {
   try {
-    const response = await axiosInstance.get(API_ENDPOINTS.AUTH.SEND_VERIFY_OTP, {
-      params: { email }
-    });
+    const response = await axiosInstance.get(
+      API_ENDPOINTS.AUTH.SEND_VERIFY_OTP,
+      {
+        params: { email },
+      }
+    );
     return handleApiResponse(response);
   } catch (error) {
-    console.error('Send verify OTP error:', error);
+    console.error("Send verify OTP error:", error);
     throw {
       success: false,
-      message: error.message || 'Failed to send verification OTP'
+      message: error.message || "Failed to send verification OTP",
     };
   }
 };
@@ -267,15 +296,15 @@ export const sendVerifyOtp = async (email) => {
 // Send reset password OTP - Updated to match new API
 export const sendResetOtp = async (email) => {
   try {
-    const response = await axiosInstance.get('/auth/send-reset-otp', {
-      params: { email }
+    const response = await axiosInstance.get("/auth/send-reset-otp", {
+      params: { email },
     });
     return handleApiResponse(response);
   } catch (error) {
-    console.error('Send reset OTP error:', error);
+    console.error("Send reset OTP error:", error);
     throw {
       success: false,
-      message: error.message || 'Failed to send reset OTP'
+      message: error.message || "Failed to send reset OTP",
     };
   }
 };
@@ -283,15 +312,15 @@ export const sendResetOtp = async (email) => {
 // Reset password with OTP - Updated to match new API
 export const resetPassword = async (email, otpInput, newPassword) => {
   try {
-    const response = await axiosInstance.patch('/auth/reset-password', null, {
-      params: { email, otpInput, newPassword }
+    const response = await axiosInstance.patch("/auth/reset-password", null, {
+      params: { email, otpInput, newPassword },
     });
     return handleApiResponse(response);
   } catch (error) {
-    console.error('Reset password error:', error);
+    console.error("Reset password error:", error);
     throw {
       success: false,
-      message: error.message || 'Failed to reset password'
+      message: error.message || "Failed to reset password",
     };
   }
 };
@@ -304,22 +333,22 @@ export const getToken = () => {
 // Get tester accounts - Updated to match new API
 export const getTesters = async () => {
   try {
-    const response = await axiosInstance.get('/auth/get-testers');
+    const response = await axiosInstance.get("/auth/get-testers");
     return handleApiResponse(response);
   } catch (error) {
-    console.error('Error fetching testers:', error);
+    console.error("Error fetching testers:", error);
     throw handleApiError(error);
   }
 };
 
 // Get login reminder from localStorage
 export const getLoginReminder = () => {
-  return localStorage.getItem('loginReminder');
+  return localStorage.getItem("loginReminder");
 };
 
 // Clear login reminder from localStorage
 export const clearLoginReminder = () => {
-  localStorage.removeItem('loginReminder');
+  localStorage.removeItem("loginReminder");
 };
 
 // Export JWT parsing function for use in other modules
@@ -328,31 +357,31 @@ export const parseJwtToken = parseJwtTokenInternal;
 // Refresh user data from stored token
 export const refreshUserFromToken = () => {
   try {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     if (!token) {
       return null;
     }
-    
+
     const tokenPayload = parseJwtTokenInternal(token);
     if (!tokenPayload) {
       clearAuthData();
       return null;
     }
-    
+
     // Create updated user object from token
     const user = {
-      email: tokenPayload.sub || '',
+      email: tokenPayload.sub || "",
       userId: tokenPayload.userId || null,
-      role: tokenPayload.role || 'MEMBER',
+      role: tokenPayload.role || "MEMBER",
       isPremiumMembership: tokenPayload.isPremiumMembership || false,
     };
-    
+
     // Update localStorage with refreshed user data
-    localStorage.setItem('user', JSON.stringify(user));
-    
+    localStorage.setItem("user", JSON.stringify(user));
+
     return user;
   } catch (error) {
-    console.error('Error refreshing user from token:', error);
+    console.error("Error refreshing user from token:", error);
     clearAuthData();
     return null;
   }

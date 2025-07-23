@@ -1,24 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  Card, Typography, Row, Col, DatePicker, Select, 
-  Statistic, Progress, Spin, Empty, Alert, Space,
-  Tag, Divider, Button, Tooltip
-} from 'antd';
+  Card,
+  Typography,
+  Row,
+  Col,
+  DatePicker,
+  Select,
+  Statistic,
+  Progress,
+  Spin,
+  Empty,
+  Alert,
+  Space,
+  Tag,
+  Divider,
+  Button,
+  Tooltip,
+} from "antd";
 import {
-  LineChartOutlined, BarChartOutlined, PieChartOutlined,
-  TrendingUpOutlined, TrendingDownOutlined, MinusOutlined,
-  CheckCircleOutlined, WarningOutlined, FireOutlined,
-  HeartOutlined, ClockCircleOutlined, CalendarOutlined,
-  ExportOutlined, InfoCircleOutlined
-} from '@ant-design/icons';
+  LineChartOutlined,
+  BarChartOutlined,
+  PieChartOutlined,
+  TrendingUpOutlined,
+  TrendingDownOutlined,
+  MinusOutlined,
+  CheckCircleOutlined,
+  WarningOutlined,
+  FireOutlined,
+  HeartOutlined,
+  ClockCircleOutlined,
+  CalendarOutlined,
+  ExportOutlined,
+  InfoCircleOutlined,
+} from "@ant-design/icons";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
-  Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell,
-  AreaChart, Area, ScatterPlot, Scatter
-} from 'recharts';
-import moment from 'moment';
-import { useAuth } from '../../contexts/AuthContext';
-import { getDailyLogsWithAnalytics } from '../../services/dailylogService';
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+  ScatterPlot,
+  Scatter,
+} from "recharts";
+import moment from "moment";
+import { useAuth } from "../../contexts/AuthContext";
+import { getDailyLogsWithAnalytics } from "../../services/dailylogService";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -30,11 +66,11 @@ const LogAnalytics = () => {
   const [logs, setLogs] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [selectedDateRange, setSelectedDateRange] = useState([
-    moment().subtract(30, 'days'),
-    moment()
+    moment().subtract(30, "days"),
+    moment(),
   ]);
-  const [viewType, setViewType] = useState('overview'); // overview, trends, patterns, insights
-  const [chartType, setChartType] = useState('line');
+  const [viewType, setViewType] = useState("overview"); // overview, trends, patterns, insights
+  const [chartType, setChartType] = useState("line");
 
   const userId = currentUser?.userId;
 
@@ -47,12 +83,16 @@ const LogAnalytics = () => {
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
-      
-      const startDate = selectedDateRange[0].format('YYYY-MM-DD');
-      const endDate = selectedDateRange[1].format('YYYY-MM-DD');
-      
-      const response = await getDailyLogsWithAnalytics(userId, startDate, endDate);
-      
+
+      const startDate = selectedDateRange[0].format("YYYY-MM-DD");
+      const endDate = selectedDateRange[1].format("YYYY-MM-DD");
+
+      const response = await getDailyLogsWithAnalytics(
+        userId,
+        startDate,
+        endDate
+      );
+
       if (response.success) {
         setLogs(response.data || []);
         setAnalytics(response.analytics);
@@ -60,22 +100,22 @@ const LogAnalytics = () => {
         setLogs([]);
         setAnalytics(null);
       }
-      
+
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching analytics data:', error);
+      console.error("Error fetching analytics data:", error);
       setLoading(false);
     }
   };
 
   const getChartData = () => {
-    return logs.map(log => ({
-      date: moment(log.log_date).format('MM/DD'),
+    return logs.map((log) => ({
+      date: moment(log.log_date).format("MM/DD"),
       cigarettes: log.cigarettes_smoked,
       stress: log.stress_level,
       mood: log.mood_level,
       cravings: log.craving_intensity,
-      sleep: log.sleep_hours
+      sleep: log.sleep_hours,
     }));
   };
 
@@ -84,21 +124,21 @@ const LogAnalytics = () => {
       byDayOfWeek: {},
       byStressLevel: { low: 0, medium: 0, high: 0 },
       byMoodLevel: { low: 0, medium: 0, high: 0 },
-      byCravingLevel: { low: 0, medium: 0, high: 0 }
+      byCravingLevel: { low: 0, medium: 0, high: 0 },
     };
 
-    logs.forEach(log => {
-      const dayOfWeek = moment(log.log_date).format('dddd');
+    logs.forEach((log) => {
+      const dayOfWeek = moment(log.log_date).format("dddd");
       if (!patterns.byDayOfWeek[dayOfWeek]) {
-        patterns.byDayOfWeek[dayOfWeek] = { 
-          day: dayOfWeek, 
-          totalCigarettes: 0, 
-          avgStress: 0, 
-          avgMood: 0, 
-          count: 0 
+        patterns.byDayOfWeek[dayOfWeek] = {
+          day: dayOfWeek,
+          totalCigarettes: 0,
+          avgStress: 0,
+          avgMood: 0,
+          count: 0,
         };
       }
-      
+
       patterns.byDayOfWeek[dayOfWeek].totalCigarettes += log.cigarettes_smoked;
       patterns.byDayOfWeek[dayOfWeek].avgStress += log.stress_level;
       patterns.byDayOfWeek[dayOfWeek].avgMood += log.mood_level;
@@ -119,11 +159,13 @@ const LogAnalytics = () => {
     });
 
     // Calculate averages for day of week data
-    Object.keys(patterns.byDayOfWeek).forEach(day => {
+    Object.keys(patterns.byDayOfWeek).forEach((day) => {
       const dayData = patterns.byDayOfWeek[day];
       dayData.avgStress = (dayData.avgStress / dayData.count).toFixed(1);
       dayData.avgMood = (dayData.avgMood / dayData.count).toFixed(1);
-      dayData.avgCigarettes = (dayData.totalCigarettes / dayData.count).toFixed(1);
+      dayData.avgCigarettes = (dayData.totalCigarettes / dayData.count).toFixed(
+        1
+      );
     });
 
     return patterns;
@@ -135,50 +177,50 @@ const LogAnalytics = () => {
     const recentWeek = logs.slice(-7);
     const previousWeek = logs.slice(-14, -7);
 
-    const calculateAverage = (data, field) => 
+    const calculateAverage = (data, field) =>
       data.reduce((sum, item) => sum + item[field], 0) / data.length;
 
     const recentAvgs = {
-      cigarettes: calculateAverage(recentWeek, 'cigarettes_smoked'),
-      stress: calculateAverage(recentWeek, 'stress_level'),
-      mood: calculateAverage(recentWeek, 'mood_level'),
-      cravings: calculateAverage(recentWeek, 'craving_intensity')
+      cigarettes: calculateAverage(recentWeek, "cigarettes_smoked"),
+      stress: calculateAverage(recentWeek, "stress_level"),
+      mood: calculateAverage(recentWeek, "mood_level"),
+      cravings: calculateAverage(recentWeek, "craving_intensity"),
     };
 
     const previousAvgs = {
-      cigarettes: calculateAverage(previousWeek, 'cigarettes_smoked'),
-      stress: calculateAverage(previousWeek, 'stress_level'),
-      mood: calculateAverage(previousWeek, 'mood_level'),
-      cravings: calculateAverage(previousWeek, 'craving_intensity')
+      cigarettes: calculateAverage(previousWeek, "cigarettes_smoked"),
+      stress: calculateAverage(previousWeek, "stress_level"),
+      mood: calculateAverage(previousWeek, "mood_level"),
+      cravings: calculateAverage(previousWeek, "craving_intensity"),
     };
 
     const getTrend = (current, previous) => {
       const diff = current - previous;
-      if (Math.abs(diff) < 0.5) return 'stable';
-      return diff > 0 ? 'increasing' : 'decreasing';
+      if (Math.abs(diff) < 0.5) return "stable";
+      return diff > 0 ? "increasing" : "decreasing";
     };
 
     return {
       cigarettes: {
         trend: getTrend(recentAvgs.cigarettes, previousAvgs.cigarettes),
         change: (recentAvgs.cigarettes - previousAvgs.cigarettes).toFixed(1),
-        current: recentAvgs.cigarettes.toFixed(1)
+        current: recentAvgs.cigarettes.toFixed(1),
       },
       stress: {
         trend: getTrend(recentAvgs.stress, previousAvgs.stress),
         change: (recentAvgs.stress - previousAvgs.stress).toFixed(1),
-        current: recentAvgs.stress.toFixed(1)
+        current: recentAvgs.stress.toFixed(1),
       },
       mood: {
         trend: getTrend(recentAvgs.mood, previousAvgs.mood),
         change: (recentAvgs.mood - previousAvgs.mood).toFixed(1),
-        current: recentAvgs.mood.toFixed(1)
+        current: recentAvgs.mood.toFixed(1),
       },
       cravings: {
         trend: getTrend(recentAvgs.cravings, previousAvgs.cravings),
         change: (recentAvgs.cravings - previousAvgs.cravings).toFixed(1),
-        current: recentAvgs.cravings.toFixed(1)
-      }
+        current: recentAvgs.cravings.toFixed(1),
+      },
     };
   };
 
@@ -191,54 +233,54 @@ const LogAnalytics = () => {
     // Smoke-free insights
     if (analytics.smokeFreeRate > 80) {
       insights.push({
-        type: 'success',
-        title: 'Excellent Progress!',
+        type: "success",
+        title: "Excellent Progress!",
         message: `You've been smoke-free ${analytics.smokeFreeRate}% of the time. Keep up the great work!`,
-        icon: <CheckCircleOutlined />
+        icon: <CheckCircleOutlined />,
       });
     } else if (analytics.smokeFreeRate > 50) {
       insights.push({
-        type: 'warning',
-        title: 'Good Progress',
+        type: "warning",
+        title: "Good Progress",
         message: `You're smoke-free ${analytics.smokeFreeRate}% of the time. You're on the right track!`,
-        icon: <TrendingUpOutlined />
+        icon: <TrendingUpOutlined />,
       });
     } else {
       insights.push({
-        type: 'info',
-        title: 'Room for Improvement',
+        type: "info",
+        title: "Room for Improvement",
         message: `Focus on reducing cigarette consumption. You're currently smoke-free ${analytics.smokeFreeRate}% of the time.`,
-        icon: <WarningOutlined />
+        icon: <WarningOutlined />,
       });
     }
 
     // Stress level insights
     if (parseFloat(analytics.avgStressLevel) > 7) {
       insights.push({
-        type: 'warning',
-        title: 'High Stress Levels',
+        type: "warning",
+        title: "High Stress Levels",
         message: `Your average stress level is ${analytics.avgStressLevel}/10. Consider stress management techniques.`,
-        icon: <WarningOutlined />
+        icon: <WarningOutlined />,
       });
     }
 
     // Mood insights
     if (parseFloat(analytics.avgMoodLevel) < 5) {
       insights.push({
-        type: 'info',
-        title: 'Mood Support',
+        type: "info",
+        title: "Mood Support",
         message: `Your average mood is ${analytics.avgMoodLevel}/10. Consider mood-boosting activities.`,
-        icon: <HeartOutlined />
+        icon: <HeartOutlined />,
       });
     }
 
     // Sleep insights
     if (parseFloat(analytics.avgSleepHours) < 7) {
       insights.push({
-        type: 'warning',
-        title: 'Sleep Quality',
+        type: "warning",
+        title: "Sleep Quality",
         message: `You're averaging ${analytics.avgSleepHours} hours of sleep. Aim for 7-9 hours for better recovery.`,
-        icon: <ClockCircleOutlined />
+        icon: <ClockCircleOutlined />,
       });
     }
 
@@ -247,22 +289,22 @@ const LogAnalytics = () => {
 
   const renderTrendIcon = (trend) => {
     switch (trend) {
-      case 'increasing':
-        return <TrendingUpOutlined style={{ color: '#ff4d4f' }} />;
-      case 'decreasing':
-        return <TrendingDownOutlined style={{ color: '#52c41a' }} />;
+      case "increasing":
+        return <TrendingUpOutlined style={{ color: "#ff4d4f" }} />;
+      case "decreasing":
+        return <TrendingDownOutlined style={{ color: "#52c41a" }} />;
       default:
-        return <MinusOutlined style={{ color: '#faad14' }} />;
+        return <MinusOutlined style={{ color: "#faad14" }} />;
     }
   };
 
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c'];
+  const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7c7c"];
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
+      <div style={{ textAlign: "center", padding: "50px" }}>
         <Spin size="large" />
-        <div style={{ marginTop: '16px' }}>Loading analytics...</div>
+        <div style={{ marginTop: "16px" }}>Loading analytics...</div>
       </div>
     );
   }
@@ -303,9 +345,7 @@ const LogAnalytics = () => {
                 </Col>
                 <Col>
                   <Space>
-                    <Button icon={<ExportOutlined />}>
-                      Export Report
-                    </Button>
+                    <Button icon={<ExportOutlined />}>Export Report</Button>
                   </Space>
                 </Col>
               </Row>
@@ -359,10 +399,7 @@ const LogAnalytics = () => {
                   </Space>
                 </Col>
                 <Col xs={24} md={4}>
-                  <Button
-                    type="primary"
-                    onClick={fetchAnalyticsData}
-                  >
+                  <Button type="primary" onClick={fetchAnalyticsData}>
                     Refresh
                   </Button>
                 </Col>
@@ -372,7 +409,7 @@ const LogAnalytics = () => {
         </Row>
 
         {/* Overview Section */}
-        {viewType === 'overview' && (
+        {viewType === "overview" && (
           <>
             {/* Summary Statistics */}
             <Row gutter={[16, 16]} className="mb-4">
@@ -391,7 +428,7 @@ const LogAnalytics = () => {
                     title="Smoke-Free Rate"
                     value={`${analytics.smokeFreeRate}%`}
                     prefix={<CheckCircleOutlined />}
-                    valueStyle={{ color: '#52c41a' }}
+                    valueStyle={{ color: "#52c41a" }}
                   />
                 </Card>
               </Col>
@@ -401,8 +438,11 @@ const LogAnalytics = () => {
                     title="Avg Daily Cigarettes"
                     value={analytics.avgDailyCigarettes}
                     prefix={<FireOutlined />}
-                    valueStyle={{ 
-                      color: parseFloat(analytics.avgDailyCigarettes) > 0 ? '#ff4d4f' : '#52c41a' 
+                    valueStyle={{
+                      color:
+                        parseFloat(analytics.avgDailyCigarettes) > 0
+                          ? "#ff4d4f"
+                          : "#52c41a",
                     }}
                   />
                 </Card>
@@ -413,7 +453,7 @@ const LogAnalytics = () => {
                     title="Avg Mood Level"
                     value={`${analytics.avgMoodLevel}/10`}
                     prefix={<HeartOutlined />}
-                    valueStyle={{ color: '#1890ff' }}
+                    valueStyle={{ color: "#1890ff" }}
                   />
                 </Card>
               </Col>
@@ -424,43 +464,99 @@ const LogAnalytics = () => {
               <Col xs={24}>
                 <Card title="Daily Metrics Over Time">
                   <ResponsiveContainer width="100%" height={400}>
-                    {chartType === 'line' && (
+                    {chartType === "line" && (
                       <LineChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="date" />
                         <YAxis />
                         <RechartsTooltip />
                         <Legend />
-                        <Line type="monotone" dataKey="cigarettes" stroke="#ff4d4f" name="Cigarettes" />
-                        <Line type="monotone" dataKey="stress" stroke="#faad14" name="Stress" />
-                        <Line type="monotone" dataKey="mood" stroke="#52c41a" name="Mood" />
-                        <Line type="monotone" dataKey="cravings" stroke="#722ed1" name="Cravings" />
+                        <Line
+                          type="monotone"
+                          dataKey="cigarettes"
+                          stroke="#ff4d4f"
+                          name="Cigarettes"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="stress"
+                          stroke="#faad14"
+                          name="Stress"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="mood"
+                          stroke="#52c41a"
+                          name="Mood"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="cravings"
+                          stroke="#722ed1"
+                          name="Cravings"
+                        />
                       </LineChart>
                     )}
-                    {chartType === 'bar' && (
+                    {chartType === "bar" && (
                       <BarChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="date" />
                         <YAxis />
                         <RechartsTooltip />
                         <Legend />
-                        <Bar dataKey="cigarettes" fill="#ff4d4f" name="Cigarettes" />
+                        <Bar
+                          dataKey="cigarettes"
+                          fill="#ff4d4f"
+                          name="Cigarettes"
+                        />
                         <Bar dataKey="stress" fill="#faad14" name="Stress" />
                         <Bar dataKey="mood" fill="#52c41a" name="Mood" />
-                        <Bar dataKey="cravings" fill="#722ed1" name="Cravings" />
+                        <Bar
+                          dataKey="cravings"
+                          fill="#722ed1"
+                          name="Cravings"
+                        />
                       </BarChart>
                     )}
-                    {chartType === 'area' && (
+                    {chartType === "area" && (
                       <AreaChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="date" />
                         <YAxis />
                         <RechartsTooltip />
                         <Legend />
-                        <Area type="monotone" dataKey="cigarettes" stackId="1" stroke="#ff4d4f" fill="#ff4d4f" name="Cigarettes" />
-                        <Area type="monotone" dataKey="stress" stackId="1" stroke="#faad14" fill="#faad14" name="Stress" />
-                        <Area type="monotone" dataKey="mood" stackId="1" stroke="#52c41a" fill="#52c41a" name="Mood" />
-                        <Area type="monotone" dataKey="cravings" stackId="1" stroke="#722ed1" fill="#722ed1" name="Cravings" />
+                        <Area
+                          type="monotone"
+                          dataKey="cigarettes"
+                          stackId="1"
+                          stroke="#ff4d4f"
+                          fill="#ff4d4f"
+                          name="Cigarettes"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="stress"
+                          stackId="1"
+                          stroke="#faad14"
+                          fill="#faad14"
+                          name="Stress"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="mood"
+                          stackId="1"
+                          stroke="#52c41a"
+                          fill="#52c41a"
+                          name="Mood"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="cravings"
+                          stackId="1"
+                          stroke="#722ed1"
+                          fill="#722ed1"
+                          name="Cravings"
+                        />
                       </AreaChart>
                     )}
                   </ResponsiveContainer>
@@ -471,7 +567,7 @@ const LogAnalytics = () => {
         )}
 
         {/* Trends Section */}
-        {viewType === 'trends' && trends && (
+        {viewType === "trends" && trends && (
           <Row gutter={[16, 16]} className="mb-4">
             <Col xs={24}>
               <Card title="Weekly Trend Analysis">
@@ -483,12 +579,20 @@ const LogAnalytics = () => {
                         <div>
                           <Text strong>Cigarettes</Text>
                           <br />
-                          <Text type="secondary">{trends.cigarettes.current} avg</Text>
+                          <Text type="secondary">
+                            {trends.cigarettes.current} avg
+                          </Text>
                           <br />
-                          <Text style={{ 
-                            color: trends.cigarettes.trend === 'decreasing' ? '#52c41a' : '#ff4d4f' 
-                          }}>
-                            {trends.cigarettes.change > 0 ? '+' : ''}{trends.cigarettes.change}
+                          <Text
+                            style={{
+                              color:
+                                trends.cigarettes.trend === "decreasing"
+                                  ? "#52c41a"
+                                  : "#ff4d4f",
+                            }}
+                          >
+                            {trends.cigarettes.change > 0 ? "+" : ""}
+                            {trends.cigarettes.change}
                           </Text>
                         </div>
                       </Space>
@@ -501,12 +605,20 @@ const LogAnalytics = () => {
                         <div>
                           <Text strong>Stress</Text>
                           <br />
-                          <Text type="secondary">{trends.stress.current}/10 avg</Text>
+                          <Text type="secondary">
+                            {trends.stress.current}/10 avg
+                          </Text>
                           <br />
-                          <Text style={{ 
-                            color: trends.stress.trend === 'decreasing' ? '#52c41a' : '#ff4d4f' 
-                          }}>
-                            {trends.stress.change > 0 ? '+' : ''}{trends.stress.change}
+                          <Text
+                            style={{
+                              color:
+                                trends.stress.trend === "decreasing"
+                                  ? "#52c41a"
+                                  : "#ff4d4f",
+                            }}
+                          >
+                            {trends.stress.change > 0 ? "+" : ""}
+                            {trends.stress.change}
                           </Text>
                         </div>
                       </Space>
@@ -519,12 +631,20 @@ const LogAnalytics = () => {
                         <div>
                           <Text strong>Mood</Text>
                           <br />
-                          <Text type="secondary">{trends.mood.current}/10 avg</Text>
+                          <Text type="secondary">
+                            {trends.mood.current}/10 avg
+                          </Text>
                           <br />
-                          <Text style={{ 
-                            color: trends.mood.trend === 'increasing' ? '#52c41a' : '#ff4d4f' 
-                          }}>
-                            {trends.mood.change > 0 ? '+' : ''}{trends.mood.change}
+                          <Text
+                            style={{
+                              color:
+                                trends.mood.trend === "increasing"
+                                  ? "#52c41a"
+                                  : "#ff4d4f",
+                            }}
+                          >
+                            {trends.mood.change > 0 ? "+" : ""}
+                            {trends.mood.change}
                           </Text>
                         </div>
                       </Space>
@@ -537,12 +657,20 @@ const LogAnalytics = () => {
                         <div>
                           <Text strong>Cravings</Text>
                           <br />
-                          <Text type="secondary">{trends.cravings.current}/10 avg</Text>
+                          <Text type="secondary">
+                            {trends.cravings.current}/10 avg
+                          </Text>
                           <br />
-                          <Text style={{ 
-                            color: trends.cravings.trend === 'decreasing' ? '#52c41a' : '#ff4d4f' 
-                          }}>
-                            {trends.cravings.change > 0 ? '+' : ''}{trends.cravings.change}
+                          <Text
+                            style={{
+                              color:
+                                trends.cravings.trend === "decreasing"
+                                  ? "#52c41a"
+                                  : "#ff4d4f",
+                            }}
+                          >
+                            {trends.cravings.change > 0 ? "+" : ""}
+                            {trends.cravings.change}
                           </Text>
                         </div>
                       </Space>
@@ -555,7 +683,7 @@ const LogAnalytics = () => {
         )}
 
         {/* Patterns Section */}
-        {viewType === 'patterns' && (
+        {viewType === "patterns" && (
           <Row gutter={[16, 16]} className="mb-4">
             <Col xs={24} md={12}>
               <Card title="Patterns by Day of Week">
@@ -565,7 +693,11 @@ const LogAnalytics = () => {
                     <XAxis dataKey="day" />
                     <YAxis />
                     <RechartsTooltip />
-                    <Bar dataKey="avgCigarettes" fill="#ff4d4f" name="Avg Cigarettes" />
+                    <Bar
+                      dataKey="avgCigarettes"
+                      fill="#ff4d4f"
+                      name="Avg Cigarettes"
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </Card>
@@ -576,9 +708,18 @@ const LogAnalytics = () => {
                   <PieChart>
                     <Pie
                       data={[
-                        { name: 'Low (1-3)', value: patterns.byStressLevel.low },
-                        { name: 'Medium (4-6)', value: patterns.byStressLevel.medium },
-                        { name: 'High (7-10)', value: patterns.byStressLevel.high }
+                        {
+                          name: "Low (1-3)",
+                          value: patterns.byStressLevel.low,
+                        },
+                        {
+                          name: "Medium (4-6)",
+                          value: patterns.byStressLevel.medium,
+                        },
+                        {
+                          name: "High (7-10)",
+                          value: patterns.byStressLevel.high,
+                        },
                       ]}
                       cx="50%"
                       cy="50%"
@@ -588,11 +729,23 @@ const LogAnalytics = () => {
                       label
                     >
                       {[
-                        { name: 'Low (1-3)', value: patterns.byStressLevel.low },
-                        { name: 'Medium (4-6)', value: patterns.byStressLevel.medium },
-                        { name: 'High (7-10)', value: patterns.byStressLevel.high }
+                        {
+                          name: "Low (1-3)",
+                          value: patterns.byStressLevel.low,
+                        },
+                        {
+                          name: "Medium (4-6)",
+                          value: patterns.byStressLevel.medium,
+                        },
+                        {
+                          name: "High (7-10)",
+                          value: patterns.byStressLevel.high,
+                        },
                       ].map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <RechartsTooltip />
@@ -605,11 +758,15 @@ const LogAnalytics = () => {
         )}
 
         {/* Insights Section */}
-        {viewType === 'insights' && (
+        {viewType === "insights" && (
           <Row gutter={[16, 16]} className="mb-4">
             <Col xs={24}>
               <Card title="Personalized Insights">
-                <Space direction="vertical" style={{ width: '100%' }} size="large">
+                <Space
+                  direction="vertical"
+                  style={{ width: "100%" }}
+                  size="large"
+                >
                   {insights.map((insight, index) => (
                     <Alert
                       key={index}

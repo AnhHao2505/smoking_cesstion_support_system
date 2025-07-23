@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Card,
   Row,
@@ -16,8 +16,8 @@ import {
   Spin,
   Divider,
   List,
-  Avatar
-} from 'antd';
+  Avatar,
+} from "antd";
 import {
   UserOutlined,
   SettingOutlined,
@@ -28,11 +28,11 @@ import {
   EditOutlined,
   DeleteOutlined,
   HistoryOutlined,
-  DownloadOutlined
-} from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import { getCurrentUser } from '../../services/authService';
-import moment from 'moment';
+  DownloadOutlined,
+} from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import { getCurrentUser } from "../../services/authService";
+import moment from "moment";
 
 const { Title, Paragraph, Text } = Typography;
 const { confirm } = Modal;
@@ -52,8 +52,8 @@ const AccountManagement = () => {
         const user = getCurrentUser();
         setCurrentUser(user);
       } catch (error) {
-        console.error('Error fetching account data:', error);
-        message.error('Không thể tải thông tin tài khoản');
+        console.error("Error fetching account data:", error);
+        message.error("Không thể tải thông tin tài khoản");
       } finally {
         setLoading(false);
       }
@@ -65,7 +65,7 @@ const AccountManagement = () => {
   const handleEditProfile = () => {
     form.setFieldsValue({
       name: currentUser?.name,
-      contactNumber: currentUser?.contactNumber
+      contactNumber: currentUser?.contactNumber,
     });
     setEditModalVisible(true);
   };
@@ -73,27 +73,28 @@ const AccountManagement = () => {
   const handleSaveProfile = async () => {
     try {
       const values = await form.validateFields();
-      
+
       // Here you would call API to update user profile
       // const response = await updateUserProfile(currentUser.user_id, values);
-      
-      setCurrentUser(prev => ({ ...prev, ...values }));
-      message.success('Cập nhật thông tin thành công');
+
+      setCurrentUser((prev) => ({ ...prev, ...values }));
+      message.success("Cập nhật thông tin thành công");
       setEditModalVisible(false);
     } catch (error) {
-      console.error('Error updating profile:', error);
-      message.error('Không thể cập nhật thông tin');
+      console.error("Error updating profile:", error);
+      message.error("Không thể cập nhật thông tin");
     }
   };
 
   const handleDeleteAccount = () => {
     confirm({
-      title: 'Xác nhận xóa tài khoản',
+      title: "Xác nhận xóa tài khoản",
       icon: <ExclamationCircleOutlined />,
-      content: 'Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác.',
-      okText: 'Xóa tài khoản',
-      okType: 'danger',
-      cancelText: 'Hủy',
+      content:
+        "Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác.",
+      okText: "Xóa tài khoản",
+      okType: "danger",
+      cancelText: "Hủy",
       onOk() {
         setDeleteModalVisible(true);
       },
@@ -104,13 +105,13 @@ const AccountManagement = () => {
     try {
       // Here you would call API to delete account
       // const response = await deleteAccount(currentUser.user_id);
-      
-      message.success('Tài khoản đã được xóa thành công');
+
+      message.success("Tài khoản đã được xóa thành công");
       // Redirect to login or home page
-      navigate('/login');
+      navigate("/login");
     } catch (error) {
-      console.error('Error deleting account:', error);
-      message.error('Không thể xóa tài khoản');
+      console.error("Error deleting account:", error);
+      message.error("Không thể xóa tài khoản");
     }
   };
 
@@ -118,11 +119,11 @@ const AccountManagement = () => {
     try {
       // Here you would call API to export user data
       // const response = await exportUserData(currentUser.user_id);
-      
-      message.success('Dữ liệu đã được xuất thành công');
+
+      message.success("Dữ liệu đã được xuất thành công");
     } catch (error) {
-      console.error('Error exporting data:', error);
-      message.error('Không thể xuất dữ liệu');
+      console.error("Error exporting data:", error);
+      message.error("Không thể xuất dữ liệu");
     }
   };
 
@@ -130,37 +131,42 @@ const AccountManagement = () => {
   const recentActivities = [
     {
       id: 1,
-      action: 'Cập nhật tiến trình hàng ngày',
-      timestamp: moment().subtract(2, 'hours').format('YYYY-MM-DD HH:mm'),
-      type: 'update'
+      action: "Cập nhật tiến trình hàng ngày",
+      timestamp: moment().subtract(2, "hours").format("YYYY-MM-DD HH:mm"),
+      type: "update",
     },
     {
       id: 2,
       action: 'Hoàn thành nhiệm vụ "Không hút thuốc trong 24h"',
-      timestamp: moment().subtract(1, 'days').format('YYYY-MM-DD HH:mm'),
-      type: 'achievement'
+      timestamp: moment().subtract(1, "days").format("YYYY-MM-DD HH:mm"),
+      type: "achievement",
     },
     {
       id: 3,
-      action: 'Thay đổi mật khẩu',
-      timestamp: moment().subtract(3, 'days').format('YYYY-MM-DD HH:mm'),
-      type: 'security'
+      action: "Thay đổi mật khẩu",
+      timestamp: moment().subtract(3, "days").format("YYYY-MM-DD HH:mm"),
+      type: "security",
     },
     {
       id: 4,
-      action: 'Tạo kế hoạch cai thuốc mới',
-      timestamp: moment().subtract(1, 'weeks').format('YYYY-MM-DD HH:mm'),
-      type: 'plan'
-    }
+      action: "Tạo kế hoạch cai thuốc mới",
+      timestamp: moment().subtract(1, "weeks").format("YYYY-MM-DD HH:mm"),
+      type: "plan",
+    },
   ];
 
   const getActivityIcon = (type) => {
     switch (type) {
-      case 'update': return <EditOutlined style={{ color: '#1890ff' }} />;
-      case 'achievement': return <CrownOutlined style={{ color: '#faad14' }} />;
-      case 'security': return <SecurityScanOutlined style={{ color: '#52c41a' }} />;
-      case 'plan': return <SettingOutlined style={{ color: '#722ed1' }} />;
-      default: return <UserOutlined />;
+      case "update":
+        return <EditOutlined style={{ color: "#1890ff" }} />;
+      case "achievement":
+        return <CrownOutlined style={{ color: "#faad14" }} />;
+      case "security":
+        return <SecurityScanOutlined style={{ color: "#52c41a" }} />;
+      case "plan":
+        return <SettingOutlined style={{ color: "#722ed1" }} />;
+      default:
+        return <UserOutlined />;
     }
   };
 
@@ -182,14 +188,9 @@ const AccountManagement = () => {
               <UserOutlined className="me-2" />
               Quản lý tài khoản
             </Title>
-            <Paragraph>
-              Xem và quản lý thông tin tài khoản của bạn
-            </Paragraph>
+            <Paragraph>Xem và quản lý thông tin tài khoản của bạn</Paragraph>
           </div>
-          <Button 
-            icon={<ArrowLeftOutlined />} 
-            onClick={() => navigate(-1)}
-          >
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
             Quay lại
           </Button>
         </div>
@@ -206,41 +207,41 @@ const AccountManagement = () => {
                   {currentUser?.email}
                 </Descriptions.Item>
                 <Descriptions.Item label="Số điện thoại">
-                  {currentUser?.contactNumber || 'Chưa cập nhật'}
+                  {currentUser?.contactNumber || "Chưa cập nhật"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Loại tài khoản">
                   {currentUser?.premiumMembership ? (
-                    <Tag color="gold" icon={<CrownOutlined />}>Premium</Tag>
+                    <Tag color="gold" icon={<CrownOutlined />}>
+                      Premium
+                    </Tag>
                   ) : (
                     <Tag color="blue">Miễn phí</Tag>
                   )}
                 </Descriptions.Item>
                 <Descriptions.Item label="Ngày tạo tài khoản">
-                  {currentUser?.createdAt ? 
-                    moment(currentUser.createdAt).format('DD/MM/YYYY') : 
-                    'Không xác định'
-                  }
+                  {currentUser?.createdAt
+                    ? moment(currentUser.createdAt).format("DD/MM/YYYY")
+                    : "Không xác định"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Lần đăng nhập cuối">
-                  {currentUser?.lastLogin ? 
-                    moment(currentUser.lastLogin).format('DD/MM/YYYY HH:mm') : 
-                    'Không xác định'
-                  }
+                  {currentUser?.lastLogin
+                    ? moment(currentUser.lastLogin).format("DD/MM/YYYY HH:mm")
+                    : "Không xác định"}
                 </Descriptions.Item>
               </Descriptions>
-              
+
               <div className="text-center mt-4">
                 <Space>
-                  <Button 
-                    type="primary" 
+                  <Button
+                    type="primary"
                     icon={<EditOutlined />}
                     onClick={handleEditProfile}
                   >
                     Chỉnh sửa thông tin
                   </Button>
-                  <Button 
+                  <Button
                     icon={<SettingOutlined />}
-                    onClick={() => navigate('/member/user-settings')}
+                    onClick={() => navigate("/member/user-settings")}
                   >
                     Cài đặt tài khoản
                   </Button>
@@ -283,24 +284,26 @@ const AccountManagement = () => {
           <Col xs={24} lg={8}>
             {/* Quick Actions */}
             <Card title="Hành động nhanh" className="mb-4">
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <Button 
-                  block 
+              <Space direction="vertical" style={{ width: "100%" }}>
+                <Button
+                  block
                   icon={<SettingOutlined />}
-                  onClick={() => navigate('/member/user-settings')}
+                  onClick={() => navigate("/member/user-settings")}
                 >
                   Cài đặt tài khoản
                 </Button>
-                <Button 
-                  block 
+                <Button
+                  block
                   icon={<CrownOutlined />}
-                  onClick={() => navigate('/member/premium-upgrade')}
-                  type={currentUser?.premiumMembership ? 'default' : 'primary'}
+                  onClick={() => navigate("/member/premium-upgrade")}
+                  type={currentUser?.premiumMembership ? "default" : "primary"}
                 >
-                  {currentUser?.premiumMembership ? 'Quản lý Premium' : 'Nâng cấp Premium'}
+                  {currentUser?.premiumMembership
+                    ? "Quản lý Premium"
+                    : "Nâng cấp Premium"}
                 </Button>
-                <Button 
-                  block 
+                <Button
+                  block
                   icon={<DownloadOutlined />}
                   onClick={handleExportData}
                 >
@@ -314,7 +317,7 @@ const AccountManagement = () => {
               <List
                 itemLayout="horizontal"
                 dataSource={recentActivities}
-                renderItem={activity => (
+                renderItem={(activity) => (
                   <List.Item>
                     <List.Item.Meta
                       avatar={<Avatar icon={getActivityIcon(activity.type)} />}
@@ -325,10 +328,10 @@ const AccountManagement = () => {
                 )}
               />
               <div className="text-center mt-3">
-                <Button 
-                  type="link" 
+                <Button
+                  type="link"
                   icon={<HistoryOutlined />}
-                  onClick={() => navigate('/member/activity-history')}
+                  onClick={() => navigate("/member/activity-history")}
                 >
                   Xem tất cả hoạt động
                 </Button>
@@ -346,8 +349,8 @@ const AccountManagement = () => {
             showIcon
             className="mb-3"
           />
-          <Button 
-            danger 
+          <Button
+            danger
             icon={<DeleteOutlined />}
             onClick={handleDeleteAccount}
           >
@@ -366,21 +369,23 @@ const AccountManagement = () => {
             </Button>,
             <Button key="save" type="primary" onClick={handleSaveProfile}>
               Lưu thay đổi
-            </Button>
+            </Button>,
           ]}
         >
           <Form form={form} layout="vertical">
             <Form.Item
               name="name"
               label="Họ và tên"
-              rules={[{ required: true, message: 'Vui lòng nhập họ và tên' }]}
+              rules={[{ required: true, message: "Vui lòng nhập họ và tên" }]}
             >
               <Input placeholder="Nhập họ và tên" />
             </Form.Item>
             <Form.Item
               name="contactNumber"
               label="Số điện thoại"
-              rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
+              rules={[
+                { required: true, message: "Vui lòng nhập số điện thoại" },
+              ]}
             >
               <Input placeholder="Nhập số điện thoại" />
             </Form.Item>
@@ -396,9 +401,14 @@ const AccountManagement = () => {
             <Button key="cancel" onClick={() => setDeleteModalVisible(false)}>
               Hủy
             </Button>,
-            <Button key="delete" type="primary" danger onClick={handleConfirmDelete}>
+            <Button
+              key="delete"
+              type="primary"
+              danger
+              onClick={handleConfirmDelete}
+            >
               Xóa tài khoản
-            </Button>
+            </Button>,
           ]}
         >
           <Alert
@@ -409,7 +419,8 @@ const AccountManagement = () => {
             className="mb-3"
           />
           <Paragraph>
-            Để xác nhận xóa tài khoản, vui lòng nhập <Text strong>XÓA TÀI KHOẢN</Text> vào ô bên dưới:
+            Để xác nhận xóa tài khoản, vui lòng nhập{" "}
+            <Text strong>XÓA TÀI KHOẢN</Text> vào ô bên dưới:
           </Paragraph>
           <Input placeholder="Nhập 'XÓA TÀI KHOẢN' để xác nhận" />
         </Modal>

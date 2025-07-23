@@ -6,13 +6,11 @@ import {
   Row,
   Col,
   Card,
-  Divider,
-  Space,
   message,
-  Rate,
+  Divider,
   Spin,
+  Rate,
 } from "antd";
-import { Link } from "react-router-dom";
 import {
   ArrowRightOutlined,
   StarFilled,
@@ -57,6 +55,7 @@ const toastStyles = `
 const LandingPage = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loadingFeedbacks, setLoadingFeedbacks] = useState(true);
+  const [showExpertNotice, setShowExpertNotice] = useState(false);
 
   useEffect(() => {
     // Inject custom styles for toast positioning
@@ -325,7 +324,18 @@ const LandingPage = () => {
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={8}>
-              <Card className="feature-card-enhanced" hoverable>
+              <Card
+                className="feature-card-enhanced"
+                hoverable
+                style={{ cursor: "pointer" }}
+                onClick={() => {
+                  const navbar = document.querySelector(".navbar");
+                  if (navbar) {
+                    navbar.scrollIntoView({ behavior: "smooth" });
+                  }
+                  setShowExpertNotice(true);
+                }}
+              >
                 <div className="feature-icon-wrapper">
                   <UserOutlined className="feature-icon-large" />
                 </div>
@@ -340,6 +350,34 @@ const LandingPage = () => {
                   <div className="highlight-item">✓ Tư vấn 1-1</div>
                   <div className="highlight-item">✓ Lịch hẹn linh hoạt</div>
                   <div className="highlight-item">✓ Theo dõi sát sao</div>
+                  {showExpertNotice && (
+                    <div
+                      style={{
+                        color: "#1890ff",
+                        marginTop: 8,
+                        fontWeight: 500,
+                        background: "rgba(24,144,255,0.07)",
+                        borderRadius: 8,
+                        padding: "8px 16px",
+                        boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+                        transition: "all 0.3s",
+                        textAlign: "center",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        setShowExpertNotice(false);
+                        window.location.href = "/member/appointments";
+                      }}
+                    >
+                      <span style={{ fontSize: 16, fontWeight: 600 }}>
+                        Đi đến chọn huấn luyện viên để tư vấn
+                      </span>
+                      <br />
+                      <span style={{ fontSize: 13, color: "#666" }}>
+                        (Nhấn vào đây để tiếp tục)
+                      </span>
+                    </div>
+                  )}
                 </div>
               </Card>
             </Col>
