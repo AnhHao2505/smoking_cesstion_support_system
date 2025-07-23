@@ -87,9 +87,8 @@ const NavBar = () => {
       label: 'Theo dõi hàng ngày',
       icon: <HeartOutlined />,
       items: [
-        { key: '/member/daily-checkin', label: 'Đánh giá hàng ngày', path: '/member/daily-checkin' },
+        { key: '/member/daily-checkin', label: 'Đánh giá mức độ nghiện', path: '/member/daily-checkin' },
         { key: '/member/daily-record', label: 'Nhật ký hàng ngày', path: '/member/daily-record' },
-        { key: '/member/craving-logger', label: 'Ghi nhận cơn thèm', path: '/member/craving-logger' },
         { key: '/member/smoking-status', label: 'Tình trạng hút thuốc', path: '/member/smoking-status' }
       ]
     },

@@ -47,7 +47,6 @@ import ReminderCalendar from './member/ReminderCalendar';
 import DailyCheckIn from './member/DailyCheckin';
 import SmokingStatusTracker from './member/SmokingStatusTracker';
 import ProgressChart from './member/ProgressChart';
-import CravingLogger from './member/CravingLogger';
 
 // Import blog pages
 import BlogListPage from '../pages/blog/BlogListPage';
@@ -248,15 +247,6 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
                     <ProgressChart />
-                  </PrivateRoute>
-                }
-              />
-              
-              <Route 
-                path="/member/craving-logger" 
-                element={
-                  <PrivateRoute allowedRoles={['MEMBER']}>
-                    <CravingLogger />
                   </PrivateRoute>
                 }
               />

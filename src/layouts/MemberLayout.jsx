@@ -95,10 +95,6 @@ const MemberLayout = () => {
           key: "/member/smoking-status",
           label: <Link to="/member/smoking-status">Trạng thái hút thuốc</Link>,
         },
-        {
-          key: "/member/craving-logger",
-          label: <Link to="/member/craving-logger">Ghi chép cơn thèm</Link>,
-        },
       ],
     },
     {
