@@ -1,5 +1,5 @@
-// export const API_BASE_URL = 'https://smokingcessationsupportswp391-production.up.railway.app/';
-export const API_BASE_URL = 'http://localhost:8080';
+export const API_BASE_URL = 'https://smokingcessationsupportswp391-production.up.railway.app/';
+// export const API_BASE_URL = 'http://localhost:8080';
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {

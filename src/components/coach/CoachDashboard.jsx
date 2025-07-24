@@ -151,7 +151,8 @@ const CoachDashboard = () => {
             email: member.email,
             photo_url: null,
             planId: member.planId,
-            isPlanRequested: Boolean(member.planRequested) || Boolean(member.isPlanRequested) || Boolean(member.hasPlanRequest)
+            isPlanRequested: Boolean(member.planRequested) || Boolean(member.isPlanRequested) || Boolean(member.hasPlanRequest),
+            needFinalEvaluation: Boolean(member.needFinalEvaluation) || Boolean(member.hasFinalEvaluation),
           };
         });
 
@@ -475,15 +476,29 @@ const CoachDashboard = () => {
               Chờ yêu cầu
             </Button>
           )}
-          {/* Nút "Theo dõi kế hoạch hiện giờ" - cải thiện khi cần đánh giá cuối cùng */}
+          {/* Nút "Theo dõi kế hoạch hiện tại" - style khi chưa có đánh giá cuối cùng */}
           <Button
             type="primary"
             size="small"
             icon={<EyeOutlined />}
             onClick={() => handleViewMemberPlan(record)}
-            style={record.needFinalEvaluation ? { background: '#faad14', borderColor: '#faad14', color: '#fff', fontWeight: 700, boxShadow: '0 0 12px #faad1440', textTransform: 'uppercase', letterSpacing: 0.5 } : {}}
+            style={
+              record.needFinalEvaluation
+                ? {
+                    background: '#faad14',
+                    borderColor: '#faad14',
+                    color: '#fff',
+                    fontWeight: 700,
+                    boxShadow: '0 0 12px #faad1440',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }
+                : {}
+            }
           >
-            {record.needFinalEvaluation ? 'CẦN ĐÁNH GIÁ CUỐI - XEM KẾ HOẠCH' : 'Theo dõi kế hoạch hiện giờ'}
+            {record.needFinalEvaluation
+              ? 'CẦN ĐÁNH GIÁ CUỐI - XEM KẾ HOẠCH'
+              : 'Theo dõi kế hoạch hiện tại'}
           </Button>
         </Space>
       )

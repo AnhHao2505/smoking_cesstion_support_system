@@ -97,7 +97,7 @@ const NavBar = () => {
       icon: <UserOutlined />,
       items: [
         { key: '/member/appointments', label: 'Cuộc hẹn', path: '/member/appointments' },
-        { key: '/member/chat', label: 'Tin nhắn', path: '/member/chat' },
+        { key: '/member/chat', label: 'Nhắn tin', path: '/member/chat' },
         { key: '/qna', label: 'Q&A', path: '/qna' }
       ]
     },
@@ -134,7 +134,7 @@ const NavBar = () => {
       items: [
         // { key: '/coach/schedule', label: 'Quản lý lịch trình', path: '/coach/schedule' },
         { key: '/coach/qna', label: 'Q&A', path: '/coach/qna' },
-        { key: '/member/chat', label: 'Tin nhắn', path: '/member/chat' }
+        { key: '/member/chat', label: 'Nhắn tin', path: '/member/chat' }
       ]
     }
   };
