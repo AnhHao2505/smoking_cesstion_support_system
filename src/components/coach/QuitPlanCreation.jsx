@@ -7,7 +7,6 @@ import {
   Form,
   Input,
   Select,
-  DatePicker,
   Button,
   Alert,
   Row,
@@ -35,7 +34,6 @@ import { getAssignedMembers } from '../../services/coachManagementService';
 import { getCurrentUser } from '../../services/authService';
 import { getDefaultPhases, createGoalsOfPhases } from '../../services/quitPhaseService';
 import MemberSmokingStatusSidebar from './MemberSmokingStatusSidebar';
-import moment from 'moment';
 import '../../styles/QuitPlanCreation.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -51,6 +49,7 @@ const QuitPlanCreation = () => {
   const [form] = Form.useForm();
   const [selectedMemberId, setSelectedMemberId] = useState(memberIdFromUrl || '');
   const [selectedMemberName, setSelectedMemberName] = useState('');
+  const [memberAddictionLevel, setMemberAddictionLevel] = useState(null);
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
@@ -80,6 +79,30 @@ const QuitPlanCreation = () => {
     }
   }, [selectedMemberId, members]);
 
+  // Auto-fetch phases when we have created plan and addiction level
+  useEffect(() => {
+    console.log('=== USEEFFECT AUTO-FETCH TRIGGER ===');
+    console.log('useEffect dependencies changed:', {
+      createdPlanId: createdPlanId,
+      showPhaseCreation: showPhaseCreation,
+      memberAddictionLevel: memberAddictionLevel
+    });
+    
+    if (createdPlanId && showPhaseCreation && memberAddictionLevel) {
+      console.log('=== USEEFFECT: FETCHING PHASES ===');
+      console.log('Auto-fetching default phases for plan:', createdPlanId, 'addiction level:', memberAddictionLevel);
+      fetchDefaultPhases(memberAddictionLevel);
+    } else {
+      console.log('=== USEEFFECT: CONDITIONS NOT MET ===');
+      console.log('Missing conditions:', {
+        createdPlanId: !createdPlanId ? 'MISSING' : 'OK',
+        showPhaseCreation: !showPhaseCreation ? 'MISSING' : 'OK',
+        memberAddictionLevel: !memberAddictionLevel ? 'MISSING' : 'OK'
+      });
+    }
+    console.log('=== END USEEFFECT ===');
+  }, [createdPlanId, showPhaseCreation, memberAddictionLevel]);
+
   const fetchAssignedMembers = async () => {
     if (!coachId) return;
     
@@ -106,30 +129,29 @@ const QuitPlanCreation = () => {
       const response = await getDefaultPhases(addictionLevel);
       console.log('getDefaultPhases response:', response);
       
-      // Check if response is in the expected format based on user requirements
+      // Backend returns List<QuitPhaseDTO> directly
       let phasesData = [];
       
       if (response && Array.isArray(response)) {
-        // Direct array response
         phasesData = response;
-      } else if (response && response.success && Array.isArray(response.data)) {
-        // Wrapped in success object
-        phasesData = response.data;
-      } else if (response && response.data && Array.isArray(response.data)) {
-        // Wrapped in data object
-        phasesData = response.data;
+      } else {
+        console.warn('Unexpected response format:', response);
+        phasesData = [];
       }
       
       // If no valid response data, create default phases
       if (!phasesData || phasesData.length === 0) {
-        console.log('No default phases found or invalid response, creating default phases');
+        console.log('No default phases found, creating fallback phases');
         phasesData = [
           {
             "id": null,
             "name": "Chuẩn bị bỏ thuốc",
             "duration": "Ngày 1–5",
             "recommendGoal": "Xác định lý do, chọn ngày bỏ thuốc, loại bỏ vật dụng liên quan",
-            "goal": null,
+            "goals": [],
+            "phaseOrder": 1
+          },
+          {
             "phaseOrder": 1
           },
           {
@@ -137,7 +159,7 @@ const QuitPlanCreation = () => {
             "name": "Bắt đầu bỏ thuốc",
             "duration": "Ngày 6–20",
             "recommendGoal": "Không hút thuốc, ghi nhận cơn thèm, thay thế bằng hoạt động tích cực",
-            "goal": null,
+            "goals": [],
             "phaseOrder": 2
           },
           {
@@ -145,7 +167,7 @@ const QuitPlanCreation = () => {
             "name": "Duy trì",
             "duration": "Ngày 21–90",
             "recommendGoal": "Kiểm soát trigger, theo dõi thành quả, giữ vững quyết tâm",
-            "goal": null,
+            "goals": [],
             "phaseOrder": 3
           }
         ];
@@ -171,14 +193,14 @@ const QuitPlanCreation = () => {
       console.error('Error fetching default phases:', error);
       message.error('Không thể tải phases mặc định, tạo phases trống');
       
-      // Fallback: create default phases based on user's format
+      // Fallback: create default phases
       const defaultPhasesData = [
         {
           "id": null,
           "name": "Chuẩn bị bỏ thuốc",
           "duration": "Ngày 1–5",
           "recommendGoal": "Xác định lý do, chọn ngày bỏ thuốc, loại bỏ vật dụng liên quan",
-          "goal": null,
+          "goals": [],
           "phaseOrder": 1
         },
         {
@@ -186,7 +208,7 @@ const QuitPlanCreation = () => {
           "name": "Bắt đầu bỏ thuốc",
           "duration": "Ngày 6–20",
           "recommendGoal": "Không hút thuốc, ghi nhận cơn thèm, thay thế bằng hoạt động tích cực",
-          "goal": null,
+          "goals": [],
           "phaseOrder": 2
         },
         {
@@ -194,7 +216,7 @@ const QuitPlanCreation = () => {
           "name": "Duy trì",
           "duration": "Ngày 21–90",
           "recommendGoal": "Kiểm soát trigger, theo dõi thành quả, giữ vững quyết tâm",
-          "goal": null,
+          "goals": [],
           "phaseOrder": 3
         }
       ];
@@ -219,7 +241,7 @@ const QuitPlanCreation = () => {
         "name": "Chuẩn bị bỏ thuốc",
         "duration": "Ngày 1–5",
         "recommendGoal": "Xác định lý do, chọn ngày bỏ thuốc, loại bỏ vật dụng liên quan",
-        "goal": null,
+        "goals": [],
         "phaseOrder": 1
       },
       {
@@ -227,7 +249,7 @@ const QuitPlanCreation = () => {
         "name": "Bắt đầu bỏ thuốc",
         "duration": "Ngày 6–20",
         "recommendGoal": "Không hút thuốc, ghi nhận cơn thèm, thay thế bằng hoạt động tích cực",
-        "goal": null,
+        "goals": [],
         "phaseOrder": 2
       },
       {
@@ -235,7 +257,7 @@ const QuitPlanCreation = () => {
         "name": "Duy trì",
         "duration": "Ngày 21–90",
         "recommendGoal": "Kiểm soát trigger, theo dõi thành quả, giữ vững quyết tâm",
-        "goal": null,
+        "goals": [],
         "phaseOrder": 3
       }
     ];
@@ -298,34 +320,30 @@ const QuitPlanCreation = () => {
       const response = await createGoalsOfPhases(createdPlanId, phasesData);
       console.log('createGoalsOfPhases response:', response);
 
-      // Check for success in various response formats
-      const isSuccess = response && (
-        response.success === true || 
-        response === 'Goals created successfully' ||
-        typeof response === 'string' ||
-        response.message === 'Success'
-      );
-
-      if (isSuccess) {
-        message.success('🎉 Tạo phases thành công! Kế hoạch đã được hoàn thiện.');
+      // Backend returns ApiMessageResponse with {success: boolean, message: string}
+      if (response && response.success === true) {
+        message.success(`🎉 ${response.message || 'Tạo phases thành công! Kế hoạch đã được hoàn thiện.'}`);
         
         // Navigate back after short delay
         setTimeout(() => {
           navigate(-1);
         }, 2000);
       } else {
-        throw new Error(response?.message || 'Unexpected response format');
+        const errorMessage = response?.message || 'Có lỗi xảy ra khi tạo phases';
+        throw new Error(errorMessage);
       }
 
     } catch (error) {
       console.error('Error creating phases:', error);
       
-      // Check if it's a plan ID not found error
-      if (error.message && error.message.includes('quitPlanId not found')) {
+      // Handle API error response
+      const errorMessage = error.response?.data?.message || error.message || 'Có lỗi xảy ra khi tạo phases';
+      
+      if (errorMessage.includes('Không tìm thấy kế hoạch bỏ thuốc tương ứng')) {
         message.error('❌ ID kế hoạch không hợp lệ. Kế hoạch đã được tạo nhưng không thể thêm phases chi tiết.');
         message.info('💡 Bạn có thể quay lại dashboard và chỉnh sửa kế hoạch để thêm phases sau.');
       } else {
-        message.error('❌ Có lỗi xảy ra khi tạo phases: ' + (error.message || 'Lỗi không xác định'));
+        message.error(`❌ ${errorMessage}`);
       }
       
       // Still navigate back after error to avoid getting stuck
@@ -360,9 +378,10 @@ const QuitPlanCreation = () => {
       return;
     }
 
-    // Validate dates
-    if (values.endDate && values.startDate && moment(values.endDate).isBefore(moment(values.startDate))) {
-      message.error('Ngày kết thúc phải sau ngày bắt đầu');
+    // Validate duration
+    const duration = parseInt(values.durationInDays);
+    if (isNaN(duration) || duration < 1 || duration > 365) {
+      message.error('Thời lượng kế hoạch phải từ 1-365 ngày');
       return;
     }
 
@@ -370,10 +389,28 @@ const QuitPlanCreation = () => {
     setLoading(true);
 
     try {
-      const formData = {
-        currentSmokingStatus: values.currentSmokingStatus,
-        startDate: moment(values.startDate).format('YYYY-MM-DD'),
-        endDate: moment(values.endDate).format('YYYY-MM-DD'),
+      // Log the duration value for debugging
+      console.log('Duration validated:', duration);
+      console.log('Duration type:', typeof duration);
+
+    // Log the duration value for debugging
+    console.log('Duration to send:', duration);
+    console.log('Original form values:', values);
+
+      // Đảm bảo durationInDays là primitive number
+    const durationNumber = Number(duration);
+    console.log('Duration after Number conversion:', durationNumber);
+    console.log('Type of durationNumber:', typeof durationNumber);
+    
+    // Use memberAddictionLevel from smoking status analysis, not form selection
+    const actualAddictionLevel = memberAddictionLevel || values.currentSmokingStatus || 'NONE';
+    console.log('Using addiction level for plan:', actualAddictionLevel);
+    console.log('Source - memberAddictionLevel:', memberAddictionLevel);
+    console.log('Source - form currentSmokingStatus:', values.currentSmokingStatus);
+    
+    const formData = {
+        currentSmokingStatus: actualAddictionLevel, // Use actual addiction level from sidebar analysis
+        durationInDays: durationNumber, // Primitive number
         medicationInstructions: values.medicationInstructions || '',
         medicationsToUse: values.medicationsToUse || '',
         smokingTriggersToAvoid: values.smokingTriggersToAvoid || '',
@@ -384,67 +421,89 @@ const QuitPlanCreation = () => {
         rewardPlan: values.rewardPlan || '',
         additionalNotes: values.additionalNotes || ''
       };
-
+      
+      // Log để kiểm tra dữ liệu JSON sẽ được gửi đi
+      console.log('JSON to be sent:', JSON.stringify(formData));
       console.log('Creating quit plan with data:', formData);
       console.log('For member ID:', memberId);
-      console.log('currentSmokingStatus value:', values.currentSmokingStatus);
-      console.log('Expected enum values: NONE, LIGHT, MEDIUM, SEVERE');
+      console.log('Final currentSmokingStatus (AddictionLevel) value:', actualAddictionLevel);
+      console.log('Expected AddictionLevel enum values: NONE, LIGHT, MEDIUM, SEVERE');
+
+      // Log the final data being sent to API
+      console.log('Sending to API:', {
+        memberId,
+        formData
+      });
 
       const response = await createQuitPlan(memberId, formData);
       console.log('createQuitPlan response:', response);
+
+      // Log detailed response for debugging
+      if (response && typeof response === 'object') {
+        console.log('=== PLAN CREATION RESPONSE DEBUG ===');
+        console.log('Response structure:', {
+          success: response.success,
+          message: response.message,
+          planId: response.planId,
+          fullResponse: response
+        });
+        console.log('=== END DEBUG ===');
+      }
+    
+      // Check if the response indicates success
+      const hasSuccess = response && response.success === true;
+      console.log('Plan creation success status:', hasSuccess);
       
-      if (response && (response.success || response.data || response.id)) {
+      if (hasSuccess) {
         message.success('🎉 Tạo kế hoạch cai thuốc thành công!');
         
-        // Extract plan ID from various possible response formats
-        let planId = null;
-        if (response.success && response.data) {
-          planId = response.data.id || response.data.planId || response.data.quitPlanId;
-        } else if (response.id) {
-          planId = response.id;
-        } else if (response.planId) {
-          planId = response.planId;
-        } else if (response.data) {
-          planId = response.data;
-        }
+        // Extract plan ID from QuitPlanCreationResponse format
+        const planId = response.planId;
+        console.log('=== PLAN ID EXTRACTION ===');
+        console.log('Extracted planId:', planId);
+        console.log('Type of planId:', typeof planId);
+        console.log('=== END EXTRACTION ===');
         
         console.log('Extracted plan ID:', planId);
-        
-        // If no plan ID found in response, try to get the newest plan for the member
-        if (!planId) {
-          try {
-            console.log('No plan ID in response, fetching newest plan for member:', memberId);
-            const newestPlanResponse = await getNewestQuitPlan(memberId);
-            console.log('Newest plan response:', newestPlanResponse);
             
-            if (newestPlanResponse && newestPlanResponse.success && newestPlanResponse.data) {
-              planId = newestPlanResponse.data.id || newestPlanResponse.data.planId || newestPlanResponse.data.quitPlanId;
-              console.log('Got plan ID from newest plan:', planId);
-            } else if (newestPlanResponse && newestPlanResponse.id) {
-              planId = newestPlanResponse.id;
-              console.log('Got plan ID directly from newest plan response:', planId);
-            }
-          } catch (newestPlanError) {
-            console.warn('Could not fetch newest plan:', newestPlanError);
-          }
-        }
-        
         if (planId) {
           setCreatedPlanId(planId);
           setShowPhaseCreation(true);
           
-          // Fetch default phases based on smoking status
-          await fetchDefaultPhases(values.currentSmokingStatus);
+          // According to the flow: Plan created → Show member sidebar to get AddictionLevel → Get default phases
+          console.log('Plan created successfully with ID:', planId);
+          console.log('Now need to get member addiction level to determine phase template...');
+          
+          // Note: We need member's AddictionLevel (from MemberSmokingStatusSidebar) 
+          // to call getDefaultPhases(AddictionLevel), not currentSmokingStatus from form
+          message.info('✅ Kế hoạch đã tạo! Hệ thống đang tự động tải template phases dựa trên mức độ nghiện của thành viên...');
+          
+          // If we already have addiction level, fetch phases immediately
+          if (memberAddictionLevel) {
+            console.log('Already have addiction level, fetching phases immediately:', memberAddictionLevel);
+            fetchDefaultPhases(memberAddictionLevel);
+          }
         } else {
           // If no plan ID found, skip phase creation and navigate back
           message.warning('⚠️ Kế hoạch đã được tạo nhưng không thể tạo phases chi tiết. Bạn có thể tạo phases sau.');
-          setTimeout(() => {
-            navigate(-1);
-          }, 2000);
+          // TEMPORARILY COMMENTED OUT FOR DEBUGGING
+          // setTimeout(() => {
+          //   navigate(-1);
+          // }, 2000);
+          console.log('=== WOULD NAVIGATE BACK DUE TO NO PLAN ID ===');
         }
       } else {
-        message.error('❌ Có lỗi xảy ra khi tạo kế hoạch. Vui lòng thử lại.');
-        console.error('API error:', response);
+        // Handle error response from QuitPlanCreationResponse
+        const errorMessage = response?.message || 'Có lỗi xảy ra khi tạo kế hoạch';
+        
+        if (errorMessage.includes('chưa nhận được yêu cầu từ thành viên')) {
+          message.error('❌ Thành viên chưa gửi yêu cầu tạo kế hoạch. Vui lòng yêu cầu thành viên gửi request trước.');
+          message.info('💡 Thành viên cần vào dashboard và nhấn "Yêu cầu tạo kế hoạch" trước khi coach có thể tạo.');
+        } else if (errorMessage.includes('Không tồn tại mối liên hệ')) {
+          message.error('❌ Không có mối liên hệ coach-member. Vui lòng kiểm tra lại.');
+        } else {
+          message.error(`❌ ${errorMessage}`);
+        }
       }
     } catch (error) {
       console.error('Error creating quit plan:', error);
@@ -464,6 +523,33 @@ const QuitPlanCreation = () => {
       <MemberSmokingStatusSidebar 
         memberId={selectedMemberId} 
         memberName={selectedMemberName}
+        onAddictionLevelChange={(addictionLevel) => {
+          console.log('=== ONADDICTIONLEVELCHANGE CALLED ===');
+          console.log('Received addiction level:', addictionLevel);
+          console.log('Current state - createdPlanId:', createdPlanId);
+          console.log('Current state - showPhaseCreation:', showPhaseCreation);
+          console.log('=== END ONADDICTIONLEVELCHANGE ===');
+          
+          setMemberAddictionLevel(addictionLevel);
+          
+          // Only auto-fetch phases if we have a created plan and are in phase creation mode
+          if (createdPlanId && showPhaseCreation && addictionLevel) {
+            console.log('=== AUTO-FETCHING PHASES ===');
+            console.log('Conditions met for auto-fetch:', {
+              createdPlanId: !!createdPlanId,
+              showPhaseCreation: showPhaseCreation,
+              addictionLevel: addictionLevel
+            });
+            fetchDefaultPhases(addictionLevel);
+          } else {
+            console.log('=== AUTO-FETCH SKIPPED ===');
+            console.log('Conditions not met:', {
+              createdPlanId: !!createdPlanId,
+              showPhaseCreation: showPhaseCreation, 
+              addictionLevel: !!addictionLevel
+            });
+          }
+        }}
       />
       
       <Content style={{ padding: '24px', marginLeft: '390px' }}>
@@ -496,8 +582,7 @@ const QuitPlanCreation = () => {
                 onFinish={handleFinish}
                 initialValues={{
                   currentSmokingStatus: 'NONE',
-                  startDate: moment(),
-                  endDate: moment().add(1, 'month')
+                  durationInDays: Number(30) // Đảm bảo là primitive number
                 }}
               >
               {/* Member Selection */}
@@ -570,22 +655,46 @@ const QuitPlanCreation = () => {
                   </Col>
                   <Col xs={24} md={12}>
                     <Form.Item
-                      label="📅 Ngày bắt đầu"
-                      name="startDate"
-                      rules={[{ required: true, message: 'Vui lòng chọn ngày bắt đầu' }]}
+                      label="⏰ Thời lượng kế hoạch (ngày)"
+                      name="durationInDays"
+                      rules={[
+                        { required: true, message: 'Vui lòng nhập thời lượng kế hoạch' },
+                        { 
+                          validator: async (_, value) => {
+                            if (!value) return;
+                            const numValue = parseInt(value);
+                            if (isNaN(numValue)) {
+                              throw new Error('Thời lượng phải là số');
+                            }
+                            if (numValue < 1 || numValue > 365) {
+                              throw new Error('Thời lượng phải từ 1-365 ngày');
+                            }
+                          }
+                        }
+                      ]}
                     >
-                      <DatePicker size="large" style={{ width: '100%' }} />
+                      <Input
+                        type="number"
+                        size="large"
+                        min={1}
+                        max={365}
+                        placeholder="Ví dụ: 30, 60, 90..."
+                        addonAfter="ngày"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value) {
+                            // Parse to number immediately
+                            const numValue = Number(value);
+                            console.log('Input changed to:', numValue, 'Type:', typeof numValue);
+                            form.setFieldsValue({ 
+                              durationInDays: numValue 
+                            });
+                          }
+                        }}
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
-                
-                <Form.Item
-                  label="🏁 Ngày kết thúc"
-                  name="endDate"
-                  rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc' }]}
-                >
-                  <DatePicker size="large" style={{ width: '100%' }} />
-                </Form.Item>
               </Card>
 
               {/* Medication Section */}
@@ -883,15 +992,6 @@ const QuitPlanCreation = () => {
                       >
                         Quay lại chỉnh sửa kế hoạch
                       </Button>
-                      {/* <Button 
-                        size="large"
-                        onClick={() => {
-                          message.success('✅ Kế hoạch đã được tạo thành công!');
-                          setTimeout(() => navigate(-1), 1500);
-                        }}
-                      >
-                        ⏭️ Bỏ qua tạo phases chi tiết
-                      </Button> */}
                       {defaultPhases.length > 0 && (
                         <Button 
                           type="primary" 

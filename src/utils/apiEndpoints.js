@@ -6,21 +6,18 @@ export const API_ENDPOINTS = {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
-    VERIFY_ACCOUNT: '/auth/verify-account',
-    RESET_PASSWORD: '/auth/reset-password',
-    SEND_VERIFY_OTP: '/auth/send-verify-otp',
+    // FE bỏ VERIFY_ACCOUNT, SEND_VERIFY_OTP, chỉ dùng các endpoint BE hỗ trợ
     SEND_RESET_OTP: '/auth/send-reset-otp',
-    GET_TESTERS: '/auth/get-testers'
+    RESET_PASSWORD: '/auth/reset-password'
   },
 
   // User Management
   USER: {
     ALL: '/user',
-    MEMBERS: '/user/members',
-    CURRENT_ASSIGNMENT: '/user/member/current-assignment',
-    UPGRADE_PREMIUM: '/user/upgrade-premium',
     DISABLE: '/user/disable',
     RE_ENABLE: '/user/re-enable',
+    // mới: admin báo huấn luyện viên vắng mặt
+    ABSENT_REPORT: '/user/coach/absent-report'
   },
 
   // Coach Management
@@ -34,20 +31,26 @@ export const API_ENDPOINTS = {
 
   // Profile Management
   PROFILE: {
+    // lấy và cập nhật hồ sơ thành viên
     ME: '/profile/me',
+    UPDATE: '/profile/me',
+    // hồ sơ huấn luyện viên
     COACH: '/profile/coach',
+    // ảnh hồ sơ
+    GET_IMAGE: '/profile/image',
+    UPDATE_IMAGE: '/profile/image'
   },
 
   // Quit Plans
   QUIT_PLANS: {
     CREATE: '/api/quit-plans/create',
-    UPDATE: '/api/quit-plans/update',
+    REQUEST: '/api/quit-plans/request',
     NEWEST: '/api/quit-plans/newest',
     OLDS: '/api/quit-plans/olds',
-    DISABLE: '/api/quit-plans/disable',
     DENY: '/api/quit-plans/deny',
     ACCEPT: '/api/quit-plans/accept',
-    FINISH: '/api/quit-plans/finish',
+    FINAL_EVALUATION: '/api/quit-plans/final-evaluation',
+    COACH_VIEW_NEWEST: '/api/quit-plans/coach/view/newest-of-member'
   },
 
   // Quit Phases
@@ -59,30 +62,28 @@ export const API_ENDPOINTS = {
 
   // Daily Logs
   DAILY_LOGS: {
-    GET_BY_PHASE: '/api/daily-logs/byPhase',
     CREATE: '/api/daily-logs',
     GET_BY_MEMBER: '/api/daily-logs/member',
-    GET_BY_MEMBER_DATE: '/api/daily-logs/member/date',
+    GET_BY_MEMBER_DATE: '/api/daily-logs/member/date'
   },
 
   // Member Smoking Status
   MEMBER_SMOKING_STATUS: {
     CREATE: '/api/member-smoking-status',
-    LATEST: '/api/member-smoking-status/latest',
+    LATEST: '/api/member-smoking-status/latest', // Cho member tự xem
+    // coach view tình trạng ban đầu của member khác
+    COACH_LATEST: '/api/member-smoking-status/coach/view-latest/to-create-plan'
   },
 
   // Feedbacks
   FEEDBACKS: {
-    CREATE: '/api/feedbacks',
-    PUBLISHED: '/api/feedbacks/published',
-    COACH: '/api/feedbacks/coach',
-    ADMIN_ALL: '/api/feedbacks/all/unreviewed',
-    APPROVE_PUBLISH: '/api/feedbacks/approve-publish',
-    HIDE: '/api/feedbacks/hide',
-    REVIEWED: '/api/feedbacks/reviewed',
     SUBMIT_TO_COACH: '/api/feedbacks/submit/my-coach',
     SUBMIT_TO_PLATFORM: '/api/feedbacks/submit/platform',
+    PUBLISHED: '/api/feedbacks/published',
     OF_A_COACH: '/api/feedbacks/of-a-coach',
+    ADMIN_ALL: '/api/feedbacks/all/unreviewed',
+    APPROVE_PUBLISH: '/api/feedbacks/approve-publish',
+    HIDE: '/api/feedbacks/hide'
   },
 
   // QnA Management
@@ -113,22 +114,23 @@ export const API_ENDPOINTS = {
     CREATE: '/api/reminders',
     UPDATE: '/api/reminders/update',
     DISABLE: '/api/reminders/disable',
+    RE_ENABLE: '/api/reminders/re-enable'
   },
 
   // Chat Management
   CHAT: {
-    WS_CHANNELS: '/chat/ws-channels',
+    // loại bỏ WS_CHANNELS, chỉ dùng các HTTP routes
     ROOM_MESSAGES: (roomId) => `/chat/rooms/${roomId}/messages`,
     PRIVATE_ROOMS: '/chat/rooms/private',
-    DELETE_MESSAGE: '/chat/delete/message',
+    DELETE_MESSAGE: '/chat/delete/message'
   },
 
   // Payment
   PAYMENT: {
     CREATE_PAYMENT: '/vn-pay/create-payment',
     VNPAY_RETURN: '/vn-pay/return',
-    MY_TRANSACTIONS: '/my-transactions',
-  },
+    MY_TRANSACTIONS: '/my-transactions'
+  }
 };
 
 // Helper function to build URL with query parameters
@@ -144,15 +146,24 @@ export const buildUrlWithParams = (baseUrl, params = {}) => {
 
 // Helper function to handle API responses
 export const handleApiResponse = (response) => {
+  console.log('=== handleApiResponse called ===');
+  console.log('Input response:', response);
+  console.log('Response type:', typeof response);
+  
   if (response === "") {
+    console.log('Response is empty string, returning null');
     return null;
   }
   if (typeof response === 'string') {
+    console.log('Response is string, returning as-is');
     return response;
   }
   if (response && response.data !== undefined) {
+    console.log('Response has data property, extracting:', response.data);
+    console.log('Data type:', typeof response.data);
     return response.data;
   }
+  console.log('Returning response as-is');
   return response;
 };
 

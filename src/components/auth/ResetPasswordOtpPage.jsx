@@ -43,17 +43,25 @@ const ResetPasswordOtpPage = () => {
     
     try {
       const { otp } = values;
+      const cleanOtp = otp.replace(/\s/g, ''); // Remove any spaces
       
-      // Navigate to reset password page with email and OTP
-      navigate('/reset-password', { 
-        state: { 
-          email, 
-          otp: otp.replace(/\s/g, '') // Remove any spaces
-        } 
-      });
+      // Validate OTP with backend before navigation
+      const response = await authService.validateOtp(email, cleanOtp);
+      
+      if (response && response.success) {
+        // Navigate to reset password page with email and OTP
+        navigate('/reset-password', { 
+          state: { 
+            email, 
+            otp: cleanOtp
+          } 
+        });
+      } else {
+        setError('OTP không đúng hoặc đã hết hạn. Vui lòng thử lại.');
+      }
       
     } catch (error) {
-      setError(error.message || 'Invalid OTP. Please try again.');
+      setError(error.message || 'OTP không đúng hoặc đã hết hạn. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
     }
@@ -66,10 +74,15 @@ const ResetPasswordOtpPage = () => {
     
     try {
       await authService.sendResetOtp(email);
-      setSuccess('New OTP has been sent to your email.');
-      setCountdown(60); // 60 seconds countdown
+      setSuccess('OTP mới đã được gửi đến email của bạn.');
+      setCountdown(30); // 30 seconds countdown
     } catch (error) {
-      setError(error.message || 'Failed to resend OTP. Please try again.');
+      // Check if it's a rate limiting error (429)
+      if (error.status === 429) {
+        setError('Vui lòng chờ 30 giây trước khi yêu cầu OTP mới.');
+      } else {
+        setError(error.message || 'Không thể gửi lại OTP. Vui lòng thử lại.');
+      }
     } finally {
       setIsResending(false);
     }
@@ -91,13 +104,13 @@ const ResetPasswordOtpPage = () => {
                 onClick={() => navigate('/forgot-password')}
                 className="back-button"
               >
-                Back
+                Quay lại
               </Button>
             </div>
             
-            <Title level={2} className="text-center">Verify OTP</Title>
+            <Title level={2} className="text-center">Xác minh OTP</Title>
             <Text className="text-center block mb-4" type="secondary">
-              We've sent a 6-digit verification code to<br />
+              Chúng tôi đã gửi mã xác minh 6 chữ số đến<br />
               <strong>{email}</strong>
             </Text>
             
@@ -127,20 +140,20 @@ const ResetPasswordOtpPage = () => {
             >
               <Form.Item
                 name="otp"
-                label="Verification Code"
+                label="Mã xác minh"
                 rules={[
-                  { required: true, message: 'Please input the OTP!' },
+                  { required: true, message: 'Vui lòng nhập mã OTP!' },
                   { 
-                    pattern: /^[0-9\s]{6,7}$/, 
-                    message: 'Please enter a valid 6-digit OTP!' 
+                    pattern: /^[0-9]{6}$/, 
+                    message: 'Vui lòng nhập đúng mã OTP 6 chữ số!' 
                   }
                 ]}
               >
                 <Input 
                   prefix={<SafetyOutlined />} 
-                  placeholder="Enter 6-digit code" 
+                  placeholder="Nhập mã 6 chữ số" 
                   size="large"
-                  maxLength={7} // Allow for spaces
+                  maxLength={6}
                   disabled={isLoading}
                   style={{ 
                     fontSize: '18px', 
@@ -158,13 +171,13 @@ const ResetPasswordOtpPage = () => {
                   size="large"
                   block
                 >
-                  Verify & Continue
+                  Xác minh & Tiếp tục
                 </Button>
               </Form.Item>
             </Form>
 
             <div className="text-center">
-              <Text type="secondary">Didn't receive the code?</Text>
+              <Text type="secondary">Không nhận được mã?</Text>
               <br />
               <Button 
                 type="link" 
@@ -174,14 +187,14 @@ const ResetPasswordOtpPage = () => {
                 disabled={countdown > 0}
                 className="mt-2"
               >
-                {countdown > 0 ? `Resend in ${countdown}s` : 'Resend OTP'}
+                {countdown > 0 ? `Gửi lại sau ${countdown}s` : 'Gửi lại OTP'}
               </Button>
             </div>
 
             <div className="text-center mt-4">
               <Text>
                 <Link to="/login" className="text-primary">
-                  Back to Login
+                  Quay lại đăng nhập
                 </Link>
               </Text>
             </div>

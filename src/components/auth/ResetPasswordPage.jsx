@@ -35,25 +35,26 @@ const ResetPasswordPage = () => {
     try {
       const { newPassword } = values;
       
-      // Call reset password API
-      const response = await authService.resetPassword(email, otp, newPassword);
+      // Call reset password API (OTP already validated in previous step)
+      const response = await authService.resetPassword(email, newPassword);
       
       if (response) {
-        setSuccess('Password reset successfully! Redirecting to login page...');
+        setSuccess('Đặt lại mật khẩu thành công! Đang chuyển hướng đến trang đăng nhập...');
         
         // Clear form and redirect to login
         form.resetFields();
         setTimeout(() => {
           navigate('/login', { 
             state: { 
-              message: 'Password reset successfully. Please login with your new password.' 
+              message: 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập với mật khẩu mới.' 
             }
           });
         }, 2000);
       }
       
     } catch (error) {
-      setError(error.message || 'Failed to reset password. Please try again.');
+      // Always show user-friendly message, never technical errors
+      setError('Không thể đặt lại mật khẩu. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
     }
@@ -61,21 +62,21 @@ const ResetPasswordPage = () => {
 
   const validatePassword = (_, value) => {
     if (!value) {
-      return Promise.reject(new Error('Please input your password!'));
+      return Promise.reject(new Error('Vui lòng nhập mật khẩu!'));
     }
     if (value.length < 8) {
-      return Promise.reject(new Error('Password must be at least 8 characters long!'));
+      return Promise.reject(new Error('Mật khẩu phải có ít nhất 8 ký tự!'));
     }
     return Promise.resolve();
   };
 
   const validateConfirmPassword = (_, value) => {
     if (!value) {
-      return Promise.reject(new Error('Please confirm your password!'));
+      return Promise.reject(new Error('Vui lòng xác nhận mật khẩu!'));
     }
     const newPassword = form.getFieldValue('newPassword');
     if (value !== newPassword) {
-      return Promise.reject(new Error('Passwords do not match!'));
+      return Promise.reject(new Error('Mật khẩu xác nhận không khớp!'));
     }
     return Promise.resolve();
   };
@@ -89,30 +90,11 @@ const ResetPasswordPage = () => {
       <Row justify="center" align="middle">
         <Col xs={22} sm={20} md={16} lg={12} xl={8}>
           <Card className="auth-card" bordered={false}>
-            <Title level={2} className="text-center">Reset Password</Title>
+            <Title level={2} className="text-center">Đặt lại mật khẩu</Title>
             <Text className="text-center block mb-4" type="secondary">
-              Enter your new password for<br />
+              Nhập mật khẩu mới cho<br />
               <strong>{email}</strong>
             </Text>
-            
-            {error && (
-              <Alert 
-                message={error} 
-                type="error" 
-                showIcon 
-                className="mb-4" 
-              />
-            )}
-            
-            {success && (
-              <Alert 
-                message={success} 
-                type="success" 
-                showIcon 
-                icon={<CheckCircleOutlined />}
-                className="mb-4" 
-              />
-            )}
             
             <Form
               form={form}
@@ -122,14 +104,14 @@ const ResetPasswordPage = () => {
             >
               <Form.Item
                 name="newPassword"
-                label="New Password"
+                label="Mật khẩu mới"
                 rules={[
                   { validator: validatePassword }
                 ]}
               >
                 <Input.Password 
                   prefix={<LockOutlined />} 
-                  placeholder="Enter new password" 
+                  placeholder="Nhập mật khẩu mới" 
                   size="large"
                   disabled={isLoading || !!success}
                   iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
@@ -138,7 +120,7 @@ const ResetPasswordPage = () => {
 
               <Form.Item
                 name="confirmPassword"
-                label="Confirm New Password"
+                label="Xác nhận mật khẩu mới"
                 dependencies={['newPassword']}
                 rules={[
                   { validator: validateConfirmPassword }
@@ -146,7 +128,7 @@ const ResetPasswordPage = () => {
               >
                 <Input.Password 
                   prefix={<LockOutlined />} 
-                  placeholder="Confirm new password" 
+                  placeholder="Xác nhận mật khẩu mới" 
                   size="large"
                   disabled={isLoading || !!success}
                   iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
@@ -155,9 +137,9 @@ const ResetPasswordPage = () => {
 
               <div className="mb-4">
                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                  Password requirements:
+                  Yêu cầu mật khẩu:
                   <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
-                    <li>At least 8 characters long</li>
+                    <li>Ít nhất 8 ký tự</li>
                   </ul>
                 </Text>
               </div>
@@ -171,16 +153,16 @@ const ResetPasswordPage = () => {
                   block
                   disabled={!!success}
                 >
-                  {success ? 'Password Reset Successfully' : 'Reset Password'}
+                  {success ? 'Mật khẩu đã được đặt lại thành công' : 'Đặt lại mật khẩu'}
                 </Button>
               </Form.Item>
             </Form>
 
             <div className="text-center">
               <Text>
-                Remember your password?{' '}
+                Nhớ mật khẩu của bạn?{' '}
                 <Link to="/login" className="text-primary">
-                  Back to Login
+                  Quay lại đăng nhập
                 </Link>
               </Text>
             </div>

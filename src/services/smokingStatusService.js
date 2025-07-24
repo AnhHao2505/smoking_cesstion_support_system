@@ -260,13 +260,11 @@ const getMockStatusHistory = () => [
 
 // Format dữ liệu cho hiển thị
 export const formatStatusForDisplay = (statusData) => {
-  console.log('formatStatusForDisplay input:', statusData); // Debug log
   if (!statusData) return null;
   
   // Convert addiction enum to score and level
   const score = getScoreFromAddictionLevel(statusData.addiction);
   const level = getAddictionLevelFromEnum(statusData.addiction);
-  console.log('Converted score:', score, 'level:', level); // Debug log
   
   return {
     level: level,

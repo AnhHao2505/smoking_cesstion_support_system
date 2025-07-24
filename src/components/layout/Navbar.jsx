@@ -100,15 +100,6 @@ const NavBar = () => {
         { key: '/member/chat', label: 'Tin nhắn', path: '/member/chat' }
       ]
     },
-    // reminders: {
-    //   label: 'Nhắc nhở',
-    //   icon: <BellOutlined />,
-    //   items: [
-    //     { key: '/member/reminders', label: 'Danh sách nhắc nhở', path: '/member/reminders' },
-    //     { key: '/member/reminders/create', label: 'Tạo nhắc nhở', path: '/member/reminders/create' },
-    //     { key: '/member/reminders/settings', label: 'Cài đặt nhắc nhở', path: '/member/reminders/settings' }
-    //   ]
-    // },
     account: {
       label: 'Tài khoản',
       icon: <SettingOutlined />,
@@ -272,7 +263,7 @@ const NavBar = () => {
       <div className="container">
         <Link to="/" className="navbar-brand d-flex align-items-center">
           <img src={logo} alt="Logo" className="me-2" style={{ height: '32px', width: 'auto' }} />
-          <span className="fw-bold">Smoking Cessation Support</span>
+          <span className="fw-bold">Nền tảng hỗ trợ cai thuốc lá</span>
         </Link>
 
         <button
@@ -302,14 +293,6 @@ const NavBar = () => {
                 </Link>
               </li>
             )}
-
-            {/* {user && user.role === 'MEMBER' && (
-              <li className="nav-item">
-                <Link to="/demo/notifications" className="nav-link">
-                  🔔 Demo
-                </Link>
-              </li>
-            )} */}
           </ul>
 
           <div className="d-flex align-items-center">

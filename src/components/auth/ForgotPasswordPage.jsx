@@ -52,13 +52,13 @@ const ForgotPasswordPage = () => {
                 onClick={() => navigate('/login')}
                 className="back-button"
               >
-                Back to Login
+                Quay lại đăng nhập
               </Button>
             </div>
             
-            <Title level={2} className="text-center">Forgot Password</Title>
+            <Title level={2} className="text-center">Quên mật khẩu</Title>
             <Text className="text-center block mb-4" type="secondary">
-              Enter your email address and we'll send you an OTP to reset your password.
+              Nhập địa chỉ email của bạn và chúng tôi sẽ gửi mã OTP để đặt lại mật khẩu.
             </Text>
             
             {error && (
@@ -87,15 +87,15 @@ const ForgotPasswordPage = () => {
             >
               <Form.Item
                 name="email"
-                label="Email Address"
+                label="Địa chỉ Email"
                 rules={[
-                  { required: true, message: 'Please input your email!' },
-                  { type: 'email', message: 'Please enter a valid email address!' }
+                  { required: true, message: 'Vui lòng nhập email của bạn!' },
+                  { type: 'email', message: 'Vui lòng nhập đúng định dạng email!' }
                 ]}
               >
                 <Input 
                   prefix={<MailOutlined />} 
-                  placeholder="Enter your email address" 
+                  placeholder="Nhập địa chỉ email của bạn" 
                   size="large"
                   disabled={isLoading}
                 />
@@ -110,16 +110,16 @@ const ForgotPasswordPage = () => {
                   block
                   disabled={!!success}
                 >
-                  {success ? 'OTP Sent' : 'Send Reset OTP'}
+                  {success ? 'OTP Đã Gửi' : 'Gửi OTP Đặt Lại'}
                 </Button>
               </Form.Item>
             </Form>
 
             <div className="text-center">
               <Text>
-                Remember your password?{' '}
+                Nhớ mật khẩu của bạn?{' '}
                 <Link to="/login" className="text-primary">
-                  Back to Login
+                  Quay lại đăng nhập
                 </Link>
               </Text>
             </div>

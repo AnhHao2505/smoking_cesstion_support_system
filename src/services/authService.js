@@ -301,17 +301,6 @@ export const getToken = () => {
   return getCurrentAuthToken();
 };
 
-// Get tester accounts - Updated to match new API
-export const getTesters = async () => {
-  try {
-    const response = await axiosInstance.get('/auth/get-testers');
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error('Error fetching testers:', error);
-    throw handleApiError(error);
-  }
-};
-
 // Get login reminder from localStorage
 export const getLoginReminder = () => {
   return localStorage.getItem('loginReminder');

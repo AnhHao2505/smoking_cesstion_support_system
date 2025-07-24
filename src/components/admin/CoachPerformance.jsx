@@ -35,7 +35,7 @@ import {
   DownloadOutlined,
   MessageOutlined
 } from '@ant-design/icons';
-import { getCoachPerformanceMetrics } from '../../services/coachDashboardService';
+import { getCoachPerformanceMetrics } from '../../services/coachDashboardServiceReal';
 import { getAllCoaches } from '../../services/coachManagementService';
 import moment from 'moment';
 import '../../styles/Dashboard.css';

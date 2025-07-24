@@ -593,7 +593,7 @@ const ChatPage = () => {
                 icon={<CommentOutlined />}
                 onClick={() => setActiveTab('private')}
               >
-                Private Chat
+                Chat Riêng Tư
               </Button>
               <Button 
                 type={activeTab === 'community' ? 'primary' : 'default'}
@@ -601,7 +601,7 @@ const ChatPage = () => {
                 icon={<TeamOutlined />}
                 onClick={() => setActiveTab('community')}
               >
-                Community
+                Cộng Đồng
               </Button>
             </div>
             {/* WebSocket Connection Status */}
@@ -662,18 +662,18 @@ const ChatPage = () => {
                         <div>
                           <Text strong>{getRoomDisplayName(room)}</Text>
                           <div style={{ fontSize: '12px' }}>
-                            <Text type="secondary">Room ID: {room.roomId}</Text>
+                            <Text type="secondary">Mã phòng: {room.roomId}</Text>
                           </div>
                         </div>
                       }
                       description={
                         <div>
                           <Text type="secondary" style={{ fontSize: '12px' }}>
-                            {room.type} Room
+                            Phòng {room.type === 'PRIVATE' ? 'riêng tư' : 'cộng đồng'}
                           </Text>
                           <br />
                           <Text type="secondary" style={{ fontSize: '11px' }}>
-                            {wsConnected ? 'Online' : 'Offline'}
+                            {wsConnected ? 'Trực tuyến' : 'Ngoại tuyến'}
                           </Text>
                         </div>
                       }
@@ -685,7 +685,15 @@ const ChatPage = () => {
               <Empty 
                 description="Chưa có phòng chat nào"
                 style={{ marginTop: '50px' }}
-              />
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              >
+                <Button 
+                  type="primary"
+                  onClick={() => window.location.href = '/member/appointments'}
+                >
+                  Đặt lịch hẹn
+                </Button>
+              </Empty>
             )
           ) : (
             <>
@@ -833,7 +841,7 @@ const ChatPage = () => {
                   color: '#999'
                 }}>
                   <MessageOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-                  <div>Bắt đầu cuộc trò chuyện trong Community Room {communityRoomId}</div>
+                  <div>Bắt đầu cuộc trò chuyện trong Phòng Cộng Đồng {communityRoomId}</div>
                 </div>
               )}
             </div>
@@ -890,7 +898,7 @@ const ChatPage = () => {
                       {getRoomDisplayName(selectedChatRoom)}
                     </Title>
                     <Text type="secondary" style={{ fontSize: '12px' }}>
-                      Room ID: {selectedChatRoom.roomId} • {selectedChatRoom.type}
+                      Mã phòng: {selectedChatRoom.roomId} • {selectedChatRoom.type === 'private' ? 'Riêng tư' : 'Cộng đồng'}
                     </Text>
                   </div>
                 </Space>
@@ -913,7 +921,7 @@ const ChatPage = () => {
               {loadingMessages ? (
                 <div style={{ textAlign: 'center', padding: '50px' }}>
                   <Spin size="large" />
-                  <div style={{ marginTop: '16px' }}>Loading messages...</div>
+                  <div style={{ marginTop: '16px' }}>Đang tải tin nhắn...</div>
                 </div>
               ) : messages.length > 0 ? (
                 <div>
