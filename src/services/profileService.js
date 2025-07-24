@@ -13,7 +13,7 @@ import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEn
 /**
  * Get current user's profile
  * Endpoint: GET /profile/me
- * Summary: Member / Coach get their profile
+ * Summary: Member get their profile
  */
 export const getMyProfile = async () => {
   try {
@@ -1000,20 +1000,6 @@ export const deleteChatMessage = async (senderId, messageId) => {
   }
 };
 
-/**
- * Get WebSocket channels documentation
- * Endpoint: GET /chat/ws-channels
- * Summary: WebSocket Channels Documentation
- */
-export const getWebSocketChannelsDoc = async () => {
-  try {
-    const response = await axiosInstance.get('/chat/ws-channels');
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
-};
-
 // ========================
 // AUTHENTICATION
 // ========================
@@ -1044,20 +1030,6 @@ export const resetPassword = async (email, otpInput, newPassword) => {
     const response = await axiosInstance.patch('/auth/reset-password', null, {
       params: { email, otpInput, newPassword }
     });
-    return handleApiResponse(response);
-  } catch (error) {
-    throw handleApiError(error);
-  }
-};
-
-/**
- * Get tester accounts
- * Endpoint: GET /auth/get-testers
- * Summary: Get tester accounts for admin, coach, and members
- */
-export const getTesters = async () => {
-  try {
-    const response = await axiosInstance.get('/auth/get-testers');
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
@@ -1207,12 +1179,10 @@ export default {
   getAllPrivateChatRooms,
   getChatRoomMessages,
   deleteChatMessage,
-  getWebSocketChannelsDoc,
   
   // Authentication
   sendResetOtp,
   resetPassword,
-  getTesters,
   login,
   register,
   logout,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Dropdown, Menu, Button } from 'antd';
-import { SettingOutlined, DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined, CrownOutlined, BellOutlined } from '@ant-design/icons';
+import { SettingOutlined, DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined, CrownOutlined, BellOutlined, TeamOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import NotificationBell from '../notifications/NotificationBell';
 import PaymentModal from '../payment/PaymentModal';
@@ -87,35 +87,20 @@ const NavBar = () => {
       label: 'Theo dõi hàng ngày',
       icon: <HeartOutlined />,
       items: [
-        { key: '/member/daily-checkin', label: 'Đánh giá mức độ nghiện', path: '/member/daily-checkin' },
+        { key: '/member/initial-addiction-smoking', label: 'Đánh giá mức độ nghiện', path: '/member/initial-addiction-smoking' },
         { key: '/member/daily-record', label: 'Nhật ký hàng ngày', path: '/member/daily-record' },
         { key: '/member/smoking-status', label: 'Tình trạng hút thuốc', path: '/member/smoking-status' }
       ]
     },
-    progress: {
-      label: 'Tiến độ & Thống kê',
-      icon: <BarChartOutlined />,
-      items: [
-        { key: '/member/progress-chart', label: 'Biểu đồ tiến độ', path: '/member/progress-chart' }
-      ]
-    },
     support: {
-      label: 'Hỗ trợ & Huấn luyện',
+      label: 'Hỗ trợ & Tư vấn',
       icon: <UserOutlined />,
       items: [
         { key: '/member/appointments', label: 'Cuộc hẹn', path: '/member/appointments' },
-        { key: '/member/chat', label: 'Tin nhắn', path: '/member/chat' }
+        { key: '/member/chat', label: 'Nhắn tin', path: '/member/chat' },
+        { key: '/qna', label: 'Q&A', path: '/qna' }
       ]
     },
-    // reminders: {
-    //   label: 'Nhắc nhở',
-    //   icon: <BellOutlined />,
-    //   items: [
-    //     { key: '/member/reminders', label: 'Danh sách nhắc nhở', path: '/member/reminders' },
-    //     { key: '/member/reminders/create', label: 'Tạo nhắc nhở', path: '/member/reminders/create' },
-    //     { key: '/member/reminders/settings', label: 'Cài đặt nhắc nhở', path: '/member/reminders/settings' }
-    //   ]
-    // },
     account: {
       label: 'Tài khoản',
       icon: <SettingOutlined />,
@@ -149,7 +134,7 @@ const NavBar = () => {
       items: [
         // { key: '/coach/schedule', label: 'Quản lý lịch trình', path: '/coach/schedule' },
         { key: '/coach/qna', label: 'Q&A', path: '/coach/qna' },
-        { key: '/member/chat', label: 'Tin nhắn', path: '/member/chat' }
+        { key: '/member/chat', label: 'Nhắn tin', path: '/member/chat' }
       ]
     }
   };
@@ -279,7 +264,7 @@ const NavBar = () => {
       <div className="container">
         <Link to="/" className="navbar-brand d-flex align-items-center">
           <img src={logo} alt="Logo" className="me-2" style={{ height: '32px', width: 'auto' }} />
-          <span className="fw-bold">Smoking Cessation Support</span>
+          <span className="fw-bold">Nền tảng hỗ trợ cai thuốc lá</span>
         </Link>
 
         <button
@@ -300,23 +285,16 @@ const NavBar = () => {
             </li>
 
             {renderRoleSpecificDropdowns()}
-
-            {user && user.role === 'MEMBER' && (
+            
+            {/* Community Chat for all authenticated users */}
+            {user && (
               <li className="nav-item">
-                <Link to="/qna" className="nav-link">
-                  <QuestionCircleOutlined className="me-1" />
-                  Q&A
+                <Link to="/community-chat" className="nav-link">
+                  <TeamOutlined className="me-1" />
+                  Phòng chat cộng đồng
                 </Link>
               </li>
             )}
-
-            {/* {user && user.role === 'MEMBER' && (
-              <li className="nav-item">
-                <Link to="/demo/notifications" className="nav-link">
-                  🔔 Demo
-                </Link>
-              </li>
-            )} */}
           </ul>
 
           <div className="d-flex align-items-center">

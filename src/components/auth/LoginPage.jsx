@@ -1,6 +1,6 @@
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Form, Input, Button, Checkbox, Typography, Row, Col, Card, Alert, Divider, message } from 'antd';
+import { Form, Input, Button, Checkbox, Typography, Row, Col, Card, Alert, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import '../../styles/global.css';
@@ -11,30 +11,10 @@ const { Title, Text } = Typography;
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [loginError, setLoginError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [form] = Form.useForm();
-  const [testUsers, setTestUsers] = useState({});
   
-  useEffect(() => {
-    const fetchTestUsers = async () => {
-      try {
-        // Temporarily disabled to allow frontend to run without backend
-        // const response = await authService.getTesters();
-        // console.log(response);
-        // setTestUsers(response || {});
-        setTestUsers({});
-      } catch (error) {
-        console.error('Failed to fetch test users:', error);
-        // Set empty object if API fails
-        setTestUsers({});
-      }
-    };
-    
-    fetchTestUsers();
-  }, [])
-
   useEffect(() => {
     // Check for success message from password reset
     if (location.state?.message) {
@@ -46,7 +26,6 @@ const LoginPage = () => {
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
-    setLoginError('');
     
     try {
       // Extract email and password exactly as required by API
@@ -82,8 +61,10 @@ const LoginPage = () => {
         }
       }
     } catch (error) {
+      // Error will be handled by popup/notification system
+      console.log('Login failed:', error);
+    } finally {
       setIsLoading(false);
-      setLoginError(error.message || 'An error occurred during login');
     }
   };
 
@@ -92,7 +73,7 @@ const LoginPage = () => {
       <Row justify="center" align="middle">
         <Col xs={22} sm={20} md={16} lg={12} xl={8}>
           <Card className="auth-card" bordered={false}>
-            <Title level={2} className="text-center">Login</Title>
+            <Title level={2} className="text-center">Đăng nhập</Title>
             
             {successMessage && (
               <Alert 
@@ -105,15 +86,6 @@ const LoginPage = () => {
               />
             )}
             
-            {loginError && (
-              <Alert 
-                message={loginError} 
-                type="error" 
-                showIcon 
-                className="mb-4" 
-              />
-            )}
-            
             <Form
               form={form}
               name="login"
@@ -123,29 +95,29 @@ const LoginPage = () => {
             >
               <Form.Item
                 name="email"
-                label="Email Address"
+                label="Địa chỉ Email"
                 rules={[
-                  { required: true, message: 'Please input your email!' },
-                  { type: 'email', message: 'Please enter a valid email address!' }
+                  { required: true, message: 'Vui lòng nhập email của bạn!' },
+                  { type: 'email', message: 'Vui lòng nhập đúng định dạng email!' }
                 ]}
               >
                 <Input 
                   prefix={<UserOutlined />} 
-                  placeholder="Enter your email" 
+                  placeholder="Nhập email của bạn" 
                   size="large"
                 />
               </Form.Item>
 
               <Form.Item
                 name="password"
-                label="Password"
+                label="Mật khẩu"
                 rules={[
-                  { required: true, message: 'Please input your password!' }
+                  { required: true, message: 'Vui lòng nhập mật khẩu!' }
                 ]}
               >
                 <Input.Password 
                   prefix={<LockOutlined />} 
-                  placeholder="Enter your password" 
+                  placeholder="Nhập mật khẩu của bạn" 
                   size="large"
                 />
               </Form.Item>
@@ -153,10 +125,10 @@ const LoginPage = () => {
               <Form.Item>
                 <Row justify="space-between" align="middle">
                   <Form.Item name="remember" valuePropName="checked" noStyle>
-                    <Checkbox>Remember me</Checkbox>
+                    <Checkbox>Ghi nhớ đăng nhập</Checkbox>
                   </Form.Item>
                   <Link to="/forgot-password" className="text-primary">
-                    Forgot Password?
+                    Quên mật khẩu?
                   </Link>
                 </Row>
               </Form.Item>
@@ -169,45 +141,19 @@ const LoginPage = () => {
                   size="large"
                   block
                 >
-                  Login
+                  Đăng nhập
                 </Button>
               </Form.Item>
             </Form>
 
             <div className="text-center">
               <Text>
-                Don't have an account?{' '}
+                Chưa có tài khoản?{' '}
                 <Link to="/register" className="text-primary">
-                  Register here
+                  Đăng ký tại đây
                 </Link>
               </Text>
             </div>
-
-            <Divider>Demo Accounts</Divider>
-            
-            {Object.keys(testUsers).length > 0 ? (
-              <Alert
-                message={
-                  <div>
-                    {testUsers.admin && (
-                      <p><strong>Admin:</strong> {testUsers.admin.email} / {testUsers.admin.password}</p>
-                    )}
-                    {testUsers.coach && (
-                      <p><strong>Coach:</strong> {testUsers.coach.email} / {testUsers.coach.password}</p>
-                    )}
-                    {testUsers.member_free && (
-                      <p><strong>Member (Free):</strong> {testUsers.member_free.email} / {testUsers.member_free.password}</p>
-                    )}
-                    {testUsers.member_premium && (
-                      <p style={{ marginBottom: 0 }}><strong>Member (Premium):</strong> {testUsers.member_premium.email} / {testUsers.member_premium.password}</p>
-                    )}
-                  </div>
-                }
-                type="info"
-              />
-            ) : (
-              <Alert message="Loading demo accounts..." type="info" />
-            )}
           </Card>
         </Col>
       </Row>

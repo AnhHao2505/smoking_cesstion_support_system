@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import webSocketService from '../services/websocketService';
 import { useAuth } from './AuthContext';
 import * as authService from '../services/authService';
+import * as notificationService from '../services/notificationService';
 
 // Create the context
 const NotificationContext = createContext(null);
@@ -20,61 +20,96 @@ export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [reminders, setReminders] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isConnected, setIsConnected] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Handle new notification received
-  const handleNotification = useCallback((notification) => {
-    console.log('📢 New notification received:', notification);
-    
-    // Add to notifications list
-    setNotifications(prev => [notification, ...prev]);
-    
-    // Update unread count if notification is unread
-    if (!notification.read) {
-      setUnreadCount(prev => prev + 1);
-    }
+  // Fetch notifications from backend API
+  const fetchNotifications = useCallback(async (pageNo = 0, pageSize = 50) => {
+    if (!isAuthenticated || !currentUser) return;
 
-    // Show browser notification if permission granted
-    if (Notification.permission === 'granted') {
-      new Notification(notification.title || 'Smoking Cessation Support', {
-        body: notification.message || notification.content,
-        icon: '/favicon.ico',
-        tag: `notification-${notification.id}`,
+    try {
+      setLoading(true);
+      // Fetch only unread notifications for better UX - read notifications won't clutter the UI
+      const [unreadResponse, importantResponse] = await Promise.all([
+        notificationService.getUnreadNotifications(pageNo, pageSize),
+        notificationService.getImportantNotifications(pageNo, pageSize)
+      ]);
+      
+      // Backend already filters important notifications to unread only
+      // Update notifications state with only unread notifications
+      setNotifications(unreadResponse.content || []);
+      setUnreadCount(unreadResponse.totalElements || 0);
+      
+      console.log('📢 Notifications loaded:', {
+        unread: unreadResponse.totalElements,
+        unreadImportant: importantResponse.totalElements,
+        notifications: unreadResponse.content
       });
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
     }
+  }, [isAuthenticated, currentUser]);
 
-    // Show toast notification (you can customize this)
-    showToast(notification);
+  // Refresh notifications (can be called manually)
+  const refreshNotifications = useCallback(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  // Mark notification as read
+  const markNotificationAsRead = useCallback(async (notificationId) => {
+    try {
+      console.log('🔄 Marking notification as read:', notificationId);
+      
+      // Check if the notification was unread before marking
+      const notification = notifications.find(n => n.id === notificationId);
+      const wasUnread = notification && !notification.isRead;
+      
+      await notificationService.markAsRead(notificationId);
+      
+      // Update local state immediately for better UX
+      setNotifications(prev => 
+        prev.map(n => 
+          n.id === notificationId 
+            ? { ...n, isRead: true }
+            : n
+        )
+      );
+      
+      // Decrease unread count only if it was previously unread
+      if (wasUnread) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+      
+      // Force refresh notifications after a short delay to ensure backend consistency
+      setTimeout(() => {
+        console.log('🔄 Refreshing notifications after mark-as-read');
+        fetchNotifications();
+      }, 1000);
+      
+      console.log('✅ Notification marked as read successfully');
+    } catch (error) {
+      console.error('❌ Error marking notification as read:', error);
+    }
+  }, [fetchNotifications, notifications]);
+
+  // Clear single notification (for UI purposes only)
+  const clearNotification = useCallback((notificationId) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== notificationId));
+    // If it was unread, decrease the count
+    const notification = notifications.find(n => n.id === notificationId);
+    if (notification && !notification.isRead) {
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    }
+  }, [notifications]);
+
+  // Clear all notifications (for UI purposes only)
+  const clearAllNotifications = useCallback(() => {
+    setNotifications([]);
+    setUnreadCount(0);
   }, []);
 
-  // Handle new reminder received
-  const handleReminder = useCallback((reminder) => {
-    console.log('⏰ New reminder received:', reminder);
-    
-    // Add to reminders list
-    setReminders(prev => [reminder, ...prev]);
-
-    // Show browser notification if permission granted
-    if (Notification.permission === 'granted') {
-      new Notification('Reminder', {
-        body: reminder.content || reminder.message,
-        icon: '/favicon.ico',
-        tag: `reminder-${reminder.id}`,
-        requireInteraction: true, // Keeps notification visible until user interacts
-      });
-    }
-
-    // Show toast notification (you can customize this)
-    showToast(reminder, 'reminder');
-  }, []);
-
-  // Show toast notification (simple implementation)
-  const showToast = (data, type = 'notification') => {
-    // You can integrate with a toast library like react-toastify here
-    console.log(`🔔 ${type}:`, data.content || data.message);
-  };
-
-  // Load saved reminders from various sources
+  // Load saved reminders from local storage and other sources
   const loadSavedReminders = useCallback(async () => {
     if (!currentUser) return;
 
@@ -96,100 +131,12 @@ export const NotificationProvider = ({ children }) => {
       }
 
       // Update reminders state with saved reminders
-      setReminders(prev => {
-        // Remove old saved reminders and keep only WebSocket reminders
-        const webSocketReminders = prev.filter(r => r.source !== 'login' && r.source !== 'user');
-        return [...savedReminders, ...webSocketReminders];
-      });
+      setReminders(savedReminders);
 
     } catch (error) {
       console.error('Error loading saved reminders:', error);
     }
   }, [currentUser]);
-
-  // Handle WebSocket connection status
-  const handleConnectionChange = useCallback((connected) => {
-    setIsConnected(connected);
-    if (connected) {
-      console.log('✅ WebSocket connected - subscribing to notifications and reminders');
-      
-      // Subscribe to notifications and reminders when connected
-      try {
-        webSocketService.subscribeToNotifications(handleNotification);
-        webSocketService.subscribeToReminders(handleReminder);
-      } catch (error) {
-        console.error('❌ Error subscribing to notifications/reminders:', error);
-      }
-    }
-  }, [handleNotification, handleReminder]);
-
-  // Initialize WebSocket connection and subscriptions
-  useEffect(() => {
-    if (isAuthenticated() && currentUser) {
-      console.log('🔌 Initializing notification system for user:', currentUser.id);
-      
-      // Load saved reminders first
-      loadSavedReminders();
-
-      // Request notification permission
-      if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
-          console.log('🔔 Notification permission:', permission);
-        });
-      }
-
-      // Set up connection change listener
-      webSocketService.onConnectionChange(handleConnectionChange);
-
-      // Connect to WebSocket if not already connected
-      if (!webSocketService.isConnected()) {
-        webSocketService.connect()
-          .then(() => {
-            console.log('✅ WebSocket connected successfully');
-          })
-          .catch(error => {
-            console.error('❌ Failed to connect WebSocket:', error);
-          });
-      } else {
-        // Already connected, just subscribe
-        handleConnectionChange(true);
-      }
-    }
-
-    // Cleanup function
-    return () => {
-      if (webSocketService.isConnected()) {
-        try {
-          webSocketService.disconnect();
-        } catch (error) {
-          console.error('❌ Error disconnecting WebSocket:', error);
-        }
-      }
-    };
-  }, [isAuthenticated, currentUser, handleConnectionChange, loadSavedReminders]);
-
-  // Mark notification as read
-  const markNotificationAsRead = useCallback((notificationId) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === notificationId 
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
-  }, []);
-
-  // Clear notification
-  const clearNotification = useCallback((notificationId) => {
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
-  }, []);
-
-  // Clear all notifications
-  const clearAllNotifications = useCallback(() => {
-    setNotifications([]);
-    setUnreadCount(0);
-  }, []);
 
   // Clear reminder
   const clearReminder = useCallback((reminderId) => {
@@ -209,15 +156,78 @@ export const NotificationProvider = ({ children }) => {
 
   // Get unread notifications
   const getUnreadNotifications = useCallback(() => {
-    return notifications.filter(notification => !notification.read);
+    return notifications.filter(notification => !notification.isRead);
   }, [notifications]);
+
+  // Get important notifications
+  const getImportantNotifications = useCallback(() => {
+    return notifications.filter(notification => notification.isImportant);
+  }, [notifications]);
+
+  // Fetch important notifications specifically
+  const fetchImportantNotifications = useCallback(async (pageNo = 0, pageSize = 50) => {
+    if (!isAuthenticated || !currentUser) return [];
+
+    try {
+      const response = await notificationService.getImportantNotifications(pageNo, pageSize);
+      // Filter to return only unread important notifications
+      const unreadImportant = (response.content || []).filter(n => !n.isRead);
+      return unreadImportant;
+    } catch (error) {
+      console.error('Error fetching important notifications:', error);
+      return [];
+    }
+  }, [isAuthenticated, currentUser]);
+
+  // Show browser notification (for important notifications)
+  const showBrowserNotification = useCallback((title, body, options = {}) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, {
+        body,
+        icon: '/favicon.ico',
+        ...options
+      });
+    }
+  }, []);
+
+  // Initialize notification system
+  useEffect(() => {
+    if (isAuthenticated && currentUser) {
+      console.log('� Initializing notification system for user:', currentUser.id);
+      
+      // Load saved reminders
+      loadSavedReminders();
+
+      // Fetch notifications from backend
+      fetchNotifications();
+
+      // Request notification permission
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+          console.log('🔔 Notification permission:', permission);
+        });
+      }
+
+      // Set up periodic refresh (every 30 seconds)
+      const intervalId = setInterval(() => {
+        fetchNotifications();
+      }, 30000);
+
+      // Cleanup interval on unmount
+      return () => {
+        clearInterval(intervalId);
+      };
+    }
+  }, [isAuthenticated, currentUser, fetchNotifications, loadSavedReminders]);
 
   // Context value
   const value = {
     notifications,
     reminders,
     unreadCount,
-    isConnected,
+    loading,
+    fetchNotifications,
+    refreshNotifications,
     markNotificationAsRead,
     clearNotification,
     clearAllNotifications,
@@ -226,7 +236,9 @@ export const NotificationProvider = ({ children }) => {
     clearLoginReminder,
     loadSavedReminders,
     getUnreadNotifications,
-    showToast
+    getImportantNotifications,
+    fetchImportantNotifications,
+    showBrowserNotification
   };
 
   return (

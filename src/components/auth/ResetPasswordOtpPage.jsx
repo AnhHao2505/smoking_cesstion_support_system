@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Form, Input, Button, Typography, Row, Col, Card, Alert } from 'antd';
+import { Form, Input, Button, Typography, Row, Col, Card } from 'antd';
 import { SafetyOutlined, ArrowLeftOutlined, ReloadOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import '../../styles/global.css';
@@ -12,13 +12,12 @@ const ResetPasswordOtpPage = () => {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [form] = Form.useForm();
   
-  // Get email from navigation state
+  // Get email and OTP sent timestamp from navigation state
   const email = location.state?.email;
+  const otpSentAt = location.state?.otpSentAt;
 
   useEffect(() => {
     // Redirect to forgot password if no email provided
@@ -26,7 +25,14 @@ const ResetPasswordOtpPage = () => {
       navigate('/forgot-password');
       return;
     }
-  }, [email, navigate]);
+    
+    // Auto start countdown if OTP was just sent (from email page)
+    if (otpSentAt) {
+      const timeSinceOtpSent = Math.floor((Date.now() - otpSentAt) / 1000);
+      const remainingTime = Math.max(0, 30 - timeSinceOtpSent);
+      setCountdown(remainingTime);
+    }
+  }, [email, otpSentAt, navigate]);
 
   useEffect(() => {
     // Countdown timer for resend button
@@ -38,22 +44,39 @@ const ResetPasswordOtpPage = () => {
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
-    setError('');
-    setSuccess('');
     
     try {
       const { otp } = values;
       
-      // Navigate to reset password page with email and OTP
-      navigate('/reset-password', { 
-        state: { 
-          email, 
-          otp: otp.replace(/\s/g, '') // Remove any spaces
-        } 
-      });
+      // Check if OTP is provided
+      if (!otp || otp.trim() === '') {
+        return;
+      }
+      
+      const cleanOtp = otp.replace(/\s/g, ''); // Remove any spaces
+      
+      // Frontend validation for OTP format
+      if (!/^[0-9]{6}$/.test(cleanOtp)) {
+        return;
+      }
+      
+      // Validate OTP with backend
+      const response = await authService.validateOtp(email, cleanOtp);
+      
+      // Check if response is successful
+      if (response && response.success) {
+        // Navigate to reset password page with email only (OTP already consumed)
+        navigate('/reset-password', { 
+          state: { 
+            email,
+            otpValidated: true // Flag to indicate OTP was validated
+          } 
+        });
+      }
       
     } catch (error) {
-      setError(error.message || 'Invalid OTP. Please try again.');
+      // Error will be handled by popup/notification system
+      console.log('OTP validation failed:', error);
     } finally {
       setIsLoading(false);
     }
@@ -61,15 +84,18 @@ const ResetPasswordOtpPage = () => {
 
   const handleResendOtp = async () => {
     setIsResending(true);
-    setError('');
-    setSuccess('');
     
     try {
-      await authService.sendResetOtp(email);
-      setSuccess('New OTP has been sent to your email.');
-      setCountdown(60); // 60 seconds countdown
+      const response = await authService.sendResetOtp(email);
+      
+      // Check if response is successful
+      if (response && response.success) {
+        setCountdown(30); // 30 seconds countdown
+      }
+      
     } catch (error) {
-      setError(error.message || 'Failed to resend OTP. Please try again.');
+      // Error will be handled by popup/notification system
+      console.log('Resend OTP failed:', error);
     } finally {
       setIsResending(false);
     }
@@ -91,34 +117,16 @@ const ResetPasswordOtpPage = () => {
                 onClick={() => navigate('/forgot-password')}
                 className="back-button"
               >
-                Back
+                Quay lại
               </Button>
             </div>
             
-            <Title level={2} className="text-center">Verify OTP</Title>
+            <Title level={2} className="text-center">Xác minh OTP</Title>
             <Text className="text-center block mb-4" type="secondary">
-              We've sent a 6-digit verification code to<br />
+              Chúng tôi đã gửi mã xác minh 6 chữ số đến<br />
               <strong>{email}</strong>
             </Text>
-            
-            {error && (
-              <Alert 
-                message={error} 
-                type="error" 
-                showIcon 
-                className="mb-4" 
-              />
-            )}
-            
-            {success && (
-              <Alert 
-                message={success} 
-                type="success" 
-                showIcon 
-                className="mb-4" 
-              />
-            )}
-            
+                       
             <Form
               form={form}
               name="verify-otp"
@@ -127,20 +135,13 @@ const ResetPasswordOtpPage = () => {
             >
               <Form.Item
                 name="otp"
-                label="Verification Code"
-                rules={[
-                  { required: true, message: 'Please input the OTP!' },
-                  { 
-                    pattern: /^[0-9\s]{6,7}$/, 
-                    message: 'Please enter a valid 6-digit OTP!' 
-                  }
-                ]}
+                label="Mã xác minh"
               >
                 <Input 
                   prefix={<SafetyOutlined />} 
-                  placeholder="Enter 6-digit code" 
+                  placeholder="Nhập đúng 6 chữ số (ví dụ: 123456)" 
                   size="large"
-                  maxLength={7} // Allow for spaces
+                  maxLength={6}
                   disabled={isLoading}
                   style={{ 
                     fontSize: '18px', 
@@ -150,6 +151,24 @@ const ResetPasswordOtpPage = () => {
                 />
               </Form.Item>
 
+              <div className="text-center mb-3" style={{
+                background: '#f6f8fa',
+                border: '1px solid #e1e4e8',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                margin: '16px 0'
+              }}>
+                <Text type="secondary" style={{ 
+                  fontSize: '13px', 
+                  color: '#586069',
+                  fontWeight: '500',
+                  display: 'block',
+                  lineHeight: '1.5'
+                }}>
+                  ⚠️ Mã OTP chỉ có hiệu lực trong 15 phút và chỉ chứa 6 chữ số
+                </Text>
+              </div>
+
               <Form.Item>
                 <Button 
                   type="primary" 
@@ -158,13 +177,13 @@ const ResetPasswordOtpPage = () => {
                   size="large"
                   block
                 >
-                  Verify & Continue
+                  Xác minh & Tiếp tục
                 </Button>
               </Form.Item>
             </Form>
 
             <div className="text-center">
-              <Text type="secondary">Didn't receive the code?</Text>
+              <Text type="secondary">Không nhận được mã?</Text>
               <br />
               <Button 
                 type="link" 
@@ -174,14 +193,14 @@ const ResetPasswordOtpPage = () => {
                 disabled={countdown > 0}
                 className="mt-2"
               >
-                {countdown > 0 ? `Resend in ${countdown}s` : 'Resend OTP'}
+                {countdown > 0 ? `Gửi lại sau ${countdown}s` : 'Gửi lại OTP'}
               </Button>
             </div>
 
             <div className="text-center mt-4">
               <Text>
                 <Link to="/login" className="text-primary">
-                  Back to Login
+                  Quay lại đăng nhập
                 </Link>
               </Text>
             </div>

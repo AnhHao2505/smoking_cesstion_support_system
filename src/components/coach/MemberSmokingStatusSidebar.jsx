@@ -34,7 +34,7 @@ import '../../styles/MemberSmokingStatusSidebar.css';
 
 const { Title, Text, Paragraph } = Typography;
 
-const MemberSmokingStatusSidebar = ({ memberId, memberName }) => {
+const MemberSmokingStatusSidebar = ({ memberId, memberName, onAddictionLevelChange }) => {
   const [smokingStatus, setSmokingStatus] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -62,6 +62,35 @@ const MemberSmokingStatusSidebar = ({ memberId, memberName }) => {
       }
       
       setSmokingStatus(statusData);
+      
+      // Trigger callback with addiction level if available
+      if (statusData && statusData.dailySmoking !== undefined && onAddictionLevelChange) {
+        console.log('=== ADDICTION LEVEL CALLBACK DEBUG ===');
+        console.log('statusData:', statusData);
+        console.log('dailySmoking value:', statusData.dailySmoking);
+        console.log('onAddictionLevelChange function available:', !!onAddictionLevelChange);
+        
+        // Map UI dailySmoking to backend AddictionLevel enum
+        let addictionLevel = 'LIGHT'; // default
+        const dailySmoking = statusData.dailySmoking;
+        
+        if (dailySmoking === 0) addictionLevel = 'NONE';
+        else if (dailySmoking <= 2) addictionLevel = 'LIGHT';
+        else if (dailySmoking === 3) addictionLevel = 'MEDIUM';
+        else if (dailySmoking >= 4) addictionLevel = 'SEVERE';
+        
+        console.log('Mapped addiction level:', addictionLevel);
+        console.log('About to trigger callback...');
+        console.log('=== END ADDICTION LEVEL DEBUG ===');
+        
+        onAddictionLevelChange(addictionLevel);
+      } else {
+        console.log('=== ADDICTION LEVEL CALLBACK SKIPPED ===');
+        console.log('statusData available:', !!statusData);
+        console.log('dailySmoking defined:', statusData?.dailySmoking !== undefined);
+        console.log('callback function available:', !!onAddictionLevelChange);
+        console.log('=== END SKIPPED DEBUG ===');
+      }
     } catch (error) {
       console.error('Error fetching smoking status:', error);
       setSmokingStatus(null);

@@ -120,24 +120,39 @@ const AppointmentManagement = () => {
       setSelecting(true);
       const response = await chooseCoach(selectedCoach.coachId);
 
+      // Xử lý phản hồi từ API
       if (response) {
-        message.success(
-          `Successfully selected ${selectedCoach.name} as your coach!`
-        );
-        setConfirmModalVisible(false);
+        if (response.success === false) {
+          // API trả về thành công nhưng có lỗi logic
+          message.error(response.message || `Không thể chọn huấn luyện viên. Vui lòng thử lại sau.`);
+        } else {
+          // Hiển thị thông báo thành công từ API hoặc thông báo mặc định
+          message.success(response.message || `Đã chọn ${formatCoachName(selectedCoach.name)} làm huấn luyện viên của bạn thành công!`);
+          setConfirmModalVisible(false);
 
-        // Refresh coaches list to update their current member counts
-        fetchCoaches();
-
-        // Optionally redirect to dashboard or appointment booking page
-        // navigate('/member/dashboard');
+          // Refresh coaches list to update their current member counts
+          fetchCoaches();
+          
+          // Thông báo hướng dẫn người dùng bước tiếp theo
+          setTimeout(() => {
+            message.info("Bạn có thể trò chuyện với huấn luyện viên trong mục 'Tin nhắn'");
+          }, 1000);
+        }
+      } else {
+        // Trường hợp response là null hoặc undefined
+        message.warning("Không nhận được phản hồi từ máy chủ. Vui lòng thử lại sau.");
       }
     } catch (error) {
       console.error("Error choosing coach:", error);
-      if (error.message) {
+      if (error.response?.data?.message) {
+        // Lỗi từ server với thông báo cụ thể
+        message.error(error.response.data.message);
+      } else if (error.message) {
+        // Lỗi có message
         message.error(error.message);
       } else {
-        message.error("Failed to select coach. Please try again.");
+        // Lỗi không xác định
+        message.error("Không thể chọn huấn luyện viên. Vui lòng thử lại sau.");
       }
     } finally {
       setSelecting(false);
@@ -161,20 +176,35 @@ const AppointmentManagement = () => {
 
       const response = await submitFeedbackToAnyCoach(feedbackData);
 
-      if (response.success) {
-        message.success(
-          `Cảm ơn bạn đã gửi phản hồi về huấn luyện viên ${feedbackCoach.name}!`
-        );
-        setFeedbackModalVisible(false);
-        feedbackForm.resetFields();
+      // Xử lý phản hồi từ API
+      if (response) {
+        if (response.success) {
+          // Sử dụng thông báo từ API nếu có, không thì dùng thông báo mặc định
+          message.success(
+            response.message || `Cảm ơn bạn đã gửi phản hồi về huấn luyện viên ${formatCoachName(feedbackCoach.name)}!`
+          );
+          setFeedbackModalVisible(false);
+          feedbackForm.resetFields();
+        } else {
+          // API trả về lỗi logic
+          message.error(
+            response.message || "Không thể gửi phản hồi. Vui lòng thử lại!"
+          );
+        }
       } else {
-        message.error(
-          response.message || "Không thể gửi phản hồi. Vui lòng thử lại!"
-        );
+        // Không có response
+        message.warning("Không nhận được phản hồi từ máy chủ. Vui lòng thử lại sau.");
       }
     } catch (error) {
       console.error("Error submitting feedback:", error);
-      message.error("Có lỗi xảy ra khi gửi phản hồi. Vui lòng thử lại!");
+      // Xử lý chi tiết các loại lỗi
+      if (error.response?.data?.message) {
+        message.error(error.response.data.message);
+      } else if (error.message) {
+        message.error(error.message);
+      } else {
+        message.error("Có lỗi xảy ra khi gửi phản hồi. Vui lòng thử lại!");
+      }
     } finally {
       setSubmittingFeedback(false);
     }
@@ -188,15 +218,35 @@ const AppointmentManagement = () => {
 
       const response = await getAssignedMembers(coach.coachId);
 
+      // Kiểm tra response và xử lý các trường hợp
       if (response) {
-        setAssignedMembers(response);
+        if (Array.isArray(response)) {
+          setAssignedMembers(response);
+          if (response.length === 0) {
+            message.info(`Huấn luyện viên ${formatCoachName(coach.name)} chưa có thành viên nào được gán.`);
+          }
+        } else if (response.success === false) {
+          // API trả về lỗi logic
+          setAssignedMembers([]);
+          message.error(response.message || "Không thể lấy danh sách thành viên.");
+        } else {
+          // Có thể response là dạng khác không mong đợi
+          setAssignedMembers(Array.isArray(response.data) ? response.data : []);
+        }
       } else {
         setAssignedMembers([]);
-        message.info("Huấn luyện viên này chưa có thành viên nào được gán.");
+        message.info(`Huấn luyện viên ${formatCoachName(coach.name)} chưa có thành viên nào được gán.`);
       }
     } catch (error) {
       console.error("Error fetching assigned members:", error);
-      message.error("Không thể tải danh sách thành viên. Vui lòng thử lại!");
+      // Xử lý chi tiết các loại lỗi
+      if (error.response?.data?.message) {
+        message.error(error.response.data.message);
+      } else if (error.message) {
+        message.error(error.message);
+      } else {
+        message.error("Không thể tải danh sách thành viên. Vui lòng thử lại!");
+      }
       setAssignedMembers([]);
     } finally {
       setLoadingAssignedMembers(false);
@@ -229,6 +279,41 @@ const AppointmentManagement = () => {
     return descriptions[value] || "";
   };
 
+  // Chuyển đổi tên ngày trong tuần sang tiếng Việt
+  const translateDayOfWeek = (day) => {
+    const translations = {
+      "Monday": "Thứ Hai",
+      "Tuesday": "Thứ Ba",
+      "Wednesday": "Thứ Tư",
+      "Thursday": "Thứ Năm",
+      "Friday": "Thứ Sáu",
+      "Saturday": "Thứ Bảy",
+      "Sunday": "Chủ Nhật"
+    };
+    return translations[day] || day;
+  };
+
+  // Định dạng thời gian để loại bỏ AM/PM
+  const formatTime = (timeString) => {
+    if (!timeString) return "";
+    // Loại bỏ AM/PM từ chuỗi thời gian
+    return timeString.replace(/\s(AM|PM)$/i, "");
+  };
+  
+  // Hàm xử lý tên huấn luyện viên, loại bỏ prefix như "Dr.", "Coach", v.v. và thêm "Huấn luyện viên" nếu chưa có
+  const formatCoachName = (name) => {
+    if (!name) return "";
+    
+    // Kiểm tra xem tên đã có các prefix thông dụng hay chưa
+    if (/(Dr\.|Coach|Professor|Mr\.|Mrs\.|Ms\.|Huấn luyện viên)\s+/i.test(name)) {
+      // Nếu có, thay thế bằng "Huấn luyện viên"
+      return name.replace(/^(Dr\.|Coach|Professor|Mr\.|Mrs\.|Ms\.)\s+/i, "Huấn luyện viên ");
+    } else {
+      // Nếu không có prefix, thêm "Huấn luyện viên" vào đầu
+      return "Huấn luyện viên " + name;
+    }
+  };
+
   const getWorkingHoursDisplay = (workingHours) => {
     if (!workingHours || workingHours.length === 0) {
       return "Không có lịch trình";
@@ -237,7 +322,7 @@ const AppointmentManagement = () => {
     return workingHours
       .map(
         (schedule) =>
-          `${schedule.dayOfWeek}: ${schedule.startTime} - ${schedule.endTime}`
+          `${translateDayOfWeek(schedule.dayOfWeek)}: ${formatTime(schedule.startTime)} - ${formatTime(schedule.endTime)}`
       )
       .join(", ");
   };
@@ -275,7 +360,7 @@ const AppointmentManagement = () => {
           <Avatar size="large" icon={<UserOutlined />} />
           <div>
             <Text strong style={{ fontSize: "16px" }}>
-              {text}
+              {formatCoachName(text)}
             </Text>
             <br />
             <Text type="secondary">{record.email}</Text>
@@ -312,8 +397,8 @@ const AppointmentManagement = () => {
             workingHours.slice(0, 2).map((schedule, index) => (
               <div key={index} style={{ fontSize: "12px" }}>
                 <Text>
-                  <ClockCircleOutlined /> {schedule.dayOfWeek}:{" "}
-                  {schedule.startTime} - {schedule.endTime}
+                  <ClockCircleOutlined /> {translateDayOfWeek(schedule.dayOfWeek)}:{" "}
+                  {formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}
                 </Text>
               </div>
             ))
@@ -432,17 +517,6 @@ const AppointmentManagement = () => {
                 style={{ flex: 1 }}
               >
                 Đánh giá
-              </Button>
-            </Space>
-            <Space size="small" style={{ width: "100%" }}>
-              <Button
-                type="default"
-                icon={<EyeOutlined />}
-                onClick={() => handleViewAssignedMembers(record)}
-                size="small"
-                style={{ flex: 1 }}
-              >
-                Xem thành viên
               </Button>
             </Space>
             <Space size="small" style={{ width: '100%' }}>

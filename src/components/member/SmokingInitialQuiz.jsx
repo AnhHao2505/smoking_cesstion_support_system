@@ -351,9 +351,14 @@ const SmokingInitialQuiz = () => {
       }
     } catch (error) {
       console.error('Error submitting smoking assessment:', error);
+      message.error('Có lỗi xảy ra khi cập nhật đánh giá');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const getDaysSmokeFree = () => {
+    return 0; // Không cần tính toán, để SmokingStatusView lo
   };
 
   if (loading) {

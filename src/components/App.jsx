@@ -4,7 +4,6 @@ import { AuthProvider } from '../contexts/AuthContext';
 import { NotificationProvider } from '../contexts/NotificationContext';
 import * as authService from '../services/authService';
 
-// Layout components
 import Navbar from './layout/Navbar';
 // import Footer from './common/Footer'; // Commented out as Footer component doesn't exist
 
@@ -19,23 +18,19 @@ import ResetPasswordOtpPage from './auth/ResetPasswordOtpPage';
 import ResetPasswordPage from './auth/ResetPasswordPage';
 
 // Dashboard pages
-import MemberDashboard from './member/MemberDashboard';
 import CoachDashboard from './coach/CoachDashboard';
 
 // Member components
 import MemberProfile from './member/MemberProfile';
-import QuitPlanDetail from './member/QuitPlanDetail';
 import QuitPlanCreation from './coach/QuitPlanCreation';
-import QuitPlanEdit from './member/QuitPlanEdit';
-import MemberQuitPlanFlow from './member/MemberQuitPlanFlow';
 import DailyRecordForm from './member/DailyRecordForm';
 import AppointmentManagement from './member/AppointmentManagement';
 import CoachSelection from './member/CoachSelection';
 import QuitPlanHistory from './member/QuitPlanHistory';
-import PhaseDetail from './member/PhaseDetail';
-import PhaseProgress from './member/PhaseProgress';
 import PhaseTaskManager from './member/PhaseTaskManager';
 import ChatPage from './member/ChatPage';
+import CommunityChat from './member/CommunityChat';
+import MemberQuitPlanFlow from './member/MemberQuitPlanFlow';
 
 // Reminder components
 import ReminderSettings from './member/ReminderSettings';
@@ -44,18 +39,10 @@ import ReminderCreation from './member/ReminderCreation';
 import ReminderCalendar from './member/ReminderCalendar';
 
 // Daily Tracking Flow components - ADD THESE IMPORTS
-import DailyCheckIn from './member/DailyCheckin';
-import SmokingStatusTracker from './member/SmokingStatusTracker';
-import ProgressChart from './member/ProgressChart';
-
-// Import blog pages
-import BlogListPage from '../pages/blog/BlogListPage';
-import BlogDetailPage from '../pages/blog/BlogDetailPage';
+import SmokingInitialQuiz from './member/SmokingInitialQuiz';
+import SmokingStatusComprehensive from './member/SmokingStatusComprehensive';
 
 // Coach components  
-import QuitPlanApproval from './coach/QuitPlanApproval';
-import QuitPlanApprovalNewFlow from './coach/QuitPlanApprovalNewFlow';
-import CoachScheduleManagement from './coach/CoachScheduleManagement';
 import CoachQnA from './coach/CoachQnA';
 
 // Admin components
@@ -66,20 +53,10 @@ import CoachAssignment from './admin/CoachAssignment';
 import CoachPerformance from './admin/CoachPerformance';
 import TransactionHistory from './admin/TransactionHistory';
 
-// Import new components
-import PremiumUpgrade from './member/PremiumUpgrade';
-import UserSettings from './member/UserSettings';
-import AccountManagement from './member/AccountManagement';
-import MembershipStatus from './member/MembershipStatus';
-
 // Import QnA pages
 import { QAForumPage, AskQuestionPage, QuestionListPage, AnswerQuestionPage } from '../pages/qna';
 
 import LandingPage from './public/LandingPage';
-import WelcomePage from './public/WelcomePage';
-
-// Import demo components
-import NotificationDemo from './demo/NotificationDemo';
 
 // Import payment components
 import PaymentCallback from './payment/PaymentCallback';
@@ -120,19 +97,8 @@ const App = () => {
               {/* Public Routes */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/home" element={<LandingPage />} />
-              <Route path="/blog" element={<BlogListPage />} />
-              <Route path="/blog/:id" element={<BlogDetailPage />} />
               
-              {/* Demo Routes */}
-              <Route 
-                path="/demo/notifications" 
-                element={
-                  <PrivateRoute>
-                    <NotificationDemo />
-                  </PrivateRoute>
-                }
-              />
-              
+             
               {/* Auth Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
@@ -148,17 +114,7 @@ const App = () => {
                     <PaymentCallback />
                   </PrivateRoute>
                 }
-              />
-              
-              {/* Member Routes */}
-              <Route 
-                path="/member/dashboard" 
-                element={
-                  <PrivateRoute allowedRoles={['MEMBER']}>
-                    <MemberDashboard />
-                  </PrivateRoute>
-                }
-              />
+              />             
               
               <Route 
                 path="/profile" 
@@ -170,33 +126,6 @@ const App = () => {
               />
               
               <Route 
-                path="/member/quit-plan/:planId" 
-                element={
-                  <PrivateRoute allowedRoles={['MEMBER', 'COACH']}>
-                    <QuitPlanDetail />
-                  </PrivateRoute>
-                }
-              />
-
-              <Route 
-                path="/member/quit-plan" 
-                element={
-                  <PrivateRoute allowedRoles={['MEMBER']}>
-                    <QuitPlanDetail />
-                  </PrivateRoute>
-                }
-              />
-
-              <Route 
-                path="/member/quit-plan-flow" 
-                element={
-                  <PrivateRoute allowedRoles={['MEMBER']}>
-                    <MemberQuitPlanFlow />
-                  </PrivateRoute>
-                }
-              />
-
-              <Route 
                 path="/coach/create-quit-plan" 
                 element={
                   <PrivateRoute allowedRoles={['COACH']}>
@@ -205,15 +134,6 @@ const App = () => {
                 }
               />
 
-              <Route 
-                path="/member/quit-plan-edit/:planId" 
-                element={
-                  <PrivateRoute allowedRoles={['MEMBER', 'COACH']}>
-                    <QuitPlanEdit />
-                  </PrivateRoute>
-                }
-              />
-              
               <Route 
                 path="/member/daily-record" 
                 element={
@@ -225,10 +145,10 @@ const App = () => {
 
               {/* Daily Tracking Flow Routes - ADD THESE */}
               <Route 
-                path="/member/daily-checkin" 
+                path="/member/initial-addiction-smoking" 
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
-                    <DailyCheckIn />
+                    <SmokingInitialQuiz />
                   </PrivateRoute>
                 }
               />
@@ -237,16 +157,7 @@ const App = () => {
                 path="/member/smoking-status" 
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
-                    <SmokingStatusTracker />
-                  </PrivateRoute>
-                }
-              />
-              
-              <Route 
-                path="/member/progress-chart" 
-                element={
-                  <PrivateRoute allowedRoles={['MEMBER']}>
-                    <ProgressChart />
+                    <SmokingStatusComprehensive />
                   </PrivateRoute>
                 }
               />
@@ -278,6 +189,25 @@ const App = () => {
                 }
               />
               
+              {/* Community Chat Route - accessible to all authenticated users */}
+              <Route 
+                path="/community-chat" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER', 'COACH', 'ADMIN']}>
+                    <CommunityChat />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/community-chat" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER', 'COACH', 'ADMIN']}>
+                    <CommunityChat />
+                  </PrivateRoute>
+                }
+              />
+              
               <Route 
                 path="/member/quit-plan-history" 
                 element={
@@ -287,21 +217,11 @@ const App = () => {
                 }
               />
               
-              {/* Phase Management Routes */}
               <Route 
-                path="/member/phase/:phaseId/:planId" 
+                path="/member/quit-plan-flow" 
                 element={
-                  <PrivateRoute allowedRoles={['MEMBER', 'COACH']}>
-                    <PhaseDetail />
-                  </PrivateRoute>
-                }
-              />
-              
-              <Route 
-                path="/member/phase-progress/:planId" 
-                element={
-                  <PrivateRoute allowedRoles={['MEMBER', 'COACH']}>
-                    <PhaseProgress />
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <MemberQuitPlanFlow />
                   </PrivateRoute>
                 }
               />
@@ -372,32 +292,6 @@ const App = () => {
                 }
               />
 
-              <Route 
-                path="/coach/quit-plan-approval" 
-                element={
-                  <PrivateRoute allowedRoles={['COACH']}>
-                    <QuitPlanApproval />
-                  </PrivateRoute>
-                }
-              />
-
-              <Route 
-                path="/coach/member-management" 
-                element={
-                  <PrivateRoute allowedRoles={['COACH']}>
-                    <QuitPlanApprovalNewFlow />
-                  </PrivateRoute>
-                }
-              />
-
-              <Route 
-                path="/coach/schedule" 
-                element={
-                  <PrivateRoute allowedRoles={['COACH']}>
-                    <CoachScheduleManagement />
-                  </PrivateRoute>
-                }
-              />
 
               <Route 
                 path="/coach/qna" 
