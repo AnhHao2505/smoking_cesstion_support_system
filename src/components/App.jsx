@@ -29,6 +29,7 @@ import CoachSelection from './member/CoachSelection';
 import QuitPlanHistory from './member/QuitPlanHistory';
 import PhaseTaskManager from './member/PhaseTaskManager';
 import ChatPage from './member/ChatPage';
+import CommunityChat from './member/CommunityChat';
 import MemberQuitPlanFlow from './member/MemberQuitPlanFlow';
 
 // Reminder components
@@ -184,6 +185,25 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['MEMBER', 'COACH']}>
                     <ChatPage />
+                  </PrivateRoute>
+                }
+              />
+              
+              {/* Community Chat Route - accessible to all authenticated users */}
+              <Route 
+                path="/community-chat" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER', 'COACH', 'ADMIN']}>
+                    <CommunityChat />
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route 
+                path="/community-chat" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER', 'COACH', 'ADMIN']}>
+                    <CommunityChat />
                   </PrivateRoute>
                 }
               />

@@ -27,16 +27,13 @@ import {
   PhoneOutlined,
   VideoCameraOutlined,
   MoreOutlined,
-  TeamOutlined,
-  StarOutlined,
   CommentOutlined
 } from '@ant-design/icons';
 import { getAllCoaches, chooseCoach } from '../../services/coachManagementService';
 import { 
   getAllPrivateChatRooms, 
   getChatRoomMessages, 
-  deleteMessage,
-  getWSChannelsDoc
+  deleteMessage
 } from '../../services/chatService';
 import webSocketService from '../../services/websocketService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -47,8 +44,6 @@ const { Sider, Content } = Layout;
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
-
-const COMMUNITY_ROOM_IDS = [3, 25, 26];
 const ChatPage = () => {
   const { currentUser } = useAuth();
   const [coaches, setCoaches] = useState([]);
@@ -65,12 +60,6 @@ const ChatPage = () => {
   const [selectingCoach, setSelectingCoach] = useState(false);
   const [wsConnected, setWsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  const [activeTab, setActiveTab] = useState('private'); // 'private' or 'community'
-  const [communityRoomId, setCommunityRoomId] = useState(COMMUNITY_ROOM_IDS[0]);
-  const [communityMessages, setCommunityMessages] = useState([]);
-  const [loadingCommunityMessages, setLoadingCommunityMessages] = useState(false);
-  const [sendingCommunityMessage, setSendingCommunityMessage] = useState(false);
-  const communityMessagesEndRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   // Scroll to bottom of messages
@@ -81,100 +70,14 @@ const ChatPage = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-  useEffect(() => {
-    communityMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [communityMessages]);
 
   useEffect(() => {
     fetchData();
     initializeWebSocket();
     return () => {
       webSocketService.disconnect();
-      COMMUNITY_ROOM_IDS.forEach(id => webSocketService.unsubscribeFromCommunityChat(id));
     };
   }, []);
-
-  const subscribeToCommunityRoom = (roomId) => {
-    if (wsConnected && roomId) {
-      try {
-        webSocketService.subscribeToCommunityChat(roomId, (message) => {
-          const newMsg = {
-            id: message.id || Date.now(),
-            content: message.content,
-            sender_id: message.sender_id,
-            sender_name: message.sender_name,
-            timestamp: message.timestamp || new Date().toISOString(),
-            type: message.type || 'text'
-          };
-          setCommunityMessages(prev => {
-            const exists = prev.some(msg => msg.id === newMsg.id);
-            if (exists) return prev;
-            return [...prev, newMsg];
-          });
-        });
-      } catch (error) {
-        // silent
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === 'community') {
-      loadMessages(communityRoomId);
-      subscribeToCommunityRoom(communityRoomId);
-    }
-    // eslint-disable-next-line
-  }, [activeTab, communityRoomId, wsConnected]);
-
-  const handleCommunityRoomSelect = async (roomId) => {
-    setCommunityRoomId(roomId);
-    setCommunityMessages([]);
-    await loadMessages(roomId);
-  };
-
-  const handleSendCommunityMessage = async () => {
-    if (!newMessage.trim()) return;
-    setSendingCommunityMessage(true);
-    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const messageData = {
-      content: newMessage.trim(),
-      type: 'text',
-      sender_id: currentUser.userId,
-      sender_name: 'You',
-      timestamp: new Date().toISOString(),
-      tempId: tempId
-    };
-    const tempMessage = {
-      id: tempId,
-      ...messageData,
-      status: 'sending'
-    };
-    setCommunityMessages(prev => [...prev, tempMessage]);
-    setNewMessage('');
-    if (wsConnected) {
-      try {
-        webSocketService.sendCommunityMessage(communityRoomId, messageData.content);
-        setCommunityMessages(prev => prev.map(msg =>
-          msg.tempId === tempId
-            ? { ...msg, status: 'sent' }
-            : msg
-        ));
-      } catch (error) {
-        setCommunityMessages(prev => prev.map(msg =>
-          msg.tempId === tempId
-            ? { ...msg, status: 'failed' }
-            : msg
-        ));
-      }
-    } else {
-      setCommunityMessages(prev => prev.map(msg =>
-        msg.tempId === tempId
-          ? { ...msg, status: 'failed' }
-          : msg
-      ));
-    }
-    setSendingCommunityMessage(false);
-  };
 
   const initializeWebSocket = async () => {
     try {
@@ -330,7 +233,6 @@ const ChatPage = () => {
         messagesData = response.data;
       }
       setMessages(messagesData);
-      setCommunityMessages(messagesData);
       console.log('Loaded messages:', messagesData);
       
     } catch (error) {
@@ -526,11 +428,7 @@ const ChatPage = () => {
     }
   }, [messages]);
 
-  const communityRooms = COMMUNITY_ROOM_IDS.map(id => ({
-    roomId: id,
-    roomName: `Community Room ${id}`,
-    type: 'community'
-  }));
+  // Filter chat rooms based on search term
   const filteredChatRooms = chatRooms.filter(room =>
     room.roomName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -582,27 +480,8 @@ const ChatPage = () => {
           <Space direction="vertical" style={{ width: '100%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Title level={4} style={{ margin: 0 }}>
-                <MessageOutlined /> Chat
+                <MessageOutlined /> Chat Riêng Tư
               </Title>
-            </div>
-            {/* Tab Buttons */}
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <Button 
-                type={activeTab === 'private' ? 'primary' : 'default'}
-                size="small"
-                icon={<CommentOutlined />}
-                onClick={() => setActiveTab('private')}
-              >
-                Chat Riêng Tư
-              </Button>
-              <Button 
-                type={activeTab === 'community' ? 'primary' : 'default'}
-                size="small"
-                icon={<TeamOutlined />}
-                onClick={() => setActiveTab('community')}
-              >
-                Cộng Đồng
-              </Button>
             </div>
             {/* WebSocket Connection Status */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -632,252 +511,74 @@ const ChatPage = () => {
         </div>
 
         <div style={{ height: 'calc(100vh - 180px)', overflow: 'auto' }}>
-          {activeTab === 'private' ? (
-            filteredChatRooms.length > 0 ? (
-              <List
-                dataSource={filteredChatRooms}
-                renderItem={(room) => (
-                  <List.Item
-                    style={{ 
-                      padding: '12px 16px',
-                      cursor: 'pointer',
-                      backgroundColor: selectedChatRoom?.roomId === room.roomId 
-                        ? '#e6f7ff' : 'transparent',
-                      borderLeft: selectedChatRoom?.roomId === room.roomId 
-                        ? '3px solid #1890ff' : '3px solid transparent'
-                    }}
-                    onClick={() => handleRoomSelect(room)}
-                  >
-                    <List.Item.Meta
-                      avatar={
-                        <Badge dot={wsConnected} status={wsConnected ? 'success' : 'default'}>
-                          <Avatar 
-                            icon={<MessageOutlined />}
-                            size={48}
-                            style={{ backgroundColor: '#1890ff' }}
-                          />
-                        </Badge>
-                      }
-                      title={
-                        <div>
-                          <Text strong>{getRoomDisplayName(room)}</Text>
-                          <div style={{ fontSize: '12px' }}>
-                            <Text type="secondary">Mã phòng: {room.roomId}</Text>
-                          </div>
-                        </div>
-                      }
-                      description={
-                        <div>
-                          <Text type="secondary" style={{ fontSize: '12px' }}>
-                            Phòng {room.type === 'PRIVATE' ? 'riêng tư' : 'cộng đồng'}
-                          </Text>
-                          <br />
-                          <Text type="secondary" style={{ fontSize: '11px' }}>
-                            {wsConnected ? 'Trực tuyến' : 'Ngoại tuyến'}
-                          </Text>
-                        </div>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
-            ) : (
-              <Empty 
-                description="Chưa có phòng chat nào"
-                style={{ marginTop: '50px' }}
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              >
-                <Button 
-                  type="primary"
-                  onClick={() => window.location.href = '/member/appointments'}
+          {filteredChatRooms.length > 0 ? (
+            <List
+              dataSource={filteredChatRooms}
+              renderItem={(room) => (
+                <List.Item
+                  style={{ 
+                    padding: '12px 16px',
+                    cursor: 'pointer',
+                    backgroundColor: selectedChatRoom?.roomId === room.roomId 
+                      ? '#e6f7ff' : 'transparent',
+                    borderLeft: selectedChatRoom?.roomId === room.roomId 
+                      ? '3px solid #1890ff' : '3px solid transparent'
+                  }}
+                  onClick={() => handleRoomSelect(room)}
                 >
-                  Đặt lịch hẹn
-                </Button>
-              </Empty>
-            )
+                  <List.Item.Meta
+                    avatar={
+                      <Badge dot={wsConnected} status={wsConnected ? 'success' : 'default'}>
+                        <Avatar 
+                          icon={<MessageOutlined />}
+                          size={48}
+                          style={{ backgroundColor: '#1890ff' }}
+                        />
+                      </Badge>
+                    }
+                    title={
+                      <div>
+                        <Text strong>{getRoomDisplayName(room)}</Text>
+                        <div style={{ fontSize: '12px' }}>
+                          <Text type="secondary">Mã phòng: {room.roomId}</Text>
+                        </div>
+                      </div>
+                    }
+                    description={
+                      <div>
+                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                          Phòng {room.type === 'PRIVATE' ? 'riêng tư' : 'cộng đồng'}
+                        </Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: '11px' }}>
+                          {wsConnected ? 'Trực tuyến' : 'Ngoại tuyến'}
+                        </Text>
+                      </div>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
           ) : (
-            <>
-              <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0' }}>
-                <Text strong>Chọn phòng Community:</Text>
-                <Space style={{ marginLeft: 8 }}>
-                  {communityRooms.map(room => (
-                    <Button
-                      key={room.roomId}
-                      type={communityRoomId === room.roomId ? 'primary' : 'default'}
-                      onClick={() => handleCommunityRoomSelect(room.roomId)}
-                      size="small"
-                    >
-                      {room.roomName}
-                    </Button>
-                  ))}
-                </Space>
-              </div>
-            </>
+            <Empty 
+              description="Chưa có phòng chat nào"
+              style={{ marginTop: '50px' }}
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            >
+              <Button 
+                type="primary"
+                onClick={() => window.location.href = '/member/appointments'}
+              >
+                Đặt lịch hẹn
+              </Button>
+            </Empty>
           )}
         </div>
       </Sider>
 
       {/* Main Chat Area */}
       <Content style={{ display: 'flex', flexDirection: 'column' }}>
-        {activeTab === 'community' && communityRoomId ? (
-          <>
-            {/* Community Chat Header */}
-            <div style={{
-              background: '#fff',
-              padding: '16px 24px',
-              borderBottom: '1px solid #f0f0f0',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Space>
-                  <Avatar icon={<TeamOutlined />} size={40} style={{ backgroundColor: '#52c41a' }} />
-                  <div>
-                    <Title level={5} style={{ margin: 0 }}>
-                      Community Room {communityRoomId}
-                    </Title>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
-                      Room ID: {communityRoomId} • Community
-                    </Text>
-                  </div>
-                </Space>
-                <Space>
-                  <Badge
-                    status={wsConnected ? 'success' : 'error'}
-                    text={wsConnected ? 'Connected' : 'Disconnected'}
-                  />
-                </Space>
-              </div>
-            </div>
-            {/* Community Messages Area */}
-            <div style={{
-              flex: 1,
-              overflow: 'auto',
-              padding: '16px 24px',
-              background: '#fafafa'
-            }}>
-              {loadingCommunityMessages ? (
-                <div style={{ textAlign: 'center', padding: '50px' }}>
-                  <Spin size="large" />
-                  <div style={{ marginTop: '16px' }}>Loading messages...</div>
-                </div>
-              ) : communityMessages.length > 0 ? (
-                <div>
-                  {communityMessages.map((msg) => (
-                    ((msg.sender_id) && 
-                      <div
-                        key={msg.id || msg.messageId}
-                        style={{
-                          marginBottom: '16px',
-                          display: 'flex',
-                          justifyContent: msg.sender_id === currentUser.userId ? 'flex-end' : 'flex-start'
-                        }}
-                      >
-                        
-                        <div style={{ maxWidth: '70%' }}>
-                          {msg.sender_id !== currentUser.userId && (
-                            <div style={{ marginBottom: '4px' }}>
-                              <Text type="secondary" style={{ fontSize: '12px' }}>
-                                {msg.sender_name}
-                              </Text>
-                            </div>
-                          )}
-                          <Card
-                            size="small"
-                            style={{
-                              backgroundColor: msg.sender_id === currentUser.userId ? '#52c41a' : '#fff',
-                              color: msg.sender_id === currentUser.userId ? '#fff' : '#000',
-                              border: 'none',
-                              borderRadius: '12px',
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                            }}
-                            bodyStyle={{ padding: '8px 12px' }}
-                          >
-                            <div>{msg.content}</div>
-                            <div style={{
-                              fontSize: '11px',
-                              opacity: 0.7,
-                              marginTop: '4px',
-                              textAlign: 'right',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center'
-                            }}>
-                              <span>{formatMessageTime(msg.timestamp)}</span>
-                              {msg.sender_id === currentUser.userId && (
-                                <span style={{ marginLeft: '8px' }}>
-                                  {msg.status === 'sending' && (
-                                    <Tag color="orange" size="small" style={{ fontSize: '10px', margin: 0 }}>
-                                      Đang gửi...
-                                    </Tag>
-                                  )}
-                                  {msg.status === 'sent' && (
-                                    <Tag color="green" size="small" style={{ fontSize: '10px', margin: 0 }}>
-                                      ✓ Đã gửi
-                                    </Tag>
-                                  )}
-                                  {msg.status === 'failed' && (
-                                    <Tag
-                                      color="red"
-                                      size="small"
-                                      style={{ fontSize: '10px', margin: 0 }}
-                                    >
-                                      ✗ Thất bại
-                                    </Tag>
-                                  )}
-                                </span>
-                              )}
-                            </div>
-                          </Card>
-                        </div>
-                      </div>
-                    )
-                  ))}
-                  <div ref={communityMessagesEndRef} />
-                </div>
-              ) : (
-                <div style={{
-                  textAlign: 'center',
-                  marginTop: '50px',
-                  color: '#999'
-                }}>
-                  <MessageOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-                  <div>Bắt đầu cuộc trò chuyện trong Phòng Cộng Đồng {communityRoomId}</div>
-                </div>
-              )}
-            </div>
-            {/* Community Message Input */}
-            <div style={{
-              background: '#fff',
-              padding: '16px 24px',
-              borderTop: '1px solid #f0f0f0'
-            }}>
-              <Space.Compact style={{ width: '100%' }}>
-                <TextArea
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Nhập tin nhắn..."
-                  autoSize={{ minRows: 1, maxRows: 4 }}
-                  onPressEnter={(e) => {
-                    if (e.shiftKey) return;
-                    e.preventDefault();
-                    handleSendCommunityMessage();
-                  }}
-                  style={{ resize: 'none' }}
-                />
-                <Button
-                  type="primary"
-                  icon={<SendOutlined />}
-                  loading={sendingCommunityMessage}
-                  onClick={handleSendCommunityMessage}
-                  disabled={!newMessage.trim() || !wsConnected}
-                  title={!wsConnected ? 'WebSocket chưa kết nối' : ''}
-                >
-                  Gửi
-                </Button>
-              </Space.Compact>
-            </div>
-          </>
-        ) : selectedChatRoom ? (
+        {selectedChatRoom ? (
           <>
             {/* Chat Header */}
             <div style={{

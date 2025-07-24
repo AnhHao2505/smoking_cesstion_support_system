@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Dropdown, Menu, Button } from 'antd';
-import { SettingOutlined, DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined, CrownOutlined, BellOutlined } from '@ant-design/icons';
+import { SettingOutlined, DownOutlined, UserOutlined, DashboardOutlined, CalendarOutlined, HeartOutlined, BarChartOutlined, QuestionCircleOutlined, FileTextOutlined, PlusOutlined, HistoryOutlined, AimOutlined, ClockCircleOutlined, EditOutlined, CrownOutlined, BellOutlined, TeamOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import NotificationBell from '../notifications/NotificationBell';
 import PaymentModal from '../payment/PaymentModal';
@@ -93,11 +93,12 @@ const NavBar = () => {
       ]
     },
     support: {
-      label: 'Hỗ trợ & Huấn luyện',
+      label: 'Hỗ trợ & Tư vấn',
       icon: <UserOutlined />,
       items: [
         { key: '/member/appointments', label: 'Cuộc hẹn', path: '/member/appointments' },
-        { key: '/member/chat', label: 'Tin nhắn', path: '/member/chat' }
+        { key: '/member/chat', label: 'Tin nhắn', path: '/member/chat' },
+        { key: '/qna', label: 'Q&A', path: '/qna' }
       ]
     },
     account: {
@@ -284,12 +285,13 @@ const NavBar = () => {
             </li>
 
             {renderRoleSpecificDropdowns()}
-
-            {user && user.role === 'MEMBER' && (
+            
+            {/* Community Chat for all authenticated users */}
+            {user && (
               <li className="nav-item">
-                <Link to="/qna" className="nav-link">
-                  <QuestionCircleOutlined className="me-1" />
-                  Q&A
+                <Link to="/community-chat" className="nav-link">
+                  <TeamOutlined className="me-1" />
+                  Phòng chat cộng đồng
                 </Link>
               </li>
             )}
