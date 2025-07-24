@@ -325,9 +325,6 @@ const CoachDashboard = () => {
         setCurrentPlan(processedPlan);
         // Reset the evaluation form
         evaluationForm.resetFields();
-      } else {
-        // Handle the case where no plan is found or there's an error
-        message.info(response?.message || 'Không tìm thấy kế hoạch cho thành viên này');
       }
     } catch (error) {
       console.error('Error viewing member plan:', error);
@@ -467,7 +464,6 @@ const CoachDashboard = () => {
               Tạo kế hoạch
             </Button>
           )}
-          
           {/* Hiển thị trạng thái khi chưa có yêu cầu và không có kế hoạch */}
           {!record.planId && !record.isPlanRequested && (
             <Button
@@ -479,15 +475,15 @@ const CoachDashboard = () => {
               Chờ yêu cầu
             </Button>
           )}
-          
-          {/* Nút "Theo dõi kế hoạch hiện giờ" - hiển thị cho mọi thành viên để xem kế hoạch hiện tại nếu có */}
+          {/* Nút "Theo dõi kế hoạch hiện giờ" - cải thiện khi cần đánh giá cuối cùng */}
           <Button
             type="primary"
             size="small"
             icon={<EyeOutlined />}
             onClick={() => handleViewMemberPlan(record)}
+            style={record.needFinalEvaluation ? { background: '#faad14', borderColor: '#faad14', color: '#fff', fontWeight: 700, boxShadow: '0 0 12px #faad1440', textTransform: 'uppercase', letterSpacing: 0.5 } : {}}
           >
-            Theo dõi kế hoạch hiện giờ
+            {record.needFinalEvaluation ? 'CẦN ĐÁNH GIÁ CUỐI - XEM KẾ HOẠCH' : 'Theo dõi kế hoạch hiện giờ'}
           </Button>
         </Space>
       )
@@ -653,13 +649,13 @@ const CoachDashboard = () => {
         ) : !currentPlan ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <Empty 
-              description={<span>Không tìm thấy kế hoạch</span>} 
+              description={<span>Không có kế hoạch</span>} 
               image={Empty.PRESENTED_IMAGE_SIMPLE} 
             />
             <div style={{ marginTop: '20px', maxWidth: '450px', margin: '0 auto' }}>
               <Alert
                 message="Không tìm thấy kế hoạch"
-                description="Thành viên này hiện chưa có kế hoạch cai thuốc nào hoặc chưa được phân công cho bạn."
+                description="Thành viên này hiện chưa có kế hoạch cai thuốc nào. Bạn có thể tạo kế hoạch mới cho họ."
                 type="info"
                 showIcon
               />
