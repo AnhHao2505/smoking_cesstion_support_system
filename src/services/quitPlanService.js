@@ -171,22 +171,13 @@ export const addFinalEvaluation = async (planId, finalEvaluation) => {
 export const viewMemberNewestPlan = async (memberId) => {
   try {
     console.log('Coach viewing member newest plan:', memberId);
-    const response = await axiosInstance.get('/quit-plans/coach/view/newest-of-member', {
+    const response = await axiosInstance.get('/api/quit-plans/coach/view/newest-of-member', {
       params: { memberId }
     });
     console.log('View member plan response:', response.data);
     return handleApiResponse(response);
   } catch (error) {
     console.error('Error viewing member plan:', error);
-    // Return an object with error information instead of null
-    if (error.response && error.response.status === 404) {
-      console.log('No plan found for this member');
-      return {
-        success: false,
-        error: 'NOT_FOUND',
-        message: 'Không tìm thấy kế hoạch cho thành viên này'
-      };
-    }
     
     // Return an error object instead of throwing
     return {

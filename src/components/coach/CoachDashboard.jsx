@@ -23,7 +23,8 @@ import {
   Form,
   Input,
   Alert,
-  Descriptions
+  Descriptions,
+  Empty
 } from 'antd';
 import {
   UserOutlined,
@@ -31,11 +32,15 @@ import {
   TeamOutlined,
   RiseOutlined,
   ClockCircleOutlined,
-  BarChartOutlined
+  BarChartOutlined,
+  EyeOutlined,
+  FileTextOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAssignedMembers, getCoachProfile } from '../../services/coachManagementService';
 import { getFeedbacksForCoach } from '../../services/feebackService';
+import { viewMemberNewestPlan, addFinalEvaluation } from '../../services/quitPlanService';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -49,6 +54,14 @@ const CoachDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [membersLoading, setMembersLoading] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  
+  // State variables for plan view modal
+  const [planViewModalVisible, setPlanViewModalVisible] = useState(false);
+  const [currentMember, setCurrentMember] = useState(null);
+  const [currentPlan, setCurrentPlan] = useState(null);
+  const [planLoading, setPlanLoading] = useState(false);
+  const [evaluationForm] = Form.useForm();
+  const [evaluationSubmitting, setEvaluationSubmitting] = useState(false);
 
   // Always use current user's ID as coachId - this dashboard is only for the coach themselves
   const [coachId, setCoachId] = useState(null);
@@ -82,7 +95,40 @@ const CoachDashboard = () => {
               bio: profileResponse.bio || 'Dedicated to helping people quit smoking successfully',
               photo_url: null,
               certificates: profileResponse.certificates ? profileResponse.certificates.split(',') : [],
-              workingHours: profileResponse.workingHour ? profileResponse.workingHour.join(', ') : 'Monday - Friday, 9:00 AM - 5:00 PM',
+              workingHours: profileResponse.workingHour ? 
+                Array.isArray(profileResponse.workingHour) ? 
+                profileResponse.workingHour.map(hour => {
+                  // Translate day names to Vietnamese
+                  const dayInVietnamese = {
+                    'Monday': 'Thứ Hai',
+                    'Tuesday': 'Thứ Ba',
+                    'Wednesday': 'Thứ Tư',
+                    'Thursday': 'Thứ Năm',
+                    'Friday': 'Thứ Sáu',
+                    'Saturday': 'Thứ Bảy',
+                    'Sunday': 'Chủ Nhật'
+                  };
+                  const day = dayInVietnamese[hour.dayOfWeek] || hour.dayOfWeek;
+                  return `${day}: ${hour.startTime} - ${hour.endTime}`;
+                }).join(', ') 
+                : 'Thứ Hai - Thứ Sáu, 9:00 - 17:00' 
+                : 'Thứ Hai - Thứ Sáu, 9:00 - 17:00',
+              // Store the array separately for vertical display
+              workingHoursArray: profileResponse.workingHour && Array.isArray(profileResponse.workingHour) ? 
+                profileResponse.workingHour.map(hour => {
+                  const dayInVietnamese = {
+                    'Monday': 'Thứ Hai',
+                    'Tuesday': 'Thứ Ba',
+                    'Wednesday': 'Thứ Tư',
+                    'Thursday': 'Thứ Năm',
+                    'Friday': 'Thứ Sáu',
+                    'Saturday': 'Thứ Bảy',
+                    'Sunday': 'Chủ Nhật'
+                  };
+                  const day = dayInVietnamese[hour.dayOfWeek] || hour.dayOfWeek;
+                  return `${day}: ${hour.startTime} - ${hour.endTime}`;
+                }) 
+                : null,
               contactNumber: profileResponse.contactNumber || 'Not available'
             });
           } else {
@@ -139,7 +185,7 @@ const CoachDashboard = () => {
       <div className="dashboard loading-container">
         <Spin size="large" />
         <div style={{ marginTop: 16, textAlign: 'center' }}>
-          <Text type="secondary">Loading coach profile...</Text>
+          <Text type="secondary">Đang tải hồ sơ huấn luyện viên...</Text>
         </div>
       </div>
     );
@@ -206,7 +252,40 @@ const CoachDashboard = () => {
           bio: profileResponse.bio || 'Hỗ trợ mọi người bỏ thuốc lá thành công',
           photo_url: null,
           certificates: profileResponse.certificates ? profileResponse.certificates.split(',') : [],
-          workingHours: profileResponse.workingHour ? profileResponse.workingHour.join(', ') : 'Monday - Friday, 9:00 AM - 5:00 PM',
+          workingHours: profileResponse.workingHour ? 
+            Array.isArray(profileResponse.workingHour) ? 
+            profileResponse.workingHour.map(hour => {
+              // Translate day names to Vietnamese
+              const dayInVietnamese = {
+                'Monday': 'Thứ Hai',
+                'Tuesday': 'Thứ Ba',
+                'Wednesday': 'Thứ Tư',
+                'Thursday': 'Thứ Năm',
+                'Friday': 'Thứ Sáu',
+                'Saturday': 'Thứ Bảy',
+                'Sunday': 'Chủ Nhật'
+              };
+              const day = dayInVietnamese[hour.dayOfWeek] || hour.dayOfWeek;
+              return `${day}: ${hour.startTime} - ${hour.endTime}`;
+            }).join(', ') 
+            : 'Thứ Hai - Thứ Sáu, 9:00 - 17:00' 
+            : 'Thứ Hai - Thứ Sáu, 9:00 - 17:00',
+          // Store the array separately for vertical display
+          workingHoursArray: profileResponse.workingHour && Array.isArray(profileResponse.workingHour) ? 
+            profileResponse.workingHour.map(hour => {
+              const dayInVietnamese = {
+                'Monday': 'Thứ Hai',
+                'Tuesday': 'Thứ Ba',
+                'Wednesday': 'Thứ Tư',
+                'Thursday': 'Thứ Năm',
+                'Friday': 'Thứ Sáu',
+                'Saturday': 'Thứ Bảy',
+                'Sunday': 'Chủ Nhật'
+              };
+              const day = dayInVietnamese[hour.dayOfWeek] || hour.dayOfWeek;
+              return `${day}: ${hour.startTime} - ${hour.endTime}`;
+            }) 
+            : null,
           contactNumber: profileResponse.contactNumber || 'Not available'
         });
         message.success('Đã cập nhật thông tin hồ sơ');
@@ -214,6 +293,83 @@ const CoachDashboard = () => {
     } catch (error) {
       console.error('Error refreshing profile:', error);
       message.error('Không thể cập nhật thông tin hồ sơ');
+    }
+  };
+  
+  // Handler to view a member's current plan
+  const handleViewMemberPlan = async (member) => {
+    try {
+      setPlanLoading(true);
+      setCurrentMember(member);
+      setPlanViewModalVisible(true);
+      setCurrentPlan(null); // Reset current plan first
+      
+      const response = await viewMemberNewestPlan(member.user_id);
+      console.log('Plan response:', response);
+      
+      // Debug log for field names - helps us identify what fields are available
+      if (response && typeof response === 'object') {
+        console.log('Plan fields available:', Object.keys(response));
+        console.log('Progress data:', {
+          progressInDay: response.progressInDay,
+          durationInDays: response.durationInDays
+        });
+      }
+      
+      if (response && response.id) {
+        // Use fields exactly as they are named in the API response
+        const processedPlan = {
+          ...response
+        };
+        
+        setCurrentPlan(processedPlan);
+        // Reset the evaluation form
+        evaluationForm.resetFields();
+      } else {
+        // Handle the case where no plan is found or there's an error
+        message.info(response?.message || 'Không tìm thấy kế hoạch cho thành viên này');
+      }
+    } catch (error) {
+      console.error('Error viewing member plan:', error);
+    } finally {
+      setPlanLoading(false);
+    }
+  };
+  
+  // Handler to submit final evaluation
+  const handleSubmitEvaluation = async (values) => {
+    if (!currentPlan || !currentPlan.id) {
+      message.error('Không tìm thấy kế hoạch để đánh giá');
+      return;
+    }
+    
+    try {
+      setEvaluationSubmitting(true);
+      
+      const result = await addFinalEvaluation(
+        currentPlan.id, 
+        values.finalEvaluation
+      );
+      
+      if (result && result.success !== false) {
+        message.success('Đã gửi đánh giá cuối cùng thành công');
+        
+        // Update the current plan with the evaluation
+        setCurrentPlan({
+          ...currentPlan,
+          finalEvaluation: values.finalEvaluation
+        });
+        
+        // Refresh the plan data to get the updated information
+        handleViewMemberPlan(currentMember);
+      } else {
+        message.error('Không thể gửi đánh giá: ' + (result?.message || 'Lỗi không xác định'));
+      }
+    } catch (error) {
+      console.error('Error submitting evaluation:', error);
+      message.error('Đã xảy ra lỗi khi gửi đánh giá');
+    } finally {
+      setEvaluationSubmitting(false);
     }
   };
 
@@ -254,7 +410,8 @@ const CoachDashboard = () => {
     rating: 0, // Rating không có trong API profile/coach, lấy từ phần feedback
     photo_url: null,
     certificates: [],
-    workingHours: 'Thứ Hai - Thứ Sáu, 9:00 AM - 5:00 PM',
+    workingHours: 'Thứ Hai - Thứ Sáu, 9:00 - 17:00',
+    workingHoursArray: ['Thứ Hai: 9:00 - 17:00', 'Thứ Ba: 9:00 - 17:00', 'Thứ Tư: 9:00 - 17:00', 'Thứ Năm: 9:00 - 17:00', 'Thứ Sáu: 9:00 - 17:00'],
     contactNumber: 'Không có thông tin'
   };
 
@@ -322,6 +479,16 @@ const CoachDashboard = () => {
               Chờ yêu cầu
             </Button>
           )}
+          
+          {/* Nút "Theo dõi kế hoạch hiện giờ" - hiển thị cho mọi thành viên để xem kế hoạch hiện tại nếu có */}
+          <Button
+            type="primary"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => handleViewMemberPlan(record)}
+          >
+            Theo dõi kế hoạch hiện giờ
+          </Button>
         </Space>
       )
     }
@@ -374,7 +541,21 @@ const CoachDashboard = () => {
               {profileData.workingHours && (
                 <div className="mb-3">
                   <Text strong>Giờ làm việc: </Text>
-                  <Text>{profileData.workingHours}</Text>
+                  <div style={{ marginTop: 8, background: '#f9f9f9', padding: '8px 12px', borderRadius: '4px', border: '1px solid #f0f0f0' }}>
+                    {Array.isArray(profileData.workingHoursArray) ? 
+                      profileData.workingHoursArray.map((hour, index) => (
+                        <div key={index} style={{ marginBottom: 4, display: 'flex' }}>
+                          <ClockCircleOutlined style={{ marginRight: 8, marginTop: 4 }} />
+                          <Text>{hour}</Text>
+                        </div>
+                      ))
+                    : 
+                      <div style={{ display: 'flex' }}>
+                        <ClockCircleOutlined style={{ marginRight: 8, marginTop: 4 }} />
+                        <Text>{profileData.workingHours}</Text>
+                      </div>
+                    }
+                  </div>
                 </div>
               )}
 
@@ -450,6 +631,221 @@ const CoachDashboard = () => {
           </Card>
         </TabPane>   
       </Tabs>
+      
+      {/* Modal hiển thị kế hoạch hiện tại của thành viên */}
+      <Modal
+        title={
+          <div>
+            <span>Kế hoạch cai thuốc của </span>
+            <span style={{ fontWeight: 'bold' }}>{currentMember?.full_name || 'Thành viên'}</span>
+          </div>
+        }
+        open={planViewModalVisible}
+        onCancel={() => setPlanViewModalVisible(false)}
+        width={800}
+        footer={null}
+      >
+        {planLoading ? (
+          <div style={{ textAlign: 'center', padding: '30px' }}>
+            <Spin size="large" />
+            <div style={{ marginTop: '10px' }}>Đang tải kế hoạch...</div>
+          </div>
+        ) : !currentPlan ? (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <Empty 
+              description={<span>Không tìm thấy kế hoạch</span>} 
+              image={Empty.PRESENTED_IMAGE_SIMPLE} 
+            />
+            <div style={{ marginTop: '20px', maxWidth: '450px', margin: '0 auto' }}>
+              <Alert
+                message="Không tìm thấy kế hoạch"
+                description="Thành viên này hiện chưa có kế hoạch cai thuốc nào hoặc chưa được phân công cho bạn."
+                type="info"
+                showIcon
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="plan-details">
+            <Descriptions title="Thông tin kế hoạch" bordered column={2}>
+              <Descriptions.Item label="ID kế hoạch" span={1}>
+                {currentPlan.id || 'N/A'}
+              </Descriptions.Item>
+              <Descriptions.Item label="Trạng thái">
+                <Tag color={
+                  currentPlan.quitPlanStatus === 'COMPLETED' ? 'green' :
+                  currentPlan.quitPlanStatus === 'IN_PROGRESS' ? 'blue' :
+                  currentPlan.quitPlanStatus === 'FAILED' ? 'red' : 'default'
+                }>
+                  {currentPlan.quitPlanStatus === 'COMPLETED' ? 'Hoàn thành' :
+                   currentPlan.quitPlanStatus === 'IN_PROGRESS' ? 'Đang tiến hành' :
+                   currentPlan.quitPlanStatus === 'FAILED' ? 'Thất bại' : 
+                   currentPlan.quitPlanStatus || 'Không xác định'}
+                </Tag>
+              </Descriptions.Item>
+              
+              
+              <Descriptions.Item label="Tiến độ thực hiện" span={2}>
+                <div style={{ marginBottom: 5 }}>
+                  <Text>{currentPlan.progressInDay || 0} / {currentPlan.durationInDays || 30} ngày</Text>
+                </div>
+                <Progress 
+                  percent={Math.min(100, Math.round(((currentPlan.progressInDay || 0) / (currentPlan.durationInDays || 30)) * 100))} 
+                  strokeColor={{
+                    '0%': '#108ee9',
+                    '100%': '#87d068',
+                  }}
+                  status={currentPlan.quitPlanStatus === 'COMPLETED' ? 'success' : 'active'}
+                />
+              </Descriptions.Item>       
+              
+              {currentPlan.completionQuality && (
+                <Descriptions.Item label="Mức độ hoàn thành" span={2}>
+                  <Tag color={
+                    currentPlan.completionQuality.toLowerCase().includes('xuất sắc') ? '#52c41a' :
+                    currentPlan.completionQuality.toLowerCase().includes('tốt') ? '#73d13d' :
+                    currentPlan.completionQuality.toLowerCase().includes('khá') ? '#bae637' :
+                    '#faad14'
+                  }>
+                    {currentPlan.completionQuality}
+                  </Tag>
+                </Descriptions.Item>
+              )}
+              
+              {currentPlan.finalEvaluation && (
+                <Descriptions.Item label="Đánh giá cuối cùng" span={2}>
+                  <div style={{ 
+                    whiteSpace: 'pre-line',
+                    padding: '8px 12px',
+                    background: '#f9f9f9',
+                    border: '1px solid #e8e8e8',
+                    borderRadius: '4px',
+                    fontStyle: 'italic'
+                  }}>
+                    {currentPlan.finalEvaluation}
+                  </div>
+                </Descriptions.Item>
+              )}
+            
+              <Descriptions.Item label="Tình trạng hút thuốc ban đầu">
+                <Tag color={
+                  currentPlan.currentSmokingStatus === 'NONE' ? 'green' :
+                  currentPlan.currentSmokingStatus === 'LIGHT' ? 'cyan' :
+                  currentPlan.currentSmokingStatus === 'MODERATE' ? 'orange' :
+                  currentPlan.currentSmokingStatus === 'SEVERE' ? 'red' : 'default'
+                }>
+                  {currentPlan.currentSmokingStatus === 'NONE' ? 'Không hút thuốc' :
+                   currentPlan.currentSmokingStatus === 'LIGHT' ? 'Nhẹ' :
+                   currentPlan.currentSmokingStatus === 'MODERATE' ? 'Trung bình' :
+                   currentPlan.currentSmokingStatus === 'SEVERE' ? 'Nặng' : 
+                   currentPlan.currentSmokingStatus || 'Không xác định'}
+                </Tag>
+              </Descriptions.Item>  
+
+              <Descriptions.Item label="Thời gian kế hoạch" span={2}>
+                {currentPlan.durationInDays || 30} ngày
+              </Descriptions.Item>  
+
+              <Descriptions.Item label="Ngày bắt đầu">
+                {currentPlan.startDate || currentPlan.start_date ? new Date(currentPlan.startDate || currentPlan.start_date).toLocaleDateString('vi-VN') : 'Chưa bắt đầu'}
+              </Descriptions.Item>
+              <Descriptions.Item label="Ngày kết thúc dự kiến">
+                {currentPlan.endDate || currentPlan.end_date ? new Date(currentPlan.endDate || currentPlan.end_date).toLocaleDateString('vi-VN') : 'Chưa xác định'}
+              </Descriptions.Item>
+
+            </Descriptions>
+            
+            <Divider orientation="left">Chi tiết kế hoạch</Divider>
+            
+            <Descriptions bordered column={2}>
+              <Descriptions.Item label="Mục tiêu cai thuốc" span={2}>
+                {currentPlan.goal || currentPlan.motivation || 'Không có mục tiêu cụ thể'}
+              </Descriptions.Item>
+              
+              <Descriptions.Item label="Mô tả" span={2}>
+                {currentPlan.description || 'Không có mô tả'}
+              </Descriptions.Item>
+                      
+              <Descriptions.Item label="Chiến lược đối phó" span={2}>
+                {currentPlan.copingStrategies || 'Không có thông tin'}
+              </Descriptions.Item>
+              
+              <Descriptions.Item label="Yếu tố kích thích cần tránh" span={2}>
+                {currentPlan.smokingTriggersToAvoid || 'Không có thông tin'}
+              </Descriptions.Item>
+              
+              <Descriptions.Item label="Chiến lược phòng ngừa tái phát" span={2}>
+                {currentPlan.relapsePreventionStrategies || 'Không có thông tin'}
+              </Descriptions.Item>
+              
+              <Descriptions.Item label="Kế hoạch thưởng" span={2}>
+                {currentPlan.rewardPlan || 'Không có thông tin'}
+              </Descriptions.Item>
+              
+              <Descriptions.Item label="Thuốc men sử dụng" span={1}>
+                {currentPlan.medicationsToUse || 'Không có'}
+              </Descriptions.Item>
+              
+              <Descriptions.Item label="Hướng dẫn sử dụng thuốc" span={1}>
+                {currentPlan.medicationInstructions || 'Không có'}
+              </Descriptions.Item>
+              
+              <Descriptions.Item label="Nguồn hỗ trợ" span={2}>
+                {currentPlan.supportResources || 'Không có thông tin'}
+              </Descriptions.Item>
+              
+              <Descriptions.Item label="Ghi chú bổ sung" span={2}>
+                {currentPlan.additionalNotes || 'Không có ghi chú'}
+              </Descriptions.Item>
+            </Descriptions>
+            
+            {currentPlan.quitPlanStatus === 'COMPLETED' && !currentPlan.finalEvaluation && (
+              <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f0f8ff', borderRadius: '8px', border: '1px solid #91d5ff' }}>
+                <Title level={4} style={{ marginBottom: '16px' }}>
+                  <FileTextOutlined /> Thêm đánh giá cuối cùng
+                </Title>
+                <Form form={evaluationForm} onFinish={handleSubmitEvaluation} layout="vertical">
+                  <Form.Item
+                    name="finalEvaluation"
+                    label="Đánh giá cuối cùng của huấn luyện viên"
+                    rules={[{ required: true, message: 'Vui lòng nhập đánh giá của bạn' }]}
+                  >
+                    <Input.TextArea
+                      rows={4}
+                      placeholder="Nhập đánh giá cuối cùng của bạn về tiến trình và kết quả của kế hoạch cai thuốc này..."
+                      style={{
+                        background: '#f9f9f9',
+                        border: '1px solid #e8e8e8',
+                        borderRadius: '4px'
+                      }}
+                    />
+                  </Form.Item>
+                  <Form.Item>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      icon={<CheckCircleOutlined />}
+                      loading={evaluationSubmitting}
+                    >
+                      Gửi đánh giá
+                    </Button>
+                  </Form.Item>
+                </Form>
+              </div>
+            )}
+            
+            {currentPlan.quitPlanStatus !== 'COMPLETED' && (
+              <Alert
+                style={{ marginTop: '20px' }}
+                message="Lưu ý"
+                description="Bạn chỉ có thể thêm đánh giá cuối cùng khi kế hoạch đã hoàn thành."
+                type="warning"
+                showIcon
+              />
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

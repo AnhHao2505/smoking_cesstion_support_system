@@ -147,6 +147,50 @@ const QuitPlanHistory = () => {
       default: return 'default';
     }
   };
+  
+  // Helper để lấy màu tương ứng với mức độ hoàn thành
+  const getCompletionQualityColor = (quality, completionPercent) => {
+    if (!quality) {
+      // Fallback to percentage-based color
+      if (completionPercent >= 90) {
+        return '#52c41a'; // Xanh lá đậm - xuất sắc
+      } else if (completionPercent >= 75) {
+        return '#73d13d'; // Xanh lá - tốt
+      } else if (completionPercent >= 50) {
+        return '#bae637'; // Xanh vàng - khá
+      } else {
+        return '#faad14'; // Cam - cần cải thiện
+      }
+    }
+    
+    // Dựa vào completionQuality từ backend để xác định màu sắc
+    const qualityLower = quality.toLowerCase();
+    if (qualityLower.includes('xuất sắc')) {
+      return '#52c41a'; // Xanh lá đậm
+    } else if (qualityLower.includes('tốt')) {
+      return '#73d13d'; // Xanh lá
+    } else if (qualityLower.includes('khá')) {
+      return '#bae637'; // Xanh vàng
+    } else {
+      return '#faad14'; // Cam
+    }
+  };
+  
+  // Helper tạo style nhất quán cho tag hiển thị mức độ hoàn thành
+  const getCompletionTagStyle = (color, isSmall = false) => {
+    return {
+      fontSize: isSmall ? '11px' : '14px',
+      padding: isSmall ? '2px 6px' : '4px 8px',
+      marginLeft: isSmall ? '8px' : '0',
+      margin: isSmall ? undefined : 0,
+      fontWeight: 'bold',
+      border: `1px solid ${color}`,
+      backgroundColor: color,
+      color: 'white',
+      textShadow: '0 1px 1px rgba(0,0,0,0.2)',
+      boxShadow: `0 1px 2px rgba(0,0,0,0.2)`
+    };
+  };
 
   const getStatusText = (status) => {
     switch (status?.toUpperCase()) {
@@ -296,32 +340,18 @@ const QuitPlanHistory = () => {
         if (record.quitPlanStatus?.toUpperCase() === 'COMPLETED') {
           progressStatus = 'success';
           
-          // Sử dụng completionQuality từ backend nếu có, nếu không thì tính theo phần trăm
-          if (completionLevel) {
-            // Dựa vào completionQuality từ backend để xác định màu sắc
-            const qualityLower = completionLevel.toLowerCase();
-            if (qualityLower.includes('xuất sắc')) {
-              strokeColor = '#52c41a'; // Xanh lá đậm
-            } else if (qualityLower.includes('tốt')) {
-              strokeColor = '#73d13d'; // Xanh lá
-            } else if (qualityLower.includes('khá')) {
-              strokeColor = '#bae637'; // Xanh vàng
-            } else {
-              strokeColor = '#faad14'; // Cam
-            }
-          } else {
-            // Fallback: quyết định màu sắc dựa trên phần trăm hoàn thành
+          // Sử dụng utility function để xác định màu sắc dựa trên completionQuality hoặc phần trăm hoàn thành
+          strokeColor = getCompletionQualityColor(completionLevel, completionPercent);
+          
+          // Xác định completionLevel nếu chưa có
+          if (!completionLevel) {
             if (completionPercent >= 90) {
-              strokeColor = '#52c41a'; // Xanh lá đậm
               completionLevel = 'xuất sắc';
             } else if (completionPercent >= 75) {
-              strokeColor = '#73d13d'; // Xanh lá
               completionLevel = 'tốt';
             } else if (completionPercent >= 50) {
-              strokeColor = '#bae637'; // Xanh vàng
               completionLevel = 'khá';
             } else {
-              strokeColor = '#faad14'; // Cam
               completionLevel = 'cần cải thiện';
             }
           }
@@ -358,20 +388,7 @@ const QuitPlanHistory = () => {
                 <b>{!isNaN(daysPassed) && daysPassed !== null ? daysPassed : 0}/{!isNaN(totalDays) && totalDays !== null ? totalDays : 0}</b> ngày ({safeCompletionPercent}%)
               </Text>
               {record.quitPlanStatus?.toUpperCase() === 'COMPLETED' && completionLevel && (
-                <Tag 
-                  color="green" 
-                  style={{ 
-                    fontSize: '11px', 
-                    marginLeft: '8px',
-                    fontWeight: 'bold',
-                    padding: '2px 6px',
-                    border: '1px solid #52c41a',
-                    backgroundColor: '#52c41a',
-                    color: 'white',
-                    textShadow: '0 1px 1px rgba(0,0,0,0.2)',
-                    boxShadow: '0 1px 2px rgba(82,196,26,0.2)'
-                  }}
-                >
+                <Tag style={getCompletionTagStyle(strokeColor, true)}>
                   ✓ {record.completionQuality ? record.completionQuality.charAt(0).toUpperCase() + record.completionQuality.slice(1) : completionLevel}
                 </Tag>
               )}
@@ -763,20 +780,20 @@ const QuitPlanHistory = () => {
                           
                           // Xác định màu sắc dựa trên completionQuality hoặc tính toán nếu không có
                           if (selectedPlan.quitPlanStatus?.toUpperCase() === 'COMPLETED') {
-                            if (completionLevel === 'xuất sắc' || completionPercent >= 90) {
-                              strokeColor = '#52c41a';  // Xanh lá đậm
+                            // Sử dụng utility function để xác định màu sắc
+                            strokeColor = getCompletionQualityColor(completionLevel, completionPercent);
+                            
+                            // Xác định background color tương ứng
+                            if (strokeColor === '#52c41a') {
                               bgColor = '#f6ffed';
                               if (!completionLevel) completionLevel = 'Xuất sắc';
-                            } else if (completionLevel === 'tốt' || completionPercent >= 75) {
-                              strokeColor = '#73d13d';  // Xanh lá
+                            } else if (strokeColor === '#73d13d') {
                               bgColor = '#f6ffed';
                               if (!completionLevel) completionLevel = 'Tốt';
-                            } else if (completionLevel === 'khá' || completionPercent >= 50) {
-                              strokeColor = '#bae637';  // Xanh vàng
+                            } else if (strokeColor === '#bae637') {
                               bgColor = '#fcffe6';
                               if (!completionLevel) completionLevel = 'Khá';
                             } else {
-                              strokeColor = '#faad14';  // Cam
                               bgColor = '#fff7e6';
                               if (!completionLevel) completionLevel = 'Cần cải thiện';
                             }
@@ -834,7 +851,7 @@ const QuitPlanHistory = () => {
                                     <><ClockCircleOutlined /> Tiến độ hiện tại:</>
                                   )}
                                 </Text>
-                                <Tag color={strokeColor} style={{ fontSize: '14px', padding: '4px 8px', margin: 0 }}>
+                                <Tag style={getCompletionTagStyle(strokeColor)}>
                                   {completionLevel}
                                 </Tag>
                               </div>
