@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Form, Input, Button, Checkbox, Typography, Row, Col, Card, Alert, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
@@ -11,7 +11,6 @@ const { Title, Text } = Typography;
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [loginError, setLoginError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [form] = Form.useForm();
@@ -27,7 +26,6 @@ const LoginPage = () => {
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
-    setLoginError('');
     
     try {
       // Extract email and password exactly as required by API
@@ -63,8 +61,10 @@ const LoginPage = () => {
         }
       }
     } catch (error) {
+      // Error will be handled by popup/notification system
+      console.log('Login failed:', error);
+    } finally {
       setIsLoading(false);
-      setLoginError(error.message || 'Có lỗi xảy ra trong quá trình đăng nhập');
     }
   };
 
@@ -83,15 +83,6 @@ const LoginPage = () => {
                 className="mb-4" 
                 closable
                 onClose={() => setSuccessMessage('')}
-              />
-            )}
-            
-            {loginError && (
-              <Alert 
-                message={loginError} 
-                type="error" 
-                showIcon 
-                className="mb-4" 
               />
             )}
             

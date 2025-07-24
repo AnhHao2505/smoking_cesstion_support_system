@@ -1,6 +1,7 @@
 import axiosInstance, { isTokenValid, clearAuthData } from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 import { getCurrentAuthUser, getCurrentAuthToken, getCurrentUserId } from '../utils/authUtils';
+import { message } from 'antd';
 
 // Helper function to parse JWT token
 const parseJwtTokenInternal = (token) => {
@@ -82,20 +83,8 @@ export const login = async (email, password) => {
     }
   } catch (error) {
     console.error('Login error:', error);
-    
-    // Handle different error response formats
-    let errorMessage = 'Login failed. Please check your credentials.';
-    
-    if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-    
-    throw {
-      success: false,
-      message: errorMessage
-    };
+    // Let axios interceptor handle error display, just throw without custom message
+    throw error;
   }
 };
 
@@ -112,16 +101,18 @@ export const register = async (name, email, password) => {
     const response = await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, requestBody);
     const data = handleApiResponse(response);
     
-    // Successful registration
-    const result = {
-      success: true,
-      message: data.message || 'Registration successful. Please verify your email to activate your account.'
-    };
-    
-    // Redirect to login page
-    window.location.href = '/login';
-    
-    return result;
+    // Check if registration was actually successful based on success field
+    if (data.success) {
+      // Successful registration - return success without redirect
+      return {
+        success: true,
+        message: data.message || 'Đăng ký thành công!'
+      };
+    } else {
+      // Registration failed (e.g., email already exists) - show error popup and throw error
+      message.error(data.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+      throw new Error(data.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+    }
   } catch (error) {
     console.error('Registration error:', error);
     
@@ -275,23 +266,39 @@ export const sendResetOtp = async (email) => {
     console.error('Send reset OTP error:', error);
     throw {
       success: false,
-      message: error.message || 'Failed to send reset OTP'
+      message: 'Không thể gửi OTP. Vui lòng thử lại.'
     };
   }
 };
 
-// Reset password with OTP - Updated to match new API
-export const resetPassword = async (email, otpInput, newPassword) => {
+// Validate OTP for password reset
+export const validateOtp = async (email, otpInput) => {
+  try {
+    const response = await axiosInstance.post('/auth/validate-otp', null, {
+      params: { email, otpInput }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('OTP validation error:', error);
+    throw {
+      success: false,
+      message: 'OTP không hợp lệ'
+    };
+  }
+};
+
+// Reset password - OTP already validated in previous step
+export const resetPassword = async (email, newPassword) => {
   try {
     const response = await axiosInstance.patch('/auth/reset-password', null, {
-      params: { email, otpInput, newPassword }
+      params: { email, newPassword }
     });
     return handleApiResponse(response);
   } catch (error) {
     console.error('Reset password error:', error);
     throw {
       success: false,
-      message: error.message || 'Failed to reset password'
+      message: 'Không thể đặt lại mật khẩu'
     };
   }
 };

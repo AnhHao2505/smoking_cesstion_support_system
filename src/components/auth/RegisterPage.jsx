@@ -1,43 +1,41 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Form, Input, Button, Select, Checkbox, Typography, Row, Col, Card, Alert } from 'antd';
-import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Checkbox, Typography, Row, Col, Card, message } from 'antd';
+import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import '../../styles/global.css';
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const [registerError, setRegisterError] = useState('');
-  const [registerSuccess, setRegisterSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [form] = Form.useForm();
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
-    setRegisterError('');
-    setRegisterSuccess('');
     
     try {
       // Extract only the required fields for the API
       const { name, email, password } = values;
       
       const response = await authService.register(name, email, password);
-      setIsLoading(false);
-      setRegisterSuccess(response.message || 'Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.');
       
-      form.resetFields();
-      
-      // Redirect to login after a short delay
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
+      if (response.success) {
+        message.success(response.message || 'Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.');
+        form.resetFields();
+        
+        // Redirect to login after a short delay
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      }
       
     } catch (error) {
+      // Error will be handled by popup/notification system
+      console.log('Registration failed:', error);
+    } finally {
       setIsLoading(false);
-      setRegisterError(error.message || 'Có lỗi xảy ra trong quá trình đăng ký');
     }
   };
 
@@ -47,24 +45,6 @@ const RegisterPage = () => {
         <Col xs={22} sm={22} md={20} lg={16} xl={14}>
           <Card className="auth-card" bordered={false}>
             <Title level={2} className="text-center">Tạo tài khoản</Title>
-            
-            {registerError && (
-              <Alert 
-                message={registerError} 
-                type="error" 
-                showIcon 
-                className="mb-4" 
-              />
-            )}
-            
-            {registerSuccess && (
-              <Alert 
-                message={registerSuccess} 
-                type="success" 
-                showIcon 
-                className="mb-4" 
-              />
-            )}
             
             <Form
               form={form}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Form, Input, Button, Typography, Row, Col, Card, Alert } from 'antd';
+import { Form, Input, Button, Typography, Row, Col, Card } from 'antd';
 import { SafetyOutlined, ArrowLeftOutlined, ReloadOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import '../../styles/global.css';
@@ -12,13 +12,12 @@ const ResetPasswordOtpPage = () => {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [form] = Form.useForm();
   
-  // Get email from navigation state
+  // Get email and OTP sent timestamp from navigation state
   const email = location.state?.email;
+  const otpSentAt = location.state?.otpSentAt;
 
   useEffect(() => {
     // Redirect to forgot password if no email provided
@@ -26,7 +25,14 @@ const ResetPasswordOtpPage = () => {
       navigate('/forgot-password');
       return;
     }
-  }, [email, navigate]);
+    
+    // Auto start countdown if OTP was just sent (from email page)
+    if (otpSentAt) {
+      const timeSinceOtpSent = Math.floor((Date.now() - otpSentAt) / 1000);
+      const remainingTime = Math.max(0, 30 - timeSinceOtpSent);
+      setCountdown(remainingTime);
+    }
+  }, [email, otpSentAt, navigate]);
 
   useEffect(() => {
     // Countdown timer for resend button
@@ -38,30 +44,39 @@ const ResetPasswordOtpPage = () => {
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
-    setError('');
-    setSuccess('');
     
     try {
       const { otp } = values;
+      
+      // Check if OTP is provided
+      if (!otp || otp.trim() === '') {
+        return;
+      }
+      
       const cleanOtp = otp.replace(/\s/g, ''); // Remove any spaces
       
-      // Validate OTP with backend before navigation
+      // Frontend validation for OTP format
+      if (!/^[0-9]{6}$/.test(cleanOtp)) {
+        return;
+      }
+      
+      // Validate OTP with backend
       const response = await authService.validateOtp(email, cleanOtp);
       
+      // Check if response is successful
       if (response && response.success) {
-        // Navigate to reset password page with email and OTP
+        // Navigate to reset password page with email only (OTP already consumed)
         navigate('/reset-password', { 
           state: { 
-            email, 
-            otp: cleanOtp
+            email,
+            otpValidated: true // Flag to indicate OTP was validated
           } 
         });
-      } else {
-        setError('OTP không đúng hoặc đã hết hạn. Vui lòng thử lại.');
       }
       
     } catch (error) {
-      setError(error.message || 'OTP không đúng hoặc đã hết hạn. Vui lòng thử lại.');
+      // Error will be handled by popup/notification system
+      console.log('OTP validation failed:', error);
     } finally {
       setIsLoading(false);
     }
@@ -69,20 +84,18 @@ const ResetPasswordOtpPage = () => {
 
   const handleResendOtp = async () => {
     setIsResending(true);
-    setError('');
-    setSuccess('');
     
     try {
-      await authService.sendResetOtp(email);
-      setSuccess('OTP mới đã được gửi đến email của bạn.');
-      setCountdown(30); // 30 seconds countdown
-    } catch (error) {
-      // Check if it's a rate limiting error (429)
-      if (error.status === 429) {
-        setError('Vui lòng chờ 30 giây trước khi yêu cầu OTP mới.');
-      } else {
-        setError(error.message || 'Không thể gửi lại OTP. Vui lòng thử lại.');
+      const response = await authService.sendResetOtp(email);
+      
+      // Check if response is successful
+      if (response && response.success) {
+        setCountdown(30); // 30 seconds countdown
       }
+      
+    } catch (error) {
+      // Error will be handled by popup/notification system
+      console.log('Resend OTP failed:', error);
     } finally {
       setIsResending(false);
     }
@@ -113,25 +126,7 @@ const ResetPasswordOtpPage = () => {
               Chúng tôi đã gửi mã xác minh 6 chữ số đến<br />
               <strong>{email}</strong>
             </Text>
-            
-            {error && (
-              <Alert 
-                message={error} 
-                type="error" 
-                showIcon 
-                className="mb-4" 
-              />
-            )}
-            
-            {success && (
-              <Alert 
-                message={success} 
-                type="success" 
-                showIcon 
-                className="mb-4" 
-              />
-            )}
-            
+                       
             <Form
               form={form}
               name="verify-otp"
@@ -141,17 +136,10 @@ const ResetPasswordOtpPage = () => {
               <Form.Item
                 name="otp"
                 label="Mã xác minh"
-                rules={[
-                  { required: true, message: 'Vui lòng nhập mã OTP!' },
-                  { 
-                    pattern: /^[0-9]{6}$/, 
-                    message: 'Vui lòng nhập đúng mã OTP 6 chữ số!' 
-                  }
-                ]}
               >
                 <Input 
                   prefix={<SafetyOutlined />} 
-                  placeholder="Nhập mã 6 chữ số" 
+                  placeholder="Nhập đúng 6 chữ số (ví dụ: 123456)" 
                   size="large"
                   maxLength={6}
                   disabled={isLoading}
@@ -162,6 +150,24 @@ const ResetPasswordOtpPage = () => {
                   }}
                 />
               </Form.Item>
+
+              <div className="text-center mb-3" style={{
+                background: '#f6f8fa',
+                border: '1px solid #e1e4e8',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                margin: '16px 0'
+              }}>
+                <Text type="secondary" style={{ 
+                  fontSize: '13px', 
+                  color: '#586069',
+                  fontWeight: '500',
+                  display: 'block',
+                  lineHeight: '1.5'
+                }}>
+                  ⚠️ Mã OTP chỉ có hiệu lực trong 15 phút và chỉ chứa 6 chữ số
+                </Text>
+              </div>
 
               <Form.Item>
                 <Button 

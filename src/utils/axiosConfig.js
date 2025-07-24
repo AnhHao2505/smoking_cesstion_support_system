@@ -48,6 +48,7 @@ axiosInstance.interceptors.request.use(
       '/auth/login',
       '/auth/register', 
       '/auth/send-verify-otp',
+      '/auth/validate-otp',
       '/auth/send-reset-otp',
       '/auth/verify-account',
       '/auth/reset-password',
@@ -140,6 +141,16 @@ axiosInstance.interceptors.response.use(
       }
       
       switch (status) {
+        case 400:
+          // Bad Request - including login credential errors
+          console.error('Bad request:', errorMessage || 'Bad request');
+          
+          if (errorMessage && errorMessage.trim() !== '') {
+            message.error(errorMessage);
+          } else {
+            message.error('Yêu cầu không hợp lệ. Vui lòng kiểm tra lại thông tin đã nhập.');
+          }
+          break;
         case 401:
           // Unauthorized - clear token and auth data
           console.error('Authentication failed:', errorMessage || 'Unauthorized access');

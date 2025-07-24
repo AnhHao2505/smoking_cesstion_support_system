@@ -9,7 +9,6 @@ import {
 } from '@ant-design/icons';
 import { getMyProfile, updateMemberProfile } from '../../services/memberProfileService';
 import { getCurrentUser } from '../../services/authService';
-import { upgradeToPremium } from '../../services/userService';
 import PaymentModal from '../payment/PaymentModal';
 
 const { Title, Text, Paragraph } = Typography;
@@ -102,25 +101,24 @@ const MemberProfile = () => {
     try {
       setPaymentModalVisible(false);
       setUpgradeLoading(true);
-      
-      // Call the upgrade API to update backend
-      const response = await upgradeToPremium();
-      
-      if (response) {
-        message.success("Successfully upgraded to Premium!");
-        // Update local state
-        setMemberProfile(prev => ({
-          ...prev,
-          premiumMembership: true
-        }));
         
-        // Update user data in localStorage if needed
-        const user = getCurrentUser();
-        if (user) {
-          const updatedUser = { ...user, isPremiumMembership: true };
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-        }
+      // Just update the UI state directly
+      message.success("Successfully upgraded to Premium!");
+      
+      // Update local state
+      setMemberProfile(prev => ({
+        ...prev,
+        premiumMembership: true,
+        planName: 'PREMIUM'
+      }));
+      
+      // Update user data in localStorage if needed
+      const user = getCurrentUser();
+      if (user) {
+        const updatedUser = { ...user, isPremiumMembership: true };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
       }
+      
     } catch (error) {
       console.error("Error upgrading to premium:", error);
       message.error("Failed to upgrade to premium. Please try again.");

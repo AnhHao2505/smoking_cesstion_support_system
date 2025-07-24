@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Form, Input, Button, Typography, Row, Col, Card, Alert } from 'antd';
+import { Form, Input, Button, Typography, Row, Col, Card } from 'antd';
 import { LockOutlined, EyeInvisibleOutlined, EyeTwoTone, CheckCircleOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import '../../styles/global.css';
@@ -11,35 +11,38 @@ const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [success, setSuccess] = useState(false);
   const [form] = Form.useForm();
   
-  // Get email and OTP from navigation state
+  // Get email and OTP validation flag from navigation state
   const email = location.state?.email;
-  const otp = location.state?.otp;
+  const otpValidated = location.state?.otpValidated;
 
   useEffect(() => {
-    // Redirect to forgot password if no email or OTP provided
-    if (!email || !otp) {
+    // Redirect to forgot password if no email or OTP not validated
+    if (!email || !otpValidated) {
       navigate('/forgot-password');
       return;
     }
-  }, [email, otp, navigate]);
+  }, [email, otpValidated, navigate]);
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
-    setError('');
-    setSuccess('');
     
     try {
       const { newPassword } = values;
       
+      // Frontend validation for password length
+      if (newPassword.length < 8) {
+        return;
+      }
+      
       // Call reset password API (OTP already validated in previous step)
       const response = await authService.resetPassword(email, newPassword);
       
-      if (response) {
-        setSuccess('Đặt lại mật khẩu thành công! Đang chuyển hướng đến trang đăng nhập...');
+      // Check if response is successful
+      if (response && response.success) {
+        setSuccess(true);
         
         // Clear form and redirect to login
         form.resetFields();
@@ -53,8 +56,8 @@ const ResetPasswordPage = () => {
       }
       
     } catch (error) {
-      // Always show user-friendly message, never technical errors
-      setError('Không thể đặt lại mật khẩu. Vui lòng thử lại.');
+      // Error will be handled by popup/notification system
+      console.log('Reset password failed:', error);
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +84,7 @@ const ResetPasswordPage = () => {
     return Promise.resolve();
   };
 
-  if (!email || !otp) {
+  if (!email || !otpValidated) {
     return null; // Will redirect in useEffect
   }
 

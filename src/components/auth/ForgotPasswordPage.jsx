@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Form, Input, Button, Typography, Row, Col, Card, Alert } from 'antd';
+import { Form, Input, Button, Typography, Row, Col, Card } from 'antd';
 import { MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import '../../styles/global.css';
@@ -10,14 +10,10 @@ const { Title, Text } = Typography;
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [form] = Form.useForm();
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
-    setError('');
-    setSuccess('');
     
     try {
       const { email } = values;
@@ -25,16 +21,20 @@ const ForgotPasswordPage = () => {
       // Send reset OTP
       const response = await authService.sendResetOtp(email);
       
-      if (response) {
-        setSuccess('OTP has been sent to your email. Please check your inbox and spam folder.');
-        
-        // Navigate to OTP verification page with email
-        setTimeout(() => {
-          navigate('/reset-password-otp', { state: { email } });
-        }, 2000);
+      // Check if response is successful
+      if (response && response.success) {
+        // Navigate to OTP verification page with email and timestamp for countdown
+        navigate('/reset-password-otp', { 
+          state: { 
+            email,
+            otpSentAt: Date.now() // Add timestamp for countdown calculation
+          } 
+        });
       }
+      
     } catch (error) {
-      setError(error.message || 'Failed to send reset OTP. Please try again.');
+      // Error will be handled by popup/notification system
+      console.log('Send OTP failed:', error);
     } finally {
       setIsLoading(false);
     }
@@ -60,24 +60,6 @@ const ForgotPasswordPage = () => {
             <Text className="text-center block mb-4" type="secondary">
               Nhập địa chỉ email của bạn và chúng tôi sẽ gửi mã OTP để đặt lại mật khẩu.
             </Text>
-            
-            {error && (
-              <Alert 
-                message={error} 
-                type="error" 
-                showIcon 
-                className="mb-4" 
-              />
-            )}
-            
-            {success && (
-              <Alert 
-                message={success} 
-                type="success" 
-                showIcon 
-                className="mb-4" 
-              />
-            )}
             
             <Form
               form={form}
@@ -108,9 +90,8 @@ const ForgotPasswordPage = () => {
                   loading={isLoading}
                   size="large"
                   block
-                  disabled={!!success}
                 >
-                  {success ? 'OTP Đã Gửi' : 'Gửi OTP Đặt Lại'}
+                  Gửi OTP Đặt Lại
                 </Button>
               </Form.Item>
             </Form>
