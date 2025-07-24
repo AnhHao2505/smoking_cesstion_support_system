@@ -26,7 +26,7 @@ const AskQuestion = ({ onQuestionSubmitted }) => {
         onQuestionSubmitted();
       }
     } catch (error) {
-      message.error('Có lỗi xảy ra khi gửi câu hỏi: ' + error.message);
+      console.error('Error submitting question:', error);
     } finally {
       setIsSubmitting(false);
     }

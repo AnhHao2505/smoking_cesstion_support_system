@@ -14,14 +14,14 @@ import { message, notification } from 'antd';
 
 // Global configuration for messages and notifications
 message.config({
-  top: 100, // Position below navbar (navbar is usually around 64px height)
+  top: 150, // Increased from 100px to 150px to position further below navbar
   duration: 2, // Reduce duration to 2 seconds instead of default 3
   maxCount: 3, // Maximum number of messages shown at once
   getContainer: () => document.body, // Ensure messages are rendered in body
 });
 
 notification.config({
-  top: 100, // Position below navbar
+  top: 150, // Increased from 100px to 150px to position further below navbar
   duration: 3, // Keep notifications a bit longer than messages
   maxCount: 4, // Maximum number of notifications shown at once
   placement: 'topRight', // Position notifications on top right
