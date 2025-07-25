@@ -51,7 +51,7 @@ import CoachManagement from './admin/CoachManagement';
 import CoachList from './admin/CoachList';
 import CoachAssignment from './admin/CoachAssignment';
 import CoachPerformance from './admin/CoachPerformance';
-import TransactionHistory from './admin/TransactionHistory';
+import TransactionHistory from './member/TransactionHistory';
 
 // Import QnA pages
 import { QAForumPage, AskQuestionPage, QuestionListPage, AnswerQuestionPage } from '../pages/qna';

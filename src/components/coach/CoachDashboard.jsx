@@ -51,6 +51,7 @@ const CoachDashboard = () => {
   const [coachProfile, setCoachProfile] = useState(null);
   const [assignedMembers, setAssignedMembers] = useState([]);
   const [recentFeedback, setRecentFeedback] = useState([]);
+  const [coachRating, setCoachRating] = useState(0);
   const [loading, setLoading] = useState(true);
   const [membersLoading, setMembersLoading] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
@@ -161,8 +162,18 @@ const CoachDashboard = () => {
         // Fetch feedback
         const feedbackResponse = await getFeedbacksForCoach(coachId);
         const feedbacks = feedbackResponse;
-        if(feedbacks.length > 0) {
+        if (feedbacks.length > 0) {
           setRecentFeedback(feedbacks.slice(0, 10));
+          // Calculate average rating
+          const ratings = feedbacks.map(fb => fb.rating ?? fb.star).filter(r => typeof r === 'number');
+          if (ratings.length > 0) {
+            const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+            setCoachRating(Number(avg.toFixed(2)));
+          } else {
+            setCoachRating(0);
+          }
+        } else {
+          setCoachRating(0);
         }
 
       } catch (error) {
@@ -405,7 +416,7 @@ const CoachDashboard = () => {
     full_name: currentUser?.name || 'Coach',
     specialty: 'Chuyên gia cai thuốc lá',
     bio: 'Cam kết giúp mọi người bỏ thuốc lá thành công',
-    rating: 0, // Rating không có trong API profile/coach, lấy từ phần feedback
+    rating: coachRating,
     photo_url: null,
     certificates: [],
     workingHours: 'Thứ Hai - Thứ Sáu, 9:00 - 17:00',
@@ -523,15 +534,15 @@ const CoachDashboard = () => {
           <Row gutter={[24, 24]} align="middle">
             <Col xs={24} md={6}>
               <div className="text-center">
-                <Avatar
-                  size={120}
-                  src={profileData.photo_url}
-                  icon={<UserOutlined />}
-                />
-                <div className="mt-3">
-                  <Rate disabled defaultValue={profileData.rating} allowHalf />
-                  <div><Text strong>{profileData.rating}</Text> / 5.0</div>
-                </div>
+        <Avatar
+          size={120}
+          src={profileData.photo_url}
+          icon={<UserOutlined />}
+        />
+        <div className="mt-3">
+          <Rate disabled value={coachRating} allowHalf />
+          <div><Text strong>{coachRating}</Text> / 5.0</div>
+        </div>
               </div>
             </Col>
             <Col xs={24} md={18}>

@@ -4,7 +4,7 @@ import {
   Empty, Spin, Alert, Pagination, Tooltip, Row, Col
 } from 'antd';
 import {
-  HistoryOutlined, CreditCardOutlined, CheckCircleOutlined,
+  HistoryOutlined, CheckCircleOutlined,
   CloseCircleOutlined, ClockCircleOutlined, ArrowLeftOutlined,
   ReloadOutlined
 } from '@ant-design/icons';
@@ -64,10 +64,17 @@ const TransactionHistory = () => {
     const statusConfig = {
       'SUCCESS': { color: 'green', icon: <CheckCircleOutlined />, text: 'Thành công' },
       'PENDING': { color: 'orange', icon: <ClockCircleOutlined />, text: 'Đang xử lý' },
-      'EXPIRED': { color: 'red', icon: <CloseCircleOutlined />, text: 'Đã quá hạn' }
+      'EXPIRED': { color: 'red', icon: <CloseCircleOutlined />, text: 'Đã hết hạn' },
+      'FAILED': { color: 'red', icon: <CloseCircleOutlined />, text: 'Thất bại' },
+      'CANCELLED': { color: 'default', icon: <CloseCircleOutlined />, text: 'Đã hủy' }
     };
     
-    const config = statusConfig[normalizedStatus] || statusConfig['PENDING'];
+    // Get config or use default for unknown status
+    const config = statusConfig[normalizedStatus] || { 
+      color: 'default', 
+      icon: <CloseCircleOutlined />, 
+      text: normalizedStatus || 'Không xác định' 
+    };
     
     return (
       <Tag color={config.color} icon={config.icon}>
@@ -163,12 +170,12 @@ const TransactionHistory = () => {
       <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
         <Col>
           <Space>
-            {/* <Button 
+            <Button 
               icon={<ArrowLeftOutlined />} 
               onClick={() => navigate('/member/account-management')}
             >
               Quay lại
-            </Button> */}
+            </Button>
             <Title level={2} style={{ margin: 0 }}>
               <HistoryOutlined style={{ marginRight: 8 }} />
               Lịch sử giao dịch
