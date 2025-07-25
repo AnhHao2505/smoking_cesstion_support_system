@@ -123,7 +123,7 @@ const PaymentCallback = () => {
   };
 
   const handleGoToPremiumFeatures = () => {
-    navigate('/member/premium-features');
+    navigate('/member/appointments');
   };
 
   if (loading) {
