@@ -143,24 +143,21 @@ const CoachQnA = () => {
 
   const columns = [
     {
-      title: 'Member',
+      title: 'Thành viên hỏi',
       dataIndex: 'memberName',
       key: 'memberName',
-      render: (text, record) => (
+      render: (text) => (
         <Space>
           <Avatar icon={<UserOutlined />} />
           <div>
-            <Text strong>{text || 'Anonymous Member'}</Text>
+            <Text strong>{text || 'Ẩn danh'}</Text>
             <br />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              ID: {record.memberId || 'N/A'}
-            </Text>
           </div>
         </Space>
       )
     },
     {
-      title: 'Question',
+      title: 'Câu hỏi',
       dataIndex: 'question',
       key: 'question',
       ellipsis: true,
@@ -171,7 +168,7 @@ const CoachQnA = () => {
       )
     },
     {
-      title: 'Created',
+      title: 'Ngày gửi',
       dataIndex: 'createdAt',
       key: 'createdAt',
       render: (date) => (
@@ -184,23 +181,23 @@ const CoachQnA = () => {
       )
     },
     {
-      title: 'Status',
+      title: 'Trạng thái',
       key: 'status',
       render: (_, record) => (
         <Space direction="vertical" size="small">
           <Tag color="orange" icon={<ClockCircleOutlined />}>
-            Unanswered
+            Chưa trả lời
           </Tag>
           {isOverdue(record.deadline) && (
             <Tag color="red" icon={<ClockCircleOutlined />}>
-              Overdue
+              Quá hạn
             </Tag>
           )}
         </Space>
       )
     },
     {
-      title: 'Action',
+      title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
         <Button
@@ -208,7 +205,7 @@ const CoachQnA = () => {
           icon={<MessageOutlined />}
           onClick={() => handleAnswerQuestion(record)}
         >
-          Answer
+          Trả lời
         </Button>
       )
     }
@@ -221,10 +218,10 @@ const CoachQnA = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
             <div>
               <Title level={2} style={{ margin: 0 }}>
-                <MessageOutlined /> Questions & Answers
+                <MessageOutlined /> Hỏi đáp thành viên
               </Title>
               <Text type="secondary">
-                Manage and respond to member questions
+                Quản lý và trả lời câu hỏi của thành viên
               </Text>
             </div>
             <Button
@@ -232,38 +229,28 @@ const CoachQnA = () => {
               onClick={fetchQuestions}
               loading={loading}
             >
-              Refresh
+              Làm mới
             </Button>
           </div>
 
           {/* Statistics */}
           <Row gutter={16} style={{ marginBottom: 24 }}>
-            <Col xs={24} sm={8}>
+            <Col xs={24} sm={12}>
               <Card size="small">
                 <div style={{ textAlign: 'center' }}>
-                  <Text type="secondary">Total Unanswered</Text>
+                  <Text type="secondary">Tổng số chưa trả lời</Text>
                   <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#faad14' }}>
                     {pagination.total}
                   </div>
                 </div>
               </Card>
             </Col>
-            <Col xs={24} sm={8}>
+            <Col xs={24} sm={12}>
               <Card size="small">
                 <div style={{ textAlign: 'center' }}>
-                  <Text type="secondary">Overdue Questions</Text>
+                  <Text type="secondary">Câu hỏi quá hạn</Text>
                   <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ff4d4f' }}>
                     {questions.filter(q => isOverdue(q.deadline)).length}
-                  </div>
-                </div>
-              </Card>
-            </Col>
-            <Col xs={24} sm={8}>
-              <Card size="small">
-                <div style={{ textAlign: 'center' }}>
-                  <Text type="secondary">Response Rate</Text>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}>
-                    85%
                   </div>
                 </div>
               </Card>
@@ -281,7 +268,7 @@ const CoachQnA = () => {
               showSizeChanger: true,
               showQuickJumper: true,
               showTotal: (total, range) => 
-                `${range[0]}-${range[1]} of ${total} questions`
+                `${range[0]}-${range[1]} trong ${total} câu hỏi`
             }}
             onChange={handleTableChange}
             scroll={{ x: 800 }}
@@ -293,9 +280,9 @@ const CoachQnA = () => {
           title={
             <Space>
               <MessageOutlined />
-              <span>Answer Question</span>
+              <span>Trả lời câu hỏi</span>
               {selectedQuestion && isOverdue(selectedQuestion.deadline) && (
-                <Tag color="red">Overdue</Tag>
+                <Tag color="red">Quá hạn</Tag>
               )}
             </Space>
           }
@@ -319,7 +306,7 @@ const CoachQnA = () => {
                 <Space direction="vertical" size={8} style={{ width: '100%' }}>
                   <Space>
                     <UserOutlined style={{ color: '#1890ff' }} />
-                    <Text strong>{selectedQuestion.memberName || 'Anonymous Member'}</Text>
+                    <Text strong>{selectedQuestion.memberName || 'Ẩn danh'}</Text>
                     <Divider type="vertical" />
                     <CalendarOutlined style={{ color: '#8c8c8c' }} />
                     <Text type="secondary">
@@ -328,7 +315,7 @@ const CoachQnA = () => {
                   </Space>
                   
                   <div>
-                    <Text strong style={{ color: '#1890ff' }}>Question:</Text>
+                    <Text strong style={{ color: '#1890ff' }}>Câu hỏi:</Text>
                     <Paragraph style={{ marginTop: 8, marginBottom: 0 }}>
                       {selectedQuestion.question}
                     </Paragraph>
@@ -339,8 +326,8 @@ const CoachQnA = () => {
               {/* Priority Alert for Overdue */}
               {isOverdue(selectedQuestion.deadline) && (
                 <Alert
-                  message="Overdue Question"
-                  description="This question is overdue and requires immediate attention."
+                  message="Câu hỏi quá hạn"
+                  description="Câu hỏi này đã quá hạn và cần được trả lời ngay."
                   type="warning"
                   showIcon
                   style={{ marginBottom: 16 }}
@@ -356,16 +343,16 @@ const CoachQnA = () => {
               >
                 <Form.Item
                   name="answer"
-                  label="Your Answer"
+                  label="Câu trả lời của bạn"
                   rules={[
-                    { required: true, message: 'Please provide an answer!' },
-                    { min: 10, message: 'Answer must be at least 10 characters!' },
-                    { max: 2000, message: 'Answer cannot exceed 2000 characters!' }
+                    { required: true, message: 'Vui lòng nhập câu trả lời!' },
+                    { min: 10, message: 'Câu trả lời phải có ít nhất 10 ký tự!' },
+                    { max: 2000, message: 'Câu trả lời không vượt quá 2000 ký tự!' }
                   ]}
                 >
                   <TextArea
                     rows={6}
-                    placeholder="Provide a detailed and helpful answer for the member..."
+                    placeholder="Nhập câu trả lời chi tiết và hữu ích cho thành viên..."
                     showCount
                     maxLength={2000}
                   />
@@ -380,7 +367,7 @@ const CoachQnA = () => {
                       icon={<SendOutlined />}
                       size="large"
                     >
-                      {submitting ? 'Submitting...' : 'Submit Answer'}
+                      {submitting ? 'Đang gửi...' : 'Gửi trả lời'}
                     </Button>
                     <Button 
                       size="large" 
@@ -390,7 +377,7 @@ const CoachQnA = () => {
                         form.resetFields();
                       }}
                     >
-                      Cancel
+                      Hủy
                     </Button>
                   </Space>
                 </Form.Item>

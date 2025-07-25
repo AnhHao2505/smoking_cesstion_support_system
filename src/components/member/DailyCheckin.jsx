@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Card, Form, Button, Typography, Row, Col, Input, message,
-  Steps, Progress, Tag, Modal, Radio, Space, Divider, Alert
+  Card, Form, Button, Typography, Input, message,
+  Steps, Tag, Modal, Radio, Space, Divider, Alert
 } from 'antd';
 import {
   CheckCircleOutlined, HeartOutlined, SmileOutlined,
@@ -13,7 +13,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   submitAddictionAssessment,
-  updateAddictionAssessment,
   calculateAddictionScore,
   getAddictionLevel,
   shouldShowCongratulations
