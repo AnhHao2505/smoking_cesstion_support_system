@@ -886,7 +886,7 @@ const CoachManagement = () => {
           title={
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <ExclamationCircleOutlined style={{ marginRight: 8, color: '#faad14' }} />
-              Report Coach Absent
+              Báo cáo HLV vắng mặt
             </div>
           }
           visible={absentReportModalVisible}
