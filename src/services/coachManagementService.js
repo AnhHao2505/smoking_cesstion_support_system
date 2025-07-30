@@ -87,13 +87,13 @@ export const updateCoachProfile = async (coachId, profileData) => {
 export const getCoachSpecialties = async () => {
   console.warn('Coach specialties endpoint not available, using mock data');
   return [
-    'Behavioral Psychology',
-    'Addiction Counseling',
-    'Cognitive Behavioral Therapy',
-    'Motivational Interviewing',
-    'Mindfulness-Based Interventions',
-    'Stress Management',
-    'Nicotine Replacement Therapy'
+    'Tâm lý học hành vi',
+    'Tư vấn cai nghiện',
+    'Liệu pháp hành vi nhận thức',
+    'Phỏng vấn động lực',
+    'Can thiệp dựa trên chánh niệm',
+    'Quản lý căng thẳng',
+    'Liệu pháp thay thế nicotine'
   ];
 };
 
