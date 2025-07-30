@@ -599,6 +599,11 @@ const CoachManagement = () => {
               showSizeChanger: true,
               showQuickJumper: true,
               showTotal: (total, range) => `${range[0]}-${range[1]} trong tổng số ${total} HLV`,
+              locale: {
+                items_per_page: '/ trang',
+                jump_to: 'Đến trang',
+                page: ''
+              }
             }}
             onChange={handleTableChange}
             scroll={{ x: 1340 }}
