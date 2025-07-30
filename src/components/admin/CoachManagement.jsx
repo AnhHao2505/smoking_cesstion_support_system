@@ -910,7 +910,7 @@ const CoachManagement = () => {
           {selectedCoach && (
             <div>
               <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#fafafa', borderRadius: 6 }}>
-                <Text strong>Coach: </Text>
+                <Text strong>HLV: </Text>
                 <Text>{selectedCoach.name}</Text>
                 <br />
                 <Text strong>Email: </Text>
@@ -923,23 +923,23 @@ const CoachManagement = () => {
               >
                 <Form.Item
                   name="reason"
-                  label="Reason for Absence"
-                  rules={[{ required: true, message: 'Please enter the reason for absence' }]}
+                  label="Lý do vắng mặt"
+                  rules={[{ required: true, message: 'Vui lòng nhập lý do vắng mặt' }]}
                 >
                   <TextArea 
                     rows={4} 
-                    placeholder="Please describe the reason why this coach is reported as absent..."
+                    placeholder="Vui lòng mô tả lý do tại sao HLV này bị báo cáo vắng mặt..."
                   />
                 </Form.Item>
 
                 <Form.Item
                   name="suggestion"
-                  label="Suggestion for Members"
-                  rules={[{ required: true, message: 'Please enter suggestions for affected members' }]}
+                  label="Gợi ý cho thành viên"
+                  rules={[{ required: true, message: 'Vui lòng nhập đề xuất cho các thành viên bị ảnh hưởng' }]}
                 >
                   <TextArea 
                     rows={4} 
-                    placeholder="Please provide suggestions or alternative solutions for members assigned to this coach..."
+                    placeholder="Vui lòng cung cấp gợi ý hoặc giải pháp thay thế cho các thành viên được phân công cho HLV này..."
                   />
                 </Form.Item>
               </Form>
