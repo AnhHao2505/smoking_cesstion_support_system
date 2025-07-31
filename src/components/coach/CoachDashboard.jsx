@@ -697,10 +697,12 @@ const CoachDashboard = () => {
                 <Tag color={
                   currentPlan.quitPlanStatus === 'COMPLETED' ? 'green' :
                   currentPlan.quitPlanStatus === 'IN_PROGRESS' ? 'blue' :
+                  currentPlan.quitPlanStatus === 'PENDING' ? 'orange' :
                   currentPlan.quitPlanStatus === 'FAILED' ? 'red' : 'default'
                 }>
                   {currentPlan.quitPlanStatus === 'COMPLETED' ? 'Hoàn thành' :
                    currentPlan.quitPlanStatus === 'IN_PROGRESS' ? 'Đang tiến hành' :
+                   currentPlan.quitPlanStatus === 'PENDING' ? 'Đang chờ' :
                    currentPlan.quitPlanStatus === 'FAILED' ? 'Thất bại' : 
                    currentPlan.quitPlanStatus || 'Không xác định'}
                 </Tag>
