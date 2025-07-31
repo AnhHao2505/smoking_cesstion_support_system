@@ -287,22 +287,130 @@ const QuitPlanCreation = () => {
   };
 
   const handleCreatePhases = async () => {
+    // VALIDATION GUARD: All validation must pass before ANY processing
+    let hasValidationErrors = false;
+    
+    // CRITICAL: Check plan ID first - stop immediately if missing
     if (!createdPlanId) {
-      message.error('Không tìm thấy ID kế hoạch');
-      return;
+      hasValidationErrors = true;
+      message.error('❌ Không tìm thấy ID kế hoạch. Không thể tạo giai đoạn.');
+      return; // STOP EXECUTION immediately
     }
 
-    // Validate that each phase has at least one goal
-    const hasEmptyPhases = Object.keys(phaseGoals).some(phaseIndex => {
-      const goals = phaseGoals[phaseIndex]?.filter(goal => goal.trim() !== '') || [];
-      return goals.length === 0;
+    // Enhanced phase validation
+    const validationErrors = [];
+    const phaseValidationDetails = [];
+
+    // CRITICAL: Check if we have any phases at all
+    if (!defaultPhases || defaultPhases.length === 0) {
+      hasValidationErrors = true;
+      message.error('❌ Không có giai đoạn nào để tạo. Vui lòng tải lại trang.');
+      return; // STOP EXECUTION immediately
+    }
+
+    // Validate each phase - strict validation
+    defaultPhases.forEach((phase, phaseIndex) => {
+      const phaseErrors = [];
+      
+      // Check phase basic info
+      if (!phase.name || phase.name.trim() === '') {
+        phaseErrors.push('Tên giai đoạn không được để trống');
+      }
+      
+      if (!phase.duration || phase.duration.trim() === '') {
+        phaseErrors.push('Thời gian giai đoạn không được để trống');
+      }
+
+      // Validate goals for this phase
+      const goals = phaseGoals[phaseIndex]?.filter(goal => goal && goal.trim() !== '') || [];
+      
+      if (goals.length === 0) {
+        phaseErrors.push('Cần có ít nhất một mục tiêu');
+      } else {
+        // Validate each goal strictly
+        goals.forEach((goal, goalIndex) => {
+          if (goal.length > 500) {
+            phaseErrors.push(`Mục tiêu ${goalIndex + 1} không được vượt quá 500 ký tự`);
+          }
+          if (goal.length < 5) {
+            phaseErrors.push(`Mục tiêu ${goalIndex + 1} quá ngắn (tối thiểu 5 ký tự)`);
+          }
+        });
+
+        // Check for duplicate goals
+        const uniqueGoals = [...new Set(goals.map(g => g.trim().toLowerCase()))];
+        if (uniqueGoals.length !== goals.length) {
+          phaseErrors.push('Có mục tiêu trùng lặp trong giai đoạn này');
+        }
+      }
+
+      if (phaseErrors.length > 0) {
+        phaseValidationDetails.push({
+          phaseIndex: phaseIndex + 1,
+          phaseName: phase.name || `Giai đoạn ${phaseIndex + 1}`,
+          errors: phaseErrors
+        });
+      }
     });
 
-    if (hasEmptyPhases) {
-      message.warning('⚠️ Mỗi giai đoạn cần có ít nhất một mục tiêu');
-      return;
+    // CRITICAL: Stop immediately if detailed phase validation fails
+    if (phaseValidationDetails.length > 0) {
+      hasValidationErrors = true;
+      const errorContent = (
+        <div>
+          <div style={{ marginBottom: 12, fontWeight: 'bold' }}>
+            ❌ Vui lòng kiểm tra lại các giai đoạn:
+          </div>
+          {phaseValidationDetails.map((phaseDetail, index) => (
+            <div key={index} style={{ marginBottom: 8 }}>
+              <div style={{ fontWeight: 'bold', color: '#1890ff' }}>
+                {phaseDetail.phaseName}:
+              </div>
+              <ul style={{ margin: '4px 0', paddingLeft: 20 }}>
+                {phaseDetail.errors.map((error, errorIndex) => (
+                  <li key={errorIndex} style={{ fontSize: '13px' }}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      );
+
+      message.error({
+        content: errorContent,
+        duration: 8,
+        style: { maxWidth: '500px' }
+      });
+      return; // STOP EXECUTION - Do not proceed further
     }
 
+    // CRITICAL: Stop immediately if general validation errors exist
+    if (validationErrors.length > 0) {
+      hasValidationErrors = true;
+      message.error({
+        content: (
+          <div>
+            <div style={{ marginBottom: 8 }}>❌ Lỗi tạo giai đoạn:</div>
+            <ul style={{ margin: 0, paddingLeft: 20 }}>
+              {validationErrors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        ),
+        duration: 5
+      });
+      return; // STOP EXECUTION - Do not proceed further
+    }
+
+    // FINAL VALIDATION GUARD: Absolutely no processing if any validation failed
+    if (hasValidationErrors) {
+      console.error('❌ PHASE VALIDATION FAILED - Stopping all execution');
+      return; // FINAL STOP - No processing whatsoever
+    }
+
+    // ONLY proceed with phase creation if ALL validations pass
+    console.log('✅ All phase validations passed - proceeding with creation');
     setLoadingPhases(true);
     try {
       // Prepare phases data with goals using the correct format based on API response
@@ -368,23 +476,188 @@ const QuitPlanCreation = () => {
     console.log('selectedMemberId state:', selectedMemberId);
     console.log('memberIdFromUrl:', memberIdFromUrl);
     
+    // VALIDATION GUARD: All validation must pass before ANY processing
+    let hasValidationErrors = false;
+    
+    // Enhanced form validation - ALL FIELDS REQUIRED
+    const validationErrors = [];
+    
     // Get memberId from form values or state
     const memberId = values.memberId || selectedMemberId;
     console.log('Final memberId to use:', memberId);
 
     if (!memberId) {
       console.log('ERROR: No member ID found');
-      message.error('Vui lòng chọn thành viên');
-      return;
+      validationErrors.push('Vui lòng chọn thành viên');
     }
 
-    // Validate duration
+    // Validate duration with enhanced checks
     const duration = parseInt(values.durationInDays);
-    if (isNaN(duration) || duration < 1 || duration > 365) {
-      message.error('Thời lượng kế hoạch phải từ 1-365 ngày');
-      return;
+    if (!values.durationInDays || values.durationInDays === '') {
+      validationErrors.push('Vui lòng nhập thời lượng kế hoạch');
+    } else if (isNaN(duration) || duration < 1 || duration > 365) {
+      validationErrors.push('Thời lượng kế hoạch phải từ 1-365 ngày');
     }
 
+    // Validate smoking status
+    if (!values.currentSmokingStatus) {
+      validationErrors.push('Vui lòng chọn tình trạng hút thuốc hiện tại');
+    }
+
+    // MANDATORY: All medication fields are now required
+    if (!values.medicationsToUse || values.medicationsToUse.trim() === '') {
+      validationErrors.push('Vui lòng nhập thuốc sử dụng');
+    }
+
+    if (!values.medicationInstructions || values.medicationInstructions.trim() === '') {
+      validationErrors.push('Vui lòng nhập hướng dẫn sử dụng thuốc');
+    }
+
+    // MANDATORY: All strategy fields are now required
+    if (!values.smokingTriggersToAvoid || values.smokingTriggersToAvoid.trim() === '') {
+      validationErrors.push('Vui lòng nhập các tác nhân kích thích cần tránh');
+    }
+
+    if (!values.copingStrategies || values.copingStrategies.trim() === '') {
+      validationErrors.push('Vui lòng nhập chiến lược đối phó');
+    }
+
+    if (!values.relapsePreventionStrategies || values.relapsePreventionStrategies.trim() === '') {
+      validationErrors.push('Vui lòng nhập chiến lược phòng ngừa tái nghiện');
+    }
+
+    // MANDATORY: All support and motivation fields are now required
+    if (!values.supportResources || values.supportResources.trim() === '') {
+      validationErrors.push('Vui lòng nhập nguồn hỗ trợ');
+    }
+
+    if (!values.motivation || values.motivation.trim() === '') {
+      validationErrors.push('Vui lòng nhập động lực cai thuốc');
+    }
+
+    if (!values.rewardPlan || values.rewardPlan.trim() === '') {
+      validationErrors.push('Vui lòng nhập kế hoạch thưởng');
+    }
+
+    // MANDATORY: Additional notes are now required
+    if (!values.additionalNotes || values.additionalNotes.trim() === '') {
+      validationErrors.push('Vui lòng nhập ghi chú bổ sung');
+    }
+
+    // CRITICAL: Stop here if ANY required field is missing
+    if (validationErrors.length > 0) {
+      hasValidationErrors = true;
+      message.error({
+        content: (
+          <div>
+            <div style={{ marginBottom: 8 }}>❌ Vui lòng điền đầy đủ tất cả thông tin bắt buộc:</div>
+            <ul style={{ margin: 0, paddingLeft: 20 }}>
+              {validationErrors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        ),
+        duration: 6
+      });
+      return; // STOP EXECUTION - Do not proceed further
+    }
+
+    // Field format validation (still required for proper format)
+    const formatErrors = [];
+    
+    // Validate field lengths and format - all fields already validated as non-empty above
+    if (values.medicationInstructions && values.medicationInstructions.length > 1000) {
+      formatErrors.push('Hướng dẫn dùng thuốc không được vượt quá 1000 ký tự');
+    }
+    if (values.medicationInstructions && values.medicationInstructions.trim().length < 20) {
+      formatErrors.push('Hướng dẫn sử dụng thuốc phải có ít nhất 20 ký tự');
+    }
+
+    if (values.medicationsToUse && values.medicationsToUse.length > 500) {
+      formatErrors.push('Danh sách thuốc sử dụng không được vượt quá 500 ký tự');
+    }
+    if (values.medicationsToUse && values.medicationsToUse.trim().length < 10) {
+      formatErrors.push('Danh sách thuốc sử dụng phải có ít nhất 10 ký tự');
+    }
+
+    if (values.smokingTriggersToAvoid && values.smokingTriggersToAvoid.length > 1000) {
+      formatErrors.push('Danh sách trigger tránh không được vượt quá 1000 ký tự');
+    }
+    if (values.smokingTriggersToAvoid && values.smokingTriggersToAvoid.trim().length < 15) {
+      formatErrors.push('Danh sách tác nhân kích thích phải có ít nhất 15 ký tự');
+    }
+
+    if (values.copingStrategies && values.copingStrategies.length > 1000) {
+      formatErrors.push('Chiến lược đối phó không được vượt quá 1000 ký tự');
+    }
+    if (values.copingStrategies && values.copingStrategies.trim().length < 20) {
+      formatErrors.push('Chiến lược đối phó phải có ít nhất 20 ký tự');
+    }
+
+    if (values.relapsePreventionStrategies && values.relapsePreventionStrategies.length > 1000) {
+      formatErrors.push('Chiến lược phòng ngừa tái phát không được vượt quá 1000 ký tự');
+    }
+    if (values.relapsePreventionStrategies && values.relapsePreventionStrategies.trim().length < 20) {
+      formatErrors.push('Chiến lược phòng ngừa tái nghiện phải có ít nhất 20 ký tự');
+    }
+
+    if (values.supportResources && values.supportResources.length > 1000) {
+      formatErrors.push('Nguồn hỗ trợ không được vượt quá 1000 ký tự');
+    }
+    if (values.supportResources && values.supportResources.trim().length < 10) {
+      formatErrors.push('Nguồn hỗ trợ phải có ít nhất 10 ký tự');
+    }
+
+    if (values.motivation && values.motivation.length > 500) {
+      formatErrors.push('Động lực không được vượt quá 500 ký tự');
+    }
+    if (values.motivation && values.motivation.trim().length < 10) {
+      formatErrors.push('Động lực cai thuốc phải có ít nhất 10 ký tự');
+    }
+
+    if (values.rewardPlan && values.rewardPlan.length > 500) {
+      formatErrors.push('Kế hoạch thưởng không được vượt quá 500 ký tự');
+    }
+    if (values.rewardPlan && values.rewardPlan.trim().length < 15) {
+      formatErrors.push('Kế hoạch thưởng phải có ít nhất 15 ký tự');
+    }
+
+    if (values.additionalNotes && values.additionalNotes.length > 1500) {
+      formatErrors.push('Ghi chú bổ sung không được vượt quá 1500 ký tự');
+    }
+    if (values.additionalNotes && values.additionalNotes.trim().length < 10) {
+      formatErrors.push('Ghi chú bổ sung phải có ít nhất 10 ký tự');
+    }
+
+    // CRITICAL: Stop here if format validation fails
+    if (formatErrors.length > 0) {
+      hasValidationErrors = true;
+      message.error({
+        content: (
+          <div>
+            <div style={{ marginBottom: 8 }}>❌ Lỗi định dạng thông tin:</div>
+            <ul style={{ margin: 0, paddingLeft: 20 }}>
+              {formatErrors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        ),
+        duration: 6
+      });
+      return; // STOP EXECUTION - Do not proceed further
+    }
+
+    // FINAL VALIDATION GUARD: Absolutely no processing if any validation failed
+    if (hasValidationErrors) {
+      console.error('❌ VALIDATION FAILED - Stopping all execution');
+      return; // FINAL STOP - No processing whatsoever
+    }
+
+    // VALIDATION PASSED: Now safe to proceed with processing
+    console.log('✅ All validations passed - proceeding with plan creation');
+    
     console.log('Starting to create quit plan...');
     setLoading(true);
 
@@ -575,16 +848,32 @@ const QuitPlanCreation = () => {
 
           {/* Main Form */}
           {!showPhaseCreation && (
-            <Card>
-              <Form
-                form={form}
-                layout="vertical"
-                onFinish={handleFinish}
-                initialValues={{
-                  currentSmokingStatus: 'NONE',
-                  durationInDays: Number(30) // Đảm bảo là primitive number
-                }}
-              >
+            <>
+              {/* Form Guidelines */}
+              <Alert
+                message="📋 Yêu cầu điền form - TẤT CẢ TRƯỜNG ĐỀU BẮT BUỘC"
+                description={
+                  <div>
+                    <p><strong>⚠️ Lưu ý quan trọng:</strong> Tất cả các trường thông tin đều phải được điền đầy đủ</p>
+                    <p><strong>📝 Bắt buộc điền:</strong> Thành viên, tình trạng hút thuốc, thời lượng, thuốc, hướng dẫn, trigger, chiến lược, phòng ngừa, hỗ trợ, động lực, thưởng, ghi chú</p>
+                    <p><strong>🚫 Không thể tạo kế hoạch:</strong> Nếu bỏ trống bất kỳ trường nào</p>
+                  </div>
+                }
+                type="warning"
+                showIcon
+                style={{ marginBottom: 24 }}
+              />
+              
+              <Card>
+                <Form
+                  form={form}
+                  layout="vertical"
+                  onFinish={handleFinish}
+                  initialValues={{
+                    currentSmokingStatus: 'NONE',
+                    durationInDays: Number(30) // Đảm bảo là primitive number
+                  }}
+                >
               {/* Member Selection */}
               <Card type="inner" style={{ marginBottom: 24 }}>
                 <Title level={4} style={{ color: '#1890ff', marginBottom: 16 }}>
@@ -706,20 +995,34 @@ const QuitPlanCreation = () => {
                 <Form.Item
                   label="💉 Thuốc sử dụng"
                   name="medicationsToUse"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập thuốc sử dụng' },
+                    { min: 10, message: 'Danh sách thuốc phải có ít nhất 10 ký tự' },
+                    { max: 500, message: 'Danh sách thuốc không được vượt quá 500 ký tự' }
+                  ]}
                 >
                   <TextArea
                     rows={3}
                     placeholder="Ví dụ: Miếng dán nicotine 21mg, kẹo cao su nicotine 2mg, thuốc Varenicline..."
+                    showCount
+                    maxLength={500}
                   />
                 </Form.Item>
                 
                 <Form.Item
                   label="📝 Hướng dẫn sử dụng thuốc"
                   name="medicationInstructions"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập hướng dẫn sử dụng thuốc' },
+                    { min: 20, message: 'Hướng dẫn sử dụng thuốc phải có ít nhất 20 ký tự' },
+                    { max: 1000, message: 'Hướng dẫn sử dụng thuốc không được vượt quá 1000 ký tự' }
+                  ]}
                 >
                   <TextArea
                     rows={4}
                     placeholder="Hướng dẫn chi tiết: thời gian sử dụng, liều lượng, cách dùng, tác dụng phụ cần lưu ý..."
+                    showCount
+                    maxLength={1000}
                   />
                 </Form.Item>
               </Card>
@@ -733,30 +1036,51 @@ const QuitPlanCreation = () => {
                 <Form.Item
                   label="⚠️ Tránh các tác nhân kích thích"
                   name="smokingTriggersToAvoid"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập các tác nhân kích thích cần tránh' },
+                    { min: 15, message: 'Danh sách tác nhân kích thích phải có ít nhất 15 ký tự' },
+                    { max: 1000, message: 'Danh sách tác nhân kích thích không được vượt quá 1000 ký tự' }
+                  ]}
                 >
                   <TextArea
                     rows={3}
                     placeholder="Ví dụ: Stress công việc, rượu bia, cà phê buổi sáng, hoạt động xã hội, lái xe..."
+                    showCount
+                    maxLength={1000}
                   />
                 </Form.Item>
                 
                 <Form.Item
                   label="💪 Chiến lược đối phó"
                   name="copingStrategies"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập chiến lược đối phó' },
+                    { min: 20, message: 'Chiến lược đối phó phải có ít nhất 20 ký tự' },
+                    { max: 1000, message: 'Chiến lược đối phó không được vượt quá 1000 ký tự' }
+                  ]}
                 >
                   <TextArea
                     rows={4}
                     placeholder="Ví dụ: Tập thể dục 30 phút/ngày, thiền chánh niệm, thở sâu, nhai kẹo cao su, uống nước..."
+                    showCount
+                    maxLength={1000}
                   />
                 </Form.Item>
                 
                 <Form.Item
                   label="🛡️ Chiến lược phòng ngừa tái nghiện"
                   name="relapsePreventionStrategies"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập chiến lược phòng ngừa tái nghiện' },
+                    { min: 20, message: 'Chiến lược phòng ngừa tái nghiện phải có ít nhất 20 ký tự' },
+                    { max: 1000, message: 'Chiến lược phòng ngừa tái nghiện không được vượt quá 1000 ký tự' }
+                  ]}
                 >
                   <TextArea
                     rows={4}
                     placeholder="Kế hoạch xử lý khi có nguy cơ tái nghiện: nhận biết dấu hiệu sớm, liên hệ coach, sử dụng kỹ thuật khẩn cấp..."
+                    showCount
+                    maxLength={1000}
                   />
                 </Form.Item>
               </Card>
@@ -770,30 +1094,51 @@ const QuitPlanCreation = () => {
                 <Form.Item
                   label="📞 Nguồn hỗ trợ"
                   name="supportResources"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập nguồn hỗ trợ' },
+                    { min: 10, message: 'Nguồn hỗ trợ phải có ít nhất 10 ký tự' },
+                    { max: 1000, message: 'Nguồn hỗ trợ không được vượt quá 1000 ký tự' }
+                  ]}
                 >
                   <TextArea
                     rows={3}
                     placeholder="Gia đình, bạn bè, nhóm hỗ trợ cai thuốc, hotline tư vấn, cộng đồng online..."
+                    showCount
+                    maxLength={1000}
                   />
                 </Form.Item>
                 
                 <Form.Item
                   label="🔥 Động lực cai thuốc"
                   name="motivation"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập động lực cai thuốc' },
+                    { min: 10, message: 'Động lực cai thuốc phải có ít nhất 10 ký tự' },
+                    { max: 500, message: 'Động lực cai thuốc không được vượt quá 500 ký tự' }
+                  ]}
                 >
                   <TextArea
                     rows={3}
                     placeholder="Lý do cai thuốc: sức khỏe gia đình, tiết kiệm tiền, cải thiện sức khỏe, làm gương cho con..."
+                    showCount
+                    maxLength={500}
                   />
                 </Form.Item>
                 
                 <Form.Item
                   label="🎁 Kế hoạch thưởng"
                   name="rewardPlan"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập kế hoạch thưởng' },
+                    { min: 15, message: 'Kế hoạch thưởng phải có ít nhất 15 ký tự' },
+                    { max: 500, message: 'Kế hoạch thưởng không được vượt quá 500 ký tự' }
+                  ]}
                 >
                   <TextArea
                     rows={3}
                     placeholder="Phần thưởng: 1 tuần - xem phim, 1 tháng - ăn nhà hàng, 3 tháng - du lịch..."
+                    showCount
+                    maxLength={500}
                   />
                 </Form.Item>
               </Card>
@@ -807,10 +1152,17 @@ const QuitPlanCreation = () => {
                 <Form.Item
                   label="💭 Ghi chú"
                   name="additionalNotes"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập ghi chú bổ sung' },
+                    { min: 10, message: 'Ghi chú bổ sung phải có ít nhất 10 ký tự' },
+                    { max: 1500, message: 'Ghi chú bổ sung không được vượt quá 1500 ký tự' }
+                  ]}
                 >
                   <TextArea
                     rows={4}
                     placeholder="Ghi chú thêm về tình trạng sức khỏe, tiền sử bệnh, mối quan tâm đặc biệt của thành viên..."
+                    showCount
+                    maxLength={1500}
                   />
                 </Form.Item>
               </Card>
@@ -839,6 +1191,7 @@ const QuitPlanCreation = () => {
               </div>
             </Form>
           </Card>
+          </>
           )}
 
           {/* Phase Creation Section */}
@@ -960,9 +1313,22 @@ const QuitPlanCreation = () => {
                                   >
                                     <Input
                                       value={goal}
-                                      onChange={(e) => handlePhaseGoalChange(phaseIndex, goalIndex, e.target.value)}
-                                      placeholder={`Mục tiêu ${goalIndex + 1}...`}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value.length <= 500) {
+                                          handlePhaseGoalChange(phaseIndex, goalIndex, value);
+                                        }
+                                      }}
+                                      placeholder={`Mục tiêu ${goalIndex + 1}... (tối thiểu 5 ký tự, tối đa 500 ký tự)`}
+                                      maxLength={500}
+                                      showCount={goal && goal.length > 0}
+                                      status={goal && goal.trim().length > 0 && goal.trim().length < 5 ? 'error' : ''}
                                     />
+                                    {goal && goal.trim().length > 0 && goal.trim().length < 5 && (
+                                      <div style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px' }}>
+                                        Mục tiêu quá ngắn (tối thiểu 5 ký tự)
+                                      </div>
+                                    )}
                                   </List.Item>
                                 )}
                               />
