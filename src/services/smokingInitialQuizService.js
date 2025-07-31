@@ -99,7 +99,6 @@ export const calculateAddictionScore = (formData) => {
     formData.yearsSmoking || 0,
     formData.withdrawalSymptoms || 0,
     formData.stressSmoking || 0,
-    formData.addictionFeeling || 0,
     formData.smokingTime || 0,
     formData.healthProblems || 0,
     formData.previousAttempts || 0,

@@ -18,6 +18,7 @@ import {
   getCurrentSmokingStatus,
   formatStatusForDisplay
 } from '../../services/smokingStatusService';
+import { calculateAddictionScore } from '../../services/smokingInitialQuizService';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
@@ -53,7 +54,7 @@ const SmokingStatusComprehensive = () => {
           {
             id: 1,
             createAt: new Date().toISOString(),
-            point: currentStatus.addiction ? getScoreFromAddictionLevel(currentStatus.addiction) : 0,
+            point: currentStatus ? getScoreFromResponse(currentStatus) : 0,
             dailySmoking: currentStatus.dailySmoking || 0
           }
         ] : [];
@@ -78,7 +79,7 @@ const SmokingStatusComprehensive = () => {
     console.log('calculateStatisticsFromCurrentStatus input:', currentStatus); // Debug log
     
     // Convert addiction enum to score for processing
-    const score = currentStatus?.addiction ? getScoreFromAddictionLevel(currentStatus.addiction) : 0;
+    const score = currentStatus ? getScoreFromResponse(currentStatus) : 0;
     console.log('Calculated score:', score); // Debug log
     
     // Statistics cơ bản dựa trên current status
@@ -99,23 +100,28 @@ const SmokingStatusComprehensive = () => {
     };
   };
 
-  // Convert AddictionLevel enum to score (matching backend enum)
-  const getScoreFromAddictionLevel = (addictionLevel) => {
-    switch (addictionLevel) {
-      case 'NONE': return 5;
-      case 'LIGHT': return 10;
-      case 'MEDIUM': return 20;
-      case 'SEVERE': return 30;
-      default: return 0;
-    }
+  // Calculate actual score using SmokingInitialQuiz service
+  const getScoreFromResponse = (statusData) => {
+    if (!statusData) return 0;
+    
+    // Use the same calculation as SmokingInitialQuiz service
+    return calculateAddictionScore(statusData);
   };
 
-  // Helper function to get addiction level
-  const getCurrentLevel = (point) => {
-    if (point <= 7) return 'Không nghiện';
-    if (point <= 15) return 'Nghiện nhẹ';
-    if (point <= 25) return 'Nghiện trung bình';
+  // Helper function to get addiction level from calculated score
+  const getCurrentLevel = (score) => {
+    if (score <= 7) return 'Không nghiện';
+    if (score <= 15) return 'Nghiện nhẹ';
+    if (score <= 25) return 'Nghiện trung bình';
     return 'Nghiện nặng';
+  };
+
+  // Helper function to get addiction level color
+  const getLevelColor = (score) => {
+    if (score <= 7) return 'green';
+    if (score <= 15) return 'gold';
+    if (score <= 25) return 'orange';
+    return 'red';
   };
 
   // Recommendations đơn giản
@@ -155,7 +161,7 @@ const SmokingStatusComprehensive = () => {
         {
           id: 1,
           createAt: new Date().toISOString(),
-          point: currentStatus.addiction ? getScoreFromAddictionLevel(currentStatus.addiction) : 0,
+          point: currentStatus ? getScoreFromResponse(currentStatus) : 0,
           dailySmoking: currentStatus.dailySmoking || 0
         }
       ] : [];
