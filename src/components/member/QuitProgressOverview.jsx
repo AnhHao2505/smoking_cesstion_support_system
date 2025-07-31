@@ -454,7 +454,7 @@ const QuitProgressOverview = () => {
             </Card>
             
             {/* Daily Check-in Reminder */}
-            <Card className="daily-checkin-card">
+            <Card className="smoking-quiz-card">
               <Space direction="vertical" style={{ width: '100%' }} align="center">
                 <Title level={4}>Bạn đã cập nhật tiến trình hôm nay chưa?</Title>
                 <Paragraph>

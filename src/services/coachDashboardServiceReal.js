@@ -3,10 +3,35 @@ import { getNewestQuitPlan } from './quitPlanService';
 import { getLatestMemberSmokingStatus } from './memberSmokingStatusService';
 import { getUnansweredQna } from './askQuestionService';
 import { getFeedbacksForCoach } from './feebackService';
+import { handleApiResponse, handleApiError } from '../utils/apiEndpoints';
+import axiosInstance from '../utils/axiosConfig';
 
 /**
  * Real Coach Dashboard Service using actual API endpoints
  */
+
+/**
+ * Lấy thống kê hiệu suất của huấn luyện viên
+ */
+export const getCoachPerformanceStats = async (coachId) => {
+  try {
+    const response = await axiosInstance.get(`/coach/performance-stats/${coachId}`);
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error fetching coach performance stats:', error);
+    // Trường hợp API chưa tồn tại, trả về dữ liệu giả
+    return {
+      success: true,
+      data: {
+        totalMembers: 0,
+        activePlans: 0,
+        completedPlans: 0,
+        successRate: 0,
+        averageRating: 0
+      }
+    };
+  }
+};
 
 // Get enhanced coach profile with statistics
 export const getEnhancedCoachProfile = async (coachId) => {

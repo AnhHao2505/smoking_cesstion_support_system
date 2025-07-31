@@ -11,12 +11,24 @@ export const createMemberSmokingStatus = async (statusData) => {
   }
 };
 
-// Get latest member smoking status - Updated to match new API
+// Get latest member smoking status for coach - Updated to match new API
 export const getLatestMemberSmokingStatus = async (memberId) => {
   try {
-    const response = await axiosInstance.get('/api/member-smoking-status/latest', {
+    // Sử dụng endpoint dành cho coach xem member khác
+    const response = await axiosInstance.get('/api/member-smoking-status/coach/view-latest/to-create-plan', {
       params: { memberId }
     });
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// Get my latest smoking status (for member view) - Updated to match new API
+export const getMyLatestSmokingStatus = async () => {
+  try {
+    // Endpoint dành cho member tự xem (không cần memberId param)
+    const response = await axiosInstance.get('/api/member-smoking-status/latest');
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);

@@ -43,7 +43,7 @@ const DailyRecordForm = ({ onSuccess, phaseId }) => {
   // Custom validation functions
   const validateCigaretteCount = (_, value) => {
     if (value === null || value === undefined || value === '') {
-      return Promise.reject(new Error('Số điếu thuốc không được để trống'));
+      return Promise.reject(new Error('Vui lòng nhập số điếu thuốc đã hút'));
     }
     if (value < 0) {
       return Promise.reject(new Error('Số điếu thuốc không thể âm'));
@@ -56,7 +56,7 @@ const DailyRecordForm = ({ onSuccess, phaseId }) => {
 
   const validateTargetCount = (_, value) => {
     if (value === null || value === undefined || value === '') {
-      return Promise.reject(new Error('Mục tiêu không được để trống'));
+      return Promise.reject(new Error('Vui lòng đặt mục tiêu cho ngày mai'));
     }
     if (value < 0) {
       return Promise.reject(new Error('Mục tiêu không thể âm'));
@@ -478,16 +478,7 @@ const DailyRecordForm = ({ onSuccess, phaseId }) => {
                 name="cigarettesConsumed"
                 label="Số điếu thuốc đã hút hôm nay *"
                 rules={[
-                  { required: true, message: 'Vui lòng nhập số điếu thuốc đã hút' },
-                  { validator: validateCigaretteCount },
-                  { 
-                    validator: (_, value) => {
-                      if (value === null || value === undefined || value === '') {
-                        return Promise.reject(new Error('Số điếu thuốc không được để trống'));
-                      }
-                      return Promise.resolve();
-                    }
-                  }
+                  { validator: validateCigaretteCount }
                 ]}
               >
                 <InputNumber 
@@ -511,16 +502,7 @@ const DailyRecordForm = ({ onSuccess, phaseId }) => {
                 name="cigarettesTomorrowTarget"
                 label="Mục tiêu cho ngày mai *"
                 rules={[
-                  { required: true, message: 'Vui lòng đặt mục tiêu cho ngày mai' },
-                  { validator: validateTargetCount },
-                  { 
-                    validator: (_, value) => {
-                      if (value === null || value === undefined || value === '') {
-                        return Promise.reject(new Error('Mục tiêu cho ngày mai không được để trống'));
-                      }
-                      return Promise.resolve();
-                    }
-                  }
+                  { validator: validateTargetCount }
                 ]}
               >
                 <InputNumber 

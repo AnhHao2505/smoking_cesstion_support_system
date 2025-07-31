@@ -26,7 +26,6 @@ import {
   TeamOutlined, 
   CheckCircleOutlined, 
   StarOutlined,
-  RiseOutlined,
   FileTextOutlined,
   TrophyOutlined,
   MedicineBoxOutlined,
@@ -34,15 +33,12 @@ import {
   PlusOutlined
 } from '@ant-design/icons';
 import {
-  LineChart,
   BarChart,
   Bar,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip as RechartsTooltip,
-  Legend,
   PieChart,
   Pie,
   Cell,
@@ -93,6 +89,24 @@ const AdminDashboard = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // User filter states
+  const [userFilters, setUserFilters] = useState({
+    email: '',
+    name: '',
+    status: 'all', // all, active, inactive
+    role: 'all' // all, MEMBER, COACH, ADMIN
+  });
+
+  // Filtered users pagination
+  const [filteredPage, setFilteredPage] = useState(1);
+  const [filteredPageSize, setFilteredPageSize] = useState(10);
+
+  // Feedback filter states
+  const [feedbackFilters, setFeedbackFilters] = useState({
+    star: 'all', // all, 1, 2, 3, 4, 5
+    status: 'all' // all, published, unreviewed
+  });
 
   // Modal states for reminder management
   const [reminderModalVisible, setReminderModalVisible] = useState(false);
@@ -242,28 +256,216 @@ const AdminDashboard = () => {
     fetchUsersData(page - 1, size); // API uses 0-based pagination
   };
 
+  // Check if any filter is active
+  const hasActiveFilter = () => {
+    return userFilters.email !== '' || 
+           userFilters.name !== '' || 
+           userFilters.status !== 'all' || 
+           userFilters.role !== 'all';
+  };
+
+  // Get all filtered users (without pagination)
+  const getAllFilteredUsers = () => {
+    if (!usersData.content) return [];
+    
+    return usersData.content.filter(user => {
+      // Email filter
+      const emailMatch = !userFilters.email || 
+        user.email.toLowerCase().includes(userFilters.email.toLowerCase());
+      
+      // Name filter
+      const nameMatch = !userFilters.name || 
+        user.name.toLowerCase().includes(userFilters.name.toLowerCase());
+      
+      // Status filter
+      const statusMatch = userFilters.status === 'all' || 
+        (userFilters.status === 'active' && user.status) ||
+        (userFilters.status === 'inactive' && !user.status);
+      
+      // Role filter
+      const roleMatch = userFilters.role === 'all' || 
+        user.role === userFilters.role;
+      
+      return emailMatch && nameMatch && statusMatch && roleMatch;
+    });
+  };
+
+  // Filter users data based on filter criteria
+  const getFilteredUsersData = () => {
+    if (!hasActiveFilter()) {
+      // No filter active, return server data as-is
+      return usersData.content || [];
+    }
+
+    const filtered = getAllFilteredUsers();
+
+    // Apply pagination to filtered results
+    const startIndex = (filteredPage - 1) * filteredPageSize;
+    const endIndex = startIndex + filteredPageSize;
+    return filtered.slice(startIndex, endIndex);
+  };
+
+  // Get total count of filtered users
+  const getFilteredUsersCount = () => {
+    if (!hasActiveFilter()) {
+      // No filter active, return server total
+      return usersData.totalElements || 0;
+    }
+    
+    return getAllFilteredUsers().length;
+  };
+
+  // Fetch all users for filtering (when filter is applied)
+  const fetchAllUsersForFiltering = async () => {
+    try {
+      setUsersLoading(true);
+      // Fetch with a large page size to get all users for client-side filtering
+      const allUsers = await userService.getAllUsers(0, 1000); // Assume 1000 is enough
+      setUsersData(allUsers || {
+        content: [],
+        pageNo: 0,
+        pageSize: 1000,
+        totalElements: 0,
+        totalPages: 0,
+        last: false
+      });
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      message.error("Failed to load all users for filtering");
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  // Handle filter change
+  const handleFilterChange = async (filterType, value) => {
+    const newFilters = {
+      ...userFilters,
+      [filterType]: value
+    };
+    
+    // Check if this is the first filter being applied
+    const wasFilterEmpty = !hasActiveFilter();
+    const willHaveFilter = newFilters.email !== '' || 
+                          newFilters.name !== '' || 
+                          newFilters.status !== 'all' || 
+                          newFilters.role !== 'all';
+    
+    setUserFilters(newFilters);
+    setFilteredPage(1);
+    
+    // If transitioning from no filter to having filter, fetch all users
+    if (wasFilterEmpty && willHaveFilter) {
+      await fetchAllUsersForFiltering();
+    }
+    // If removing all filters, go back to server pagination
+    else if (!wasFilterEmpty && !willHaveFilter) {
+      setCurrentPage(1);
+      fetchUsersData(0, pageSize);
+    }
+  };
+
+  // Handle filtered data pagination
+  const handleFilteredPaginationChange = (page, size) => {
+    if (hasActiveFilter()) {
+      // Client-side pagination for filtered data
+      setFilteredPage(page);
+      setFilteredPageSize(size || filteredPageSize);
+    } else {
+      // Server-side pagination for non-filtered data
+      setCurrentPage(page);
+      setPageSize(size || pageSize);
+      fetchUsersData(page - 1, size || pageSize);
+    }
+  };
+
+  // Get current pagination settings
+  const getCurrentPagination = () => {
+    if (hasActiveFilter()) {
+      return {
+        current: filteredPage,
+        pageSize: filteredPageSize,
+        total: getFilteredUsersCount()
+      };
+    } else {
+      return {
+        current: currentPage,
+        pageSize: pageSize,
+        total: usersData.totalElements || 0
+      };
+    }
+  };
+
+  // Reset filters
+  const resetFilters = () => {
+    setUserFilters({
+      email: '',
+      name: '',
+      status: 'all',
+      role: 'all'
+    });
+    setFilteredPage(1);
+    // Reset to server pagination
+    setCurrentPage(1);
+    fetchUsersData(0, pageSize);
+  };
+
+  // Filter feedback data based on filter criteria
+  const getFilteredFeedbacks = (feedbacks) => {
+    if (!feedbacks) return [];
+    
+    return feedbacks.filter(feedback => {
+      // Star filter
+      const starMatch = feedbackFilters.star === 'all' || 
+        (feedback.star && feedback.star.toString() === feedbackFilters.star);
+      
+      return starMatch;
+    });
+  };
+
+  // Handle feedback filter change
+  const handleFeedbackFilterChange = (filterType, value) => {
+    setFeedbackFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
+
+  // Reset feedback filters
+  const resetFeedbackFilters = () => {
+    setFeedbackFilters({
+      star: 'all',
+      status: 'all'
+    });
+  };
+
   // Handle user disable/enable
   const handleUserDisableToggle = async (record) => {
     console.log(record)
     try {
       if (record.role === 'ADMIN') {
-        message.warning('Admin users cannot be disabled');
+        message.warning('Người dùng quản trị viên không thể bị vô hiệu hóa');
         return;
       }
 
-      const action = record.status ? 'disable' : 'enable';
+      if (record.role === 'COACH') {
+        message.warning('Tài khoản huấn luyện viên được bảo vệ và không thể bị vô hiệu hóa');
+        return;
+      }
+
+      const action = record.status ? 'vô hiệu hóa' : 'kích hoạt lại';
       const response = await userService.disableUser(record.id);
       
       if (response.success) {
-        message.success(`User ${action}d successfully`);
+        message.success(`Người dùng ${action} thành công`);
         // Refresh users data to show updated status
         fetchUsersData(currentPage - 1, pageSize);
       } else {
-        message.error(`Failed to ${action} user`);
+        message.error(`Thất bại khi ${action} người dùng`);
       }
     } catch (error) {
       console.error(`Error ${record.status ? 'disabling' : 'enabling'} user:`, error);
-      message.error(`Failed to ${record.status ? 'disable' : 'enable'} user`);
+      message.error(`Thất bại khi ${record.status ? 'vô hiệu hóa' : 'kích hoạt lại'} người dùng`);
     }
   };
 
@@ -271,18 +473,25 @@ const AdminDashboard = () => {
   const handleUserReEnable = async (record) => {
     try {
       if (record.role === 'ADMIN') {
-        message.warning('Admin users cannot be re-enabled');
+        message.warning('Người dùng quản trị viên không thể được kích hoạt lại');
+        return;
+      }
+
+      if (record.role === 'COACH') {
+        message.warning('Tài khoản huấn luyện viên được bảo vệ và không cần kích hoạt lại');
         return;
       }
 
       const response = await userService.reEnableUser(record.id);
-      
-        message.success('User re-enabled successfully');
+
+      if (response.success) {
+        message.success('Kích hoạt người dùng thành công');
         // Refresh users data to show updated status
         fetchUsersData(currentPage - 1, pageSize);
+      }
     } catch (error) {
       console.error('Error re-enabling user:', error);
-      message.error('Failed to re-enable user');
+      message.error('Thất bại khi kích hoạt lại người dùng');
     }
   };
 
@@ -294,11 +503,11 @@ const AdminDashboard = () => {
         message.success('Feedback approved and published successfully');
         fetchFeedbackData(); // Refresh feedback data
       } else {
-        message.error('Failed to approve feedback');
+        message.error('Thất bại khi phê duyệt phản hồi');
       }
     } catch (error) {
       console.error('Error approving feedback:', error);
-      message.error('Failed to approve feedback');
+      message.error('Thất bại khi phê duyệt phản hồi');
     }
   };
 
@@ -307,14 +516,14 @@ const AdminDashboard = () => {
     try {
       const response = await feedbackService.hideFeedback(feedbackId);
       if (response.success) {
-        message.success('Feedback hidden successfully');
+        message.success('Phản hồi đã được ẩn thành công');
         fetchFeedbackData(); // Refresh feedback data
       } else {
-        message.error('Failed to hide feedback');
+        message.error('Thất bại khi ẩn phản hồi');
       }
     } catch (error) {
       console.error('Error hiding feedback:', error);
-      message.error('Failed to hide feedback');
+      message.error('Thất bại khi ẩn phản hồi');
     }
   };
 
@@ -326,11 +535,11 @@ const AdminDashboard = () => {
         message.success('Feedback marked as reviewed');
         fetchFeedbackData(); // Refresh feedback data
       } else {
-        message.error('Failed to mark feedback as reviewed');
+        message.error('Thất bại khi đánh dấu phản hồi là đã xem');
       }
     } catch (error) {
       console.error('Error marking feedback as reviewed:', error);
-      message.error('Failed to mark feedback as reviewed');
+      message.error('Thất bại khi đánh dấu phản hồi là đã xem');
     }
   };
 
@@ -339,14 +548,14 @@ const AdminDashboard = () => {
     try {
       const response = await reminderService.createReminder(content, category);
       if (response.success) {
-        message.success('Reminder created successfully');
+        message.success('Tạo nhắc nhở thành công');
         fetchReminderData(reminderPagination.current - 1, reminderPagination.pageSize);
       } else {
-        message.error('Failed to create reminder');
+        message.error('Thất bại khi tạo nhắc nhở');
       }
     } catch (error) {
       console.error('Error creating reminder:', error);
-      message.error('Failed to create reminder');
+      message.error('Thất bại khi tạo nhắc nhở');
     }
   };
 
@@ -355,14 +564,14 @@ const AdminDashboard = () => {
     try {
       const response = await reminderService.updateReminder(reminderId, content, category);
       if (response.success) {
-        message.success('Reminder updated successfully');
+        message.success('Cập nhật nhắc nhở thành công');
         fetchReminderData(reminderPagination.current - 1, reminderPagination.pageSize);
       } else {
-        message.error('Failed to update reminder');
+        message.error('Thất bại khi cập nhật nhắc nhở');
       }
     } catch (error) {
       console.error('Error updating reminder:', error);
-      message.error('Failed to update reminder');
+      message.error('Thất bại khi cập nhật nhắc nhở');
     }
   };
 
@@ -371,14 +580,14 @@ const AdminDashboard = () => {
     try {
       const response = await reminderService.disableReminder(reminderId);
       if (response.success) {
-        message.success('Reminder disabled successfully');
+        message.success('Đã vô hiệu hóa nhắc nhở');
         fetchReminderData(reminderPagination.current - 1, reminderPagination.pageSize);
       } else {
-        message.error('Failed to disable reminder');
+        message.error('Thất bại khi vô hiệu hóa nhắc nhở');
       }
     } catch (error) {
       console.error('Error disabling reminder:', error);
-      message.error('Failed to disable reminder');
+      message.error('Thất bại khi vô hiệu hóa nhắc nhở');
     }
   };
 
@@ -387,14 +596,14 @@ const AdminDashboard = () => {
     try {
       const response = await reminderService.reEnableReminder(reminderId);
       if (response.success) {
-        message.success('Reminder re-enabled successfully');
+        message.success('Đã kích hoạt lại nhắc nhở');
         fetchReminderData(reminderPagination.current - 1, reminderPagination.pageSize);
       } else {
-        message.error('Failed to re-enable reminder');
+        message.error('Thất bại khi kích hoạt lại nhắc nhở');
       }
     } catch (error) {
       console.error('Error re-enabling reminder:', error);
-      message.error('Failed to re-enable reminder');
+      message.error('Thất bại khi kích hoạt lại nhắc nhở');
     }
   };
 
@@ -435,7 +644,7 @@ const AdminDashboard = () => {
       setEditingReminder(null);
       reminderForm.resetFields();
     } catch (error) {
-      console.error('Form validation failed:', error);
+      console.error('Xác thực biểu mẫu thất bại:', error);
     }
   };
 
@@ -455,7 +664,7 @@ const AdminDashboard = () => {
       width: 80,
     },
     {
-      title: 'Name',
+      title: 'Tên',
       dataIndex: 'name',
       key: 'name',
     },
@@ -465,56 +674,54 @@ const AdminDashboard = () => {
       key: 'email',
     },
     {
-      title: 'Role',
+      title: 'Vai trò',
       dataIndex: 'role',
       key: 'role',
       render: (role) => (
         <Tag color={role === 'MEMBER' ? 'blue' : role === 'COACH' ? 'green' : 'purple'}>
-          {role}
+          {role === 'MEMBER' ? 'Thành viên' : role === 'COACH' ? 'Huấn luyện viên' : 'Quản trị viên'}
         </Tag>
       )
     },
     {
-      title: 'Status',
+      title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
         <Badge 
           status={status ? 'success' : 'error'} 
-          text={status ? 'Active' : 'Inactive'} 
+          text={status ? 'Hoạt động' : 'Không hoạt động'} 
         />
       )
     },
     {
-      title: 'Action',
+      title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
         <Space>
-          {record.role !== 'ADMIN' && record.status && (
+          {record.role === 'MEMBER' && record.status && (
             <Button 
               type="link" 
               size="small" 
               danger
               onClick={() => handleUserDisableToggle(record)}
             >
-              Disable
+              Vô hiệu hóa
             </Button>
           )}
-          {record.role !== 'ADMIN' && !record.status && (
-            <>
-              <Button 
-                type="link" 
-                size="small" 
-                onClick={() => handleUserReEnable(record)}
-              >
-                Enable
-              </Button>
-            </>
+          {record.role === 'MEMBER' && !record.status && (
+            <Button 
+              type="link" 
+              size="small" 
+              onClick={() => handleUserReEnable(record)}
+            >
+              Kích hoạt lại
+            </Button>
           )}
-          {record.role === 'ADMIN' && (
-            <Tooltip title="Admin users cannot be disabled">
+          {(record.role === 'ADMIN' || record.role === 'COACH') && (
+            <Tooltip title={`Tài khoản ${record.role === 'ADMIN' ? 'quản trị viên' : 'huấn luyện viên'} được bảo vệ`}>
               <Button type="link" size="small" disabled>
-                Protected
+                Bảo vệ
               </Button>
             </Tooltip>
           )}
@@ -532,7 +739,7 @@ const AdminDashboard = () => {
       width: 80,
     },
     {
-      title: 'Content',
+      title: 'Nội dung',
       dataIndex: 'content',
       key: 'content',
       ellipsis: true,
@@ -543,7 +750,7 @@ const AdminDashboard = () => {
       )
     },
     {
-      title: 'Rating',
+      title: 'Số sao',
       dataIndex: 'star',
       key: 'star',
       width: 100,
@@ -554,44 +761,48 @@ const AdminDashboard = () => {
       )
     },
     {
-      title: 'Coach',
+      title: 'Tới',
       dataIndex: ['coach', 'name'],
       key: 'coachName',
-      render: (name, record) => name || record.coachName || 'N/A'
+      render: (name, record) => {
+        // Sử dụng field 'to' từ API response để phân biệt coach và nền tảng
+        const recipient = record.to || name || record.coachName;
+        
+        if (recipient === 'Nền tảng') {
+          return <Tag color="blue">Nền tảng</Tag>;
+        } else if (recipient) {
+          return <Tag color="green">{recipient}</Tag>;
+        } else {
+          return <Tag color="default">Không xác định</Tag>;
+        }
+      }
     },
     {
-      title: 'Member',
+      title: 'Thành viên',
       dataIndex: ['member', 'name'],
       key: 'memberName',
-      render: (name, record) => name || record.memberName || 'N/A'
+      render: (name, record) => name || record.memberName || 'Không xác định'
     },
     {
-      title: 'Created Date',
+      title: 'Ngày tạo',
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'Không xác định'
     },
     {
-      title: 'Actions',
+      title: 'Thao tác',
       key: 'actions',
       width: 250,
       render: (_, record) => (
         <Space>
-          {/* <Button 
-            type="primary" 
-            size="small"
-            onClick={() => handleFeedbackReviewed(record.id)}
-          >
-            Review
-          </Button> */}
           <Button 
             type="default" 
             size="small"
             style={{ color: '#52c41a', borderColor: '#52c41a' }}
             onClick={() => handleFeedbackApproval(record.id)}
           >
-            Approve & Publish
+            Duyệt & Đăng
           </Button>
           <Button 
             type="default" 
@@ -599,7 +810,7 @@ const AdminDashboard = () => {
             danger
             onClick={() => handleFeedbackHide(record.id)}
           >
-            Hide
+            Từ chối đăng
           </Button>
         </Space>
       )
@@ -615,7 +826,7 @@ const AdminDashboard = () => {
       width: 80,
     },
     {
-      title: 'Content',
+      title: 'Nội dung',
       dataIndex: 'content',
       key: 'content',
       ellipsis: true,
@@ -626,7 +837,7 @@ const AdminDashboard = () => {
       )
     },
     {
-      title: 'Rating',
+      title: 'Số sao',
       dataIndex: 'star',
       key: 'star',
       width: 100,
@@ -637,33 +848,44 @@ const AdminDashboard = () => {
       )
     },
     {
-      title: 'Coach',
+      title: 'Huấn luyện viên',
       dataIndex: ['coach', 'name'],
       key: 'coachName',
-      render: (name, record) => name || record.coachName || 'N/A'
+      render: (name, record) => {
+        // Sử dụng field 'to' từ API response để phân biệt coach và nền tảng
+        const recipient = record.to || name || record.coachName;
+        
+        if (recipient === 'Nền tảng') {
+          return <Tag color="blue">Nền tảng</Tag>;
+        } else if (recipient) {
+          return <Tag color="green">{recipient}</Tag>;
+        } else {
+          return <Tag color="default">Không xác định</Tag>;
+        }
+      }
     },
     {
-      title: 'Member',
+      title: 'Thành viên',
       dataIndex: ['member', 'name'],
       key: 'memberName',
-      render: (name, record) => name || record.memberName || 'N/A'
+      render: (name, record) => name || record.memberName || 'Không xác định'
     },
     {
-      title: 'Created Date',
+      title: 'Ngày tạo',
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'Không xác định'
     },
     {
-      title: 'Published Date',
+      title: 'Ngày đăng',
       dataIndex: 'publishedAt',
       key: 'publishedAt',
       width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'Không xác định'
     },
     {
-      title: 'Actions',
+      title: 'Thao tác',
       key: 'actions',
       width: 100,
       render: (_, record) => (
@@ -673,7 +895,7 @@ const AdminDashboard = () => {
           danger
           onClick={() => handleFeedbackHide(record.id)}
         >
-          Hide
+          Ẩn
         </Button>
       )
     }
@@ -688,7 +910,7 @@ const AdminDashboard = () => {
       width: 80,
     },
     {
-      title: 'Content',
+      title: 'Nội dung',
       dataIndex: 'content',
       key: 'content',
       ellipsis: true,
@@ -699,7 +921,7 @@ const AdminDashboard = () => {
       )
     },
     {
-      title: 'Rating',
+      title: 'Số sao',
       dataIndex: 'star',
       key: 'star',
       width: 100,
@@ -710,42 +932,53 @@ const AdminDashboard = () => {
       )
     },
     {
-      title: 'Coach',
+      title: 'Huấn luyện viên',
       dataIndex: ['coach', 'name'],
       key: 'coachName',
-      render: (name, record) => name || record.coachName || 'N/A'
+      render: (name, record) => {
+        // Sử dụng field 'to' từ API response để phân biệt coach và nền tảng
+        const recipient = record.to || name || record.coachName;
+        
+        if (recipient === 'Nền tảng') {
+          return <Tag color="blue">Nền tảng</Tag>;
+        } else if (recipient) {
+          return <Tag color="green">{recipient}</Tag>;
+        } else {
+          return <Tag color="default">Không xác định</Tag>;
+        }
+      }
     },
     {
-      title: 'Member',
+      title: 'Thành viên',
       dataIndex: ['member', 'name'],
       key: 'memberName',
-      render: (name, record) => name || record.memberName || 'N/A'
+      render: (name, record) => name || record.memberName || 'Không xác định'
     },
     {
-      title: 'Status',
+      title: 'Trạng thái',
       key: 'status',
       render: (_, record) => {
         const isPublished = record.published || record.isPublished;
         const isReviewed = record.reviewed || record.isReviewed;
         
         if (isPublished) {
-          return <Tag color="green">Published</Tag>;
+          return <Tag color="green">Đã đăng</Tag>;
         } else if (isReviewed) {
-          return <Tag color="blue">Reviewed</Tag>;
+          return <Tag color="blue">Đã duyệt</Tag>;
         } else {
-          return <Tag color="orange">Unreviewed</Tag>;
+          return <Tag color="orange">Chưa duyệt</Tag>;
         }
       }
     },
     {
-      title: 'Created Date',
+      title: 'Ngày tạo',
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'Không xác định'
     },
     {
-      title: 'Actions',
+      title: 'Thao tác',
       key: 'actions',
       width: 200,
       render: (_, record) => {
@@ -760,7 +993,7 @@ const AdminDashboard = () => {
                 size="small"
                 onClick={() => handleFeedbackReviewed(record.id)}
               >
-                Mark Reviewed
+                Đánh dấu đã duyệt
               </Button>
             )}
             {!isPublished && isReviewed && (
@@ -770,7 +1003,7 @@ const AdminDashboard = () => {
                 style={{ color: '#52c41a' }}
                 onClick={() => handleFeedbackApproval(record.id)}
               >
-                Approve & Publish
+                Duyệt & Đăng
               </Button>
             )}
             {isPublished && (
@@ -780,7 +1013,7 @@ const AdminDashboard = () => {
                 danger
                 onClick={() => handleFeedbackHide(record.id)}
               >
-                Hide
+                Ẩn
               </Button>
             )}
           </Space>
@@ -798,7 +1031,7 @@ const AdminDashboard = () => {
       width: 80,
     },
     {
-      title: 'Content',
+      title: 'Nội dung',
       dataIndex: 'content',
       key: 'content',
       ellipsis: true,
@@ -809,7 +1042,7 @@ const AdminDashboard = () => {
       )
     },
     {
-      title: 'Category',
+      title: 'Danh mục',
       dataIndex: 'category',
       key: 'category',
       render: (category) => {
@@ -820,40 +1053,47 @@ const AdminDashboard = () => {
           'MILESTONE_CELEBRATIONS': 'purple',
           'SMOKING_FACTS': 'red'
         };
+        const viMap = {
+          'HEALTH_BENEFITS': 'Lợi ích sức khỏe',
+          'MOTIVATIONAL_QUOTES': 'Câu nói truyền cảm hứng',
+          'TIPS_AND_TRICKS': 'Mẹo và thủ thuật',
+          'MILESTONE_CELEBRATIONS': 'Kỷ niệm thành tích',
+          'SMOKING_FACTS': 'Sự thật về thuốc lá'
+        };
         return (
           <Tag color={colors[category] || 'default'}>
-            {category?.replace(/_/g, ' ') || 'General'}
+            {viMap[category] || 'Chung'}
           </Tag>
         );
       }
     },
     {
-      title: 'Status',
+      title: 'Trạng thái',
       dataIndex: 'active',
       key: 'active',
       render: (active) => (
         <Badge 
           status={active ? 'success' : 'error'} 
-          text={active ? 'Active' : 'Inactive'} 
+          text={active ? 'Hoạt động' : 'Không hoạt động'} 
         />
       )
     },
     {
-      title: 'Created Date',
+      title: 'Ngày tạo',
       dataIndex: 'createAt',
       key: 'createAt',
       width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'Không xác định'
     },
     {
-      title: 'Updated Date',
+      title: 'Ngày cập nhật',
       dataIndex: 'updateAt',
       key: 'updateAt',
       width: 120,
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'N/A'
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'Không xác định'
     },
     {
-      title: 'Actions',
+      title: 'Thao tác',
       key: 'actions',
       width: 200,
       render: (_, record) => (
@@ -863,7 +1103,7 @@ const AdminDashboard = () => {
             size="small"
             onClick={() => handleEditReminder(record)}
           >
-            Edit
+            Chỉnh sửa
           </Button>
           {record.active ? (
             <Button 
@@ -872,7 +1112,7 @@ const AdminDashboard = () => {
               danger
               onClick={() => handleDisableReminder(record.id)}
             >
-              Disable
+              Vô hiệu hóa
             </Button>
           ) : (
             <Button 
@@ -881,7 +1121,7 @@ const AdminDashboard = () => {
               style={{ color: '#52c41a' }}
               onClick={() => handleReEnableReminder(record.id)}
             >
-              Enable
+              Kích hoạt lại
             </Button>
           )}
         </Space>
@@ -895,9 +1135,9 @@ const AdminDashboard = () => {
     const admins = totalUsers - totalMembers - totalCoaches;
     
     return [
-      { name: 'Members', value: totalMembers, color: '#1890ff' },
-      { name: 'Coaches', value: totalCoaches, color: '#52c41a' },
-      { name: 'Admins', value: Math.max(0, admins), color: '#722ed1' }
+      { name: 'Thành viên', value: totalMembers, color: '#1890ff' },
+      { name: 'Huấn luyện viên', value: totalCoaches, color: '#52c41a' },
+      { name: 'Quản trị viên', value: Math.max(0, admins), color: '#722ed1' }
     ].filter(item => item.value > 0);
   };
 
@@ -911,10 +1151,8 @@ const AdminDashboard = () => {
     } = dashboardStats;
     
     return [
-      { name: 'Reviewed', value: reviewedFeedback, color: '#52c41a' },
-      { name: 'Unreviewed', value: unreviewedFeedback, color: '#faad14' },
-      { name: 'Published', value: publishedFeedback, color: '#1890ff' },
-      { name: 'Unpublished', value: unpublishedFeedback, color: '#ff4d4f' }
+      { name: 'Đã duyệt', value: publishedFeedback, color: '#1890ff' },
+      { name: 'Chưa duyệt', value: unpublishedFeedback, color: '#ff4d4f' }
     ].filter(item => item.value > 0);
   };
 
@@ -928,10 +1166,10 @@ const AdminDashboard = () => {
     } = dashboardStats;
     
     return [
-      { name: 'Active', value: activeQuitPlans, color: '#1890ff' },
-      { name: 'Completed', value: completedQuitPlans, color: '#52c41a' },
-      { name: 'Cancelled', value: cancelledQuitPlans, color: '#faad14' },
-      { name: 'Rejected', value: rejectedQuitPlans, color: '#ff4d4f' }
+      { name: 'Đang tiến hành', value: activeQuitPlans, color: '#1890ff' },
+      { name: 'Đã hoàn thành', value: completedQuitPlans, color: '#52c41a' },
+      { name: 'Thất bại', value: cancelledQuitPlans, color: '#faad14' },
+      { name: 'Bị từ chối', value: rejectedQuitPlans, color: '#ff4d4f' }
     ].filter(item => item.value > 0);
   };
 
@@ -947,11 +1185,11 @@ const AdminDashboard = () => {
     });
 
     return [
-      { name: '1 Star', value: ratingCounts[1], color: '#ff4d4f' },
-      { name: '2 Stars', value: ratingCounts[2], color: '#ff7a45' },
-      { name: '3 Stars', value: ratingCounts[3], color: '#faad14' },
-      { name: '4 Stars', value: ratingCounts[4], color: '#a0d911' },
-      { name: '5 Stars', value: ratingCounts[5], color: '#52c41a' }
+      { name: '1 Sao', value: ratingCounts[1], color: '#ff4d4f' },
+      { name: '2 Sao', value: ratingCounts[2], color: '#ff7a45' },
+      { name: '3 Sao', value: ratingCounts[3], color: '#faad14' },
+      { name: '4 Sao', value: ratingCounts[4], color: '#a0d911' },
+      { name: '5 Sao', value: ratingCounts[5], color: '#52c41a' }
     ].filter(item => item.value > 0);
   };
 
@@ -984,21 +1222,21 @@ const AdminDashboard = () => {
   return (
     <div className="dashboard admin-dashboard">
       <div className="container py-4">
-        <Title level={2} className="page-title">Admin Dashboard</Title>
+        <Title level={2} className="page-title">Bảng điều khiển quản trị viên</Title>
         
-        {/* Overview Statistics */}
+        {/* Thống kê tổng quan */}
         <Row gutter={[16, 16]} className="stats-overview mb-4">
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
               <Statistic 
-                title="Total Users"
+                title="Tổng số người dùng"
                 value={dashboardStats.totalUsers || 0}
                 prefix={<TeamOutlined />}
                 valueStyle={{ color: '#1890ff' }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  {dashboardStats.totalMembers || 0} Members, {dashboardStats.totalCoaches || 0} Coaches
+                  {dashboardStats.totalMembers || 0} thành viên, {dashboardStats.totalCoaches || 0} huấn luyện viên
                 </Text>
               </div>
             </Card>
@@ -1007,14 +1245,14 @@ const AdminDashboard = () => {
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
               <Statistic 
-                title="Active Members"
+                title="Thành viên đang hoạt động"
                 value={dashboardStats.activeMembers || 0}
                 prefix={<UserOutlined />}
                 valueStyle={{ color: '#52c41a' }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  {dashboardStats.inactiveMembers || 0} Inactive
+                  {dashboardStats.inactiveMembers || 0} không hoạt động
                 </Text>
               </div>
             </Card>
@@ -1023,14 +1261,14 @@ const AdminDashboard = () => {
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
               <Statistic 
-                title="Active Coaches"
+                title="Huấn luyện viên đang hoạt động"
                 value={dashboardStats.activeCoaches || 0}
                 prefix={<MedicineBoxOutlined />}
                 valueStyle={{ color: '#722ed1' }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  {dashboardStats.coachesWithActiveMembers || 0} with active members
+                  {dashboardStats.coachesWithActiveMembers || 0} có thành viên hoạt động
                 </Text>
               </div>
             </Card>
@@ -1039,33 +1277,33 @@ const AdminDashboard = () => {
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
               <Statistic 
-                title="Total Feedback"
+                title="Tổng số đánh giá"
                 value={dashboardStats.totalFeedback || 0}
                 prefix={<FileTextOutlined />}
                 valueStyle={{ color: '#faad14' }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  Average: {dashboardStats.averageStarAll || 0} stars
+                  Trung bình: {dashboardStats.averageStarAll || 0} sao
                 </Text>
               </div>
             </Card>
           </Col>
         </Row>
 
-        {/* Secondary Statistics */}
+        {/* Thống kê phụ */}
         <Row gutter={[16, 16]} className="stats-overview mb-4">
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
               <Statistic 
-                title="Quit Plans"
+                title="Kế hoạch cai thuốc"
                 value={dashboardStats.totalQuitPlans || 0}
                 prefix={<TrophyOutlined />}
                 valueStyle={{ color: '#1890ff' }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  Success Rate: {dashboardStats.successRateOfQuitPlans || 0}%
+                  Tỉ lệ thành công: {dashboardStats.successRateOfQuitPlans || 0}%
                 </Text>
               </div>
             </Card>
@@ -1074,14 +1312,14 @@ const AdminDashboard = () => {
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
               <Statistic 
-                title="Daily Logs"
+                title="Nhật ký hàng ngày"
                 value={dashboardStats.totalDailyLogs || 0}
                 prefix={<FileTextOutlined />}
                 valueStyle={{ color: '#52c41a' }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  {dashboardStats.membersWithAnyLog || 0} active loggers
+                  {dashboardStats.membersWithAnyLog || 0} thành viên ghi nhật ký
                 </Text>
               </div>
             </Card>
@@ -1090,14 +1328,14 @@ const AdminDashboard = () => {
           <Col xs={24} sm={12} md={6}>
             <Card className="stat-card">
               <Statistic 
-                title="Members with Coach"
+                title="Thành viên có huấn luyện viên"
                 value={dashboardStats.membersWithAssignedCoach || 0}
                 prefix={<TeamOutlined />}
                 valueStyle={{ color: '#722ed1' }}
               />
               <div className="stat-footer">
                 <Text type="secondary">
-                  Coach assignment rate
+                  Tỉ lệ phân công huấn luyện viên
                 </Text>
               </div>
             </Card>
@@ -1106,10 +1344,77 @@ const AdminDashboard = () => {
         </Row>
         
         <Tabs defaultActiveKey="1" className="dashboard-tabs">
-          <TabPane tab="User Management" key="1">
-            <Card title={`All Users (${usersData.totalElements || 0} total)`}>
+          <TabPane tab="Quản lý người dùng" key="1">
+            <Card title={`Tổng người dùng (${usersData.totalElements || 0} người)`}>
+              {/* Filter Section */}
+              <div style={{ marginBottom: 16, padding: 16, backgroundColor: '#fafafa', borderRadius: 6 }}>
+                <Row gutter={[16, 16]} align="middle">
+                  <Col xs={24} sm={12} md={6}>
+                    <div>
+                      <Text strong style={{ marginBottom: 8, display: 'block' }}>Lọc theo email:</Text>
+                      <Input
+                        placeholder="Nhập email..."
+                        value={userFilters.email}
+                        onChange={(e) => handleFilterChange('email', e.target.value)}
+                        allowClear
+                      />
+                    </div>
+                  </Col>
+                  <Col xs={24} sm={12} md={6}>
+                    <div>
+                      <Text strong style={{ marginBottom: 8, display: 'block' }}>Lọc theo tên:</Text>
+                      <Input
+                        placeholder="Nhập tên..."
+                        value={userFilters.name}
+                        onChange={(e) => handleFilterChange('name', e.target.value)}
+                        allowClear
+                      />
+                    </div>
+                  </Col>
+                  <Col xs={24} sm={12} md={6}>
+                    <div>
+                      <Text strong style={{ marginBottom: 8, display: 'block' }}>Trạng thái:</Text>
+                      <Select
+                        style={{ width: '100%' }}
+                        value={userFilters.status}
+                        onChange={(value) => handleFilterChange('status', value)}
+                      >
+                        <Select.Option value="all">Tất cả</Select.Option>
+                        <Select.Option value="active">Hoạt động</Select.Option>
+                        <Select.Option value="inactive">Không hoạt động</Select.Option>
+                      </Select>
+                    </div>
+                  </Col>
+                  <Col xs={24} sm={12} md={6}>
+                    <div>
+                      <Text strong style={{ marginBottom: 8, display: 'block' }}>Vai trò:</Text>
+                      <Select
+                        style={{ width: '100%' }}
+                        value={userFilters.role}
+                        onChange={(value) => handleFilterChange('role', value)}
+                      >
+                        <Select.Option value="all">Tất cả</Select.Option>
+                        <Select.Option value="MEMBER">Thành viên</Select.Option>
+                        <Select.Option value="COACH">Huấn luyện viên</Select.Option>
+                        <Select.Option value="ADMIN">Quản trị viên</Select.Option>
+                      </Select>
+                    </div>
+                  </Col>
+                </Row>
+                <Row style={{ marginTop: 16 }}>
+                  <Col>
+                    <Button onClick={resetFilters} type="default">
+                      Xóa bộ lọc
+                    </Button>
+                    <Text type="secondary" style={{ marginLeft: 16 }}>
+                      Hiển thị {getFilteredUsersCount()} / {usersData.totalElements || 0} người dùng
+                    </Text>
+                  </Col>
+                </Row>
+              </div>
+              
               <Table 
-                dataSource={usersData.content || []} 
+                dataSource={getFilteredUsersData()} 
                 columns={userColumns} 
                 rowKey="id"
                 loading={usersLoading}
@@ -1117,44 +1422,61 @@ const AdminDashboard = () => {
               />
               <div className="mt-4 text-center">
                 <Pagination
-                  current={currentPage}
-                  pageSize={pageSize}
-                  total={usersData.totalElements || 0}
-                  onChange={handlePaginationChange}
-                  onShowSizeChange={handlePaginationChange}
+                  current={getCurrentPagination().current}
+                  pageSize={getCurrentPagination().pageSize}
+                  total={getCurrentPagination().total}
+                  onChange={handleFilteredPaginationChange}
+                  onShowSizeChange={handleFilteredPaginationChange}
                   showSizeChanger
                   showQuickJumper
-                  showTotal={(total, range) => 
-                    `${range[0]}-${range[1]} of ${total} users`
-                  }
+                  showTotal={(total, range) => {
+                    if (hasActiveFilter()) {
+                      return `${range[0]}-${range[1]} trong ${total} người dùng (đã lọc từ ${usersData.totalElements || 0} tổng)`;
+                    } else {
+                      return `${range[0]}-${range[1]} trong tổng số ${total} người dùng`;
+                    }
+                  }}
                 />
               </div>
             </Card>
           </TabPane>
           
-          <TabPane tab="Feedback Management" key="2.5">
+          <TabPane tab="Quản lý đánh giá" key="2.5">
             <Row gutter={[16, 16]} className="mb-4">
               <Col xs={24} sm={6}>
                 <Card className="stat-card">
                   <Statistic 
-                    title="Total Feedback"
-                    value={(unreviewedFeedbacks.length || 0) + (publishedFeedbacks.length || 0)}
+                    title="Tổng số đánh giá"
+                    value={feedbackFilters.star === 'all' 
+                      ? (unreviewedFeedbacks.length || 0) + (publishedFeedbacks.length || 0)
+                      : getFilteredFeedbacks(unreviewedFeedbacks).length + getFilteredFeedbacks(publishedFeedbacks).length
+                    }
                     prefix={<FileTextOutlined />}
                     valueStyle={{ color: '#1890ff' }}
                   />
+                  {feedbackFilters.star !== 'all' && (
+                    <div className="stat-footer">
+                      <Text type="secondary">
+                        Lọc theo {feedbackFilters.star} sao
+                      </Text>
+                    </div>
+                  )}
                 </Card>
               </Col>
               <Col xs={24} sm={6}>
                 <Card className="stat-card">
                   <Statistic 
-                    title="Unreviewed Feedback"
-                    value={unreviewedFeedbacks.length || 0}
+                    title="Đánh giá chưa duyệt"
+                    value={feedbackFilters.star === 'all' 
+                      ? unreviewedFeedbacks.length || 0
+                      : getFilteredFeedbacks(unreviewedFeedbacks).length
+                    }
                     prefix={<BellOutlined />}
                     valueStyle={{ color: '#ff4d4f' }}
                   />
                   <div className="stat-footer">
                     <Text type="secondary">
-                      Needs attention
+                      {feedbackFilters.star !== 'all' ? `Lọc theo ${feedbackFilters.star} sao` : 'Cần xử lý'}
                     </Text>
                   </div>
                 </Card>
@@ -1162,14 +1484,20 @@ const AdminDashboard = () => {
               <Col xs={24} sm={6}>
                 <Card className="stat-card">
                   <Statistic 
-                    title="Published Feedback"
-                    value={publishedFeedbacks.length || 0}
+                    title="Đánh giá đã đăng"
+                    value={feedbackFilters.star === 'all' 
+                      ? publishedFeedbacks.length || 0
+                      : getFilteredFeedbacks(publishedFeedbacks).length
+                    }
                     prefix={<CheckCircleOutlined />}
                     valueStyle={{ color: '#52c41a' }}
                   />
                   <div className="stat-footer">
                     <Text type="secondary">
-                      Live on platform
+                      {feedbackFilters.star !== 'all' 
+                        ? `Lọc theo ${feedbackFilters.star} sao` 
+                        : 'Đang hiển thị trên hệ thống'
+                      }
                     </Text>
                   </div>
                 </Card>
@@ -1177,7 +1505,7 @@ const AdminDashboard = () => {
               <Col xs={24} sm={6}>
                 <Card className="stat-card">
                   <Statistic 
-                    title="Average Rating"
+                    title="Đánh giá trung bình"
                     value={dashboardStats.averageStarAll || 0}
                     precision={1}
                     prefix={<StarOutlined />}
@@ -1190,7 +1518,7 @@ const AdminDashboard = () => {
 
             <Row gutter={[16, 16]} className="mb-4">
               <Col xs={24} md={12}>
-                <Card title="Feedback Rating Distribution">
+                <Card title="Phân bố đánh giá theo số sao">
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={prepareFeedbackRatingData()}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -1208,11 +1536,11 @@ const AdminDashboard = () => {
               </Col>
               
               <Col xs={24} md={12}>
-                <Card title="Feedback Status Overview">
+                <Card title="Tổng quan trạng thái đánh giá">
                   <Row gutter={[16, 16]}>
                     <Col span={12}>
                       <Statistic 
-                        title="Unreviewed"
+                        title="Chưa duyệt"
                         value={getFeedbackStatusStats().unreviewed}
                         valueStyle={{ color: '#ff4d4f' }}
                       />
@@ -1224,7 +1552,7 @@ const AdminDashboard = () => {
                     </Col>
                     <Col span={12}>
                       <Statistic 
-                        title="Reviewed"
+                        title="Đã duyệt"
                         value={getFeedbackStatusStats().reviewed}
                         valueStyle={{ color: '#52c41a' }}
                       />
@@ -1239,24 +1567,54 @@ const AdminDashboard = () => {
               </Col>
             </Row>
 
-            <Card title={`Feedback Management`}>
+            <Card title={`Quản lý đánh giá`}>
+              {/* Feedback Filter Section */}
+              <div style={{ marginBottom: 16, padding: 16, backgroundColor: '#fafafa', borderRadius: 6 }}>
+                <Row gutter={[16, 16]} align="middle">
+                  <Col xs={24} sm={12} md={6}>
+                    <div>
+                      <Text strong style={{ marginBottom: 8, display: 'block' }}>Lọc theo số sao:</Text>
+                      <Select
+                        style={{ width: '100%' }}
+                        value={feedbackFilters.star}
+                        onChange={(value) => handleFeedbackFilterChange('star', value)}
+                      >
+                        <Select.Option value="all">Tất cả</Select.Option>
+                        <Select.Option value="1">1 Sao</Select.Option>
+                        <Select.Option value="2">2 Sao</Select.Option>
+                        <Select.Option value="3">3 Sao</Select.Option>
+                        <Select.Option value="4">4 Sao</Select.Option>
+                        <Select.Option value="5">5 Sao</Select.Option>
+                      </Select>
+                    </div>
+                  </Col>
+                  <Col xs={24} sm={12} md={6}>
+                    <div style={{ marginTop: 24 }}>
+                      <Button onClick={resetFeedbackFilters} type="default">
+                        Xóa bộ lọc
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+              </div>
+
               <Tabs defaultActiveKey="unreviewed">
                 <TabPane 
                   tab={
                     <span>
                       <BellOutlined />
-                      Unreviewed ({unreviewedFeedbacks.length || 0})
+                      Chưa duyệt ({getFilteredFeedbacks(unreviewedFeedbacks).length || 0})
                     </span>
                   } 
                   key="unreviewed"
                 >
                   <div style={{ marginBottom: 16 }}>
                     <Text type="secondary">
-                      These feedbacks need to be reviewed and approved before they can be published.
+                      Những đánh giá này cần được duyệt và phê duyệt trước khi đăng lên hệ thống.
                     </Text>
                   </div>
                   <Table 
-                    dataSource={unreviewedFeedbacks || []} 
+                    dataSource={getFilteredFeedbacks(unreviewedFeedbacks)} 
                     columns={unreviewedFeedbackColumns} 
                     rowKey="id"
                     loading={feedbackLoading}
@@ -1264,8 +1622,8 @@ const AdminDashboard = () => {
                     pagination={{
                       showSizeChanger: true,
                       showQuickJumper: true,
-                      showTotal: (total, range) => 
-                        `${range[0]}-${range[1]} of ${total} unreviewed feedback entries`
+                  showTotal: (total, range) => 
+                    `${range[0]}-${range[1]} trong tổng số ${total} đánh giá chưa duyệt${feedbackFilters.star !== 'all' ? ` (đã lọc theo ${feedbackFilters.star} sao)` : ''}`
                     }}
                   />
                 </TabPane>
@@ -1274,18 +1632,18 @@ const AdminDashboard = () => {
                   tab={
                     <span>
                       <CheckCircleOutlined />
-                      Published ({publishedFeedbacks.length || 0})
+                      Đã đăng ({getFilteredFeedbacks(publishedFeedbacks).length || 0})
                     </span>
                   } 
                   key="published"
                 >
                   <div style={{ marginBottom: 16 }}>
                     <Text type="secondary">
-                      These feedbacks have been approved and are visible to the public.
+                      Những đánh giá này đã được duyệt và đang hiển thị công khai trên hệ thống.
                     </Text>
                   </div>
                   <Table 
-                    dataSource={publishedFeedbacks || []} 
+                    dataSource={getFilteredFeedbacks(publishedFeedbacks)} 
                     columns={publishedFeedbackColumns} 
                     rowKey="id"
                     loading={feedbackLoading}
@@ -1293,8 +1651,8 @@ const AdminDashboard = () => {
                     pagination={{
                       showSizeChanger: true,
                       showQuickJumper: true,
-                      showTotal: (total, range) => 
-                        `${range[0]}-${range[1]} of ${total} published feedback entries`
+                  showTotal: (total, range) => 
+                    `${range[0]}-${range[1]} trong tổng số ${total} đánh giá đã đăng${feedbackFilters.star !== 'all' ? ` (đã lọc theo ${feedbackFilters.star} sao)` : ''}`
                     }}
                   />
                 </TabPane>
@@ -1302,10 +1660,10 @@ const AdminDashboard = () => {
             </Card>
           </TabPane>
           
-          <TabPane tab="User Analytics" key="3">
+          <TabPane tab="Phân tích người dùng" key="3">
             <Row gutter={[16, 16]}>
               <Col xs={24} md={12}>
-                <Card title="User Distribution by Role">
+                <Card title="Phân bố người dùng theo vai trò">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -1324,14 +1682,14 @@ const AdminDashboard = () => {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <RechartsTooltip formatter={(value, name) => [`${value}`, name]} labelFormatter={(label) => label} />
                     </PieChart>
                   </ResponsiveContainer>
                 </Card>
               </Col>
               
               <Col xs={24} md={12}>
-                <Card title="Feedback Status Distribution">
+                <Card title="Phân bố trạng thái đánh giá">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -1350,7 +1708,7 @@ const AdminDashboard = () => {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <RechartsTooltip formatter={(value, name) => [`${value}`, name]} labelFormatter={(label) => label} />
                     </PieChart>
                   </ResponsiveContainer>
                 </Card>
@@ -1358,10 +1716,10 @@ const AdminDashboard = () => {
             </Row>
           </TabPane>
           
-          <TabPane tab="Quit Plan Analytics" key="4">
+          <TabPane tab="Phân tích kế hoạch cai thuốc" key="4">
             <Row gutter={[16, 16]}>
               <Col xs={24} md={12}>
-                <Card title="Quit Plan Status Distribution">
+                <Card title="Phân bố trạng thái kế hoạch cai thuốc">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -1387,11 +1745,11 @@ const AdminDashboard = () => {
               </Col>
               
               <Col xs={24} md={12}>
-                <Card title="Quit Plan Statistics">
+                <Card title="Thống kê kế hoạch cai thuốc">
                   <Row gutter={[16, 16]}>
                     <Col span={24}>
                       <Statistic 
-                        title="Success Rate"
+                        title="Tỉ lệ thành công"
                         value={dashboardStats.successRateOfQuitPlans || 0}
                         suffix="%"
                         valueStyle={{ color: '#52c41a' }}
@@ -1408,16 +1766,16 @@ const AdminDashboard = () => {
             </Row>
           </TabPane>
           
-          <TabPane tab="Reminders" key="5">
+          <TabPane tab="Nhắc nhở" key="5">
             <Card 
-              title={`All Reminders (${reminderPagination.total} total)`}
+              title={`Tất cả nhắc nhở (${reminderPagination.total} tổng)`}
               extra={
                 <Button 
                   type="primary" 
                   onClick={() => setReminderModalVisible(true)}
                   icon={<PlusOutlined />}
                 >
-                  Create Reminder
+                  Tạo nhắc nhở
                 </Button>
               }
             >
@@ -1438,7 +1796,7 @@ const AdminDashboard = () => {
                   showSizeChanger
                   showQuickJumper
                   showTotal={(total, range) => 
-                    `${range[0]}-${range[1]} of ${total} reminders`
+                    `${range[0]}-${range[1]} trong tổng số ${total} nhắc nhở`
                   }
                 />
               </div>
@@ -1448,7 +1806,7 @@ const AdminDashboard = () => {
 
         {/* Reminder Management Modal */}
         <Modal
-          title={editingReminder ? 'Edit Reminder' : 'Create Reminder'}
+          title={editingReminder ? 'Chỉnh sửa nhắc nhở' : 'Tạo nhắc nhở'}
           visible={reminderModalVisible}
           onCancel={handleReminderModalCancel}
           footer={null}
@@ -1461,36 +1819,36 @@ const AdminDashboard = () => {
           >
             <Form.Item
               name="content"
-              label="Content"
+              label="Nội dung"
               rules={[
-                { required: true, message: 'Please enter reminder content' }
+                { required: true, message: 'Vui lòng nhập nội dung nhắc nhở' }
               ]}
             >
-              <Input.TextArea rows={4} placeholder="Enter reminder content..." />
+              <Input.TextArea rows={4} placeholder="Nhập nội dung nhắc nhở..." />
             </Form.Item>
             
             <Form.Item
               name="category"
-              label="Category"
+              label="Danh mục"
               rules={[
-                { required: true, message: 'Please select reminder category' }
+                { required: true, message: 'Vui lòng chọn danh mục nhắc nhở' }
               ]}
             >
-              <Select placeholder="Select category">
-                <Select.Option value="HEALTH_BENEFITS">Health Benefits</Select.Option>
-                <Select.Option value="MOTIVATIONAL_QUOTES">Motivational Quotes</Select.Option>
-                <Select.Option value="TIPS_AND_TRICKS">Tips and Tricks</Select.Option>
-                <Select.Option value="SMOKING_FACTS">Smoking Facts</Select.Option>
+              <Select placeholder="Chọn danh mục">
+                <Select.Option value="HEALTH_BENEFITS">Lợi ích sức khỏe</Select.Option>
+                <Select.Option value="MOTIVATIONAL_QUOTES">Câu nói truyền cảm hứng</Select.Option>
+                <Select.Option value="TIPS_AND_TRICKS">Mẹo và thủ thuật</Select.Option>
+                <Select.Option value="SMOKING_FACTS">Sự thật về thuốc lá</Select.Option>
               </Select>
             </Form.Item>
             
             <Form.Item>
               <Space>
                 <Button type="primary" htmlType="submit" loading={reminderLoading}>
-                  {editingReminder ? 'Update Reminder' : 'Create Reminder'}
+                  {editingReminder ? 'Cập nhật nhắc nhở' : 'Tạo nhắc nhở'}
                 </Button>
                 <Button onClick={handleReminderModalCancel}>
-                  Cancel
+                  Hủy
                 </Button>
               </Space>
             </Form.Item>

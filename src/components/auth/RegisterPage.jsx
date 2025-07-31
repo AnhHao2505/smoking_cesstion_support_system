@@ -1,43 +1,41 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Form, Input, Button, Select, Checkbox, Typography, Row, Col, Card, Alert } from 'antd';
-import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Checkbox, Typography, Row, Col, Card, message } from 'antd';
+import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import * as authService from '../../services/authService';
 import '../../styles/global.css';
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const [registerError, setRegisterError] = useState('');
-  const [registerSuccess, setRegisterSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [form] = Form.useForm();
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
-    setRegisterError('');
-    setRegisterSuccess('');
     
     try {
       // Extract only the required fields for the API
       const { name, email, password } = values;
       
       const response = await authService.register(name, email, password);
-      setIsLoading(false);
-      setRegisterSuccess(response.message || 'Registration successful! You can now log in.');
       
-      form.resetFields();
-      
-      // Redirect to login after a short delay
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
+      if (response.success) {
+        message.success(response.message || 'Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.');
+        form.resetFields();
+        
+        // Redirect to login after a short delay
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      }
       
     } catch (error) {
+      // Error will be handled by popup/notification system
+      console.log('Registration failed:', error);
+    } finally {
       setIsLoading(false);
-      setRegisterError(error.message || 'An error occurred during registration');
     }
   };
 
@@ -46,25 +44,7 @@ const RegisterPage = () => {
       <Row justify="center" align="middle">
         <Col xs={22} sm={22} md={20} lg={16} xl={14}>
           <Card className="auth-card" bordered={false}>
-            <Title level={2} className="text-center">Create an Account</Title>
-            
-            {registerError && (
-              <Alert 
-                message={registerError} 
-                type="error" 
-                showIcon 
-                className="mb-4" 
-              />
-            )}
-            
-            {registerSuccess && (
-              <Alert 
-                message={registerSuccess} 
-                type="success" 
-                showIcon 
-                className="mb-4" 
-              />
-            )}
+            <Title level={2} className="text-center">Tạo tài khoản</Title>
             
             <Form
               form={form}
@@ -75,70 +55,70 @@ const RegisterPage = () => {
             >
               <Form.Item
                 name="name"
-                label="Full Name"
+                label="Họ và tên"
                 rules={[
-                  { required: true, message: 'Please input your full name!' },
-                  { min: 2, message: 'Name must be at least 2 characters' }
+                  { required: true, message: 'Vui lòng nhập họ và tên!' },
+                  { min: 2, message: 'Họ tên phải có ít nhất 2 ký tự' }
                 ]}
               >
                 <Input 
                   prefix={<UserOutlined />} 
-                  placeholder="Enter your full name"
+                  placeholder="Nhập họ và tên của bạn"
                   size="large" 
                 />
               </Form.Item>
               
               <Form.Item
                 name="email"
-                label="Email Address"
+                label="Địa chỉ Email"
                 rules={[
-                  { required: true, message: 'Please input your email!' },
-                  { type: 'email', message: 'Please enter a valid email address!' }
+                  { required: true, message: 'Vui lòng nhập email!' },
+                  { type: 'email', message: 'Vui lòng nhập đúng định dạng email!' }
                 ]}
               >
                 <Input 
                   prefix={<MailOutlined />} 
-                  placeholder="Enter your email"
+                  placeholder="Nhập email của bạn"
                   size="large" 
                 />
               </Form.Item>
 
               <Form.Item
                 name="password"
-                label="Password"
+                label="Mật khẩu"
                 rules={[
-                  { required: true, message: 'Please input your password!' },
-                  { min: 8, message: 'Password must be at least 8 characters' }
+                  { required: true, message: 'Vui lòng nhập mật khẩu!' },
+                  { min: 8, message: 'Mật khẩu phải có ít nhất 8 ký tự' }
                 ]}
                 hasFeedback
               >
                 <Input.Password 
                   prefix={<LockOutlined />} 
-                  placeholder="Create a password"
+                  placeholder="Tạo mật khẩu"
                   size="large" 
                 />
               </Form.Item>
               
               <Form.Item
                 name="confirmPassword"
-                label="Confirm Password"
+                label="Xác nhận mật khẩu"
                 dependencies={['password']}
                 hasFeedback
                 rules={[
-                  { required: true, message: 'Please confirm your password!' },
+                  { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
                       if (!value || getFieldValue('password') === value) {
                         return Promise.resolve();
                       }
-                      return Promise.reject(new Error('The two passwords do not match!'));
+                      return Promise.reject(new Error('Hai mật khẩu không khớp!'));
                     },
                   }),
                 ]}
               >
                 <Input.Password 
                   prefix={<LockOutlined />} 
-                  placeholder="Confirm your password"
+                  placeholder="Xác nhận mật khẩu"
                   size="large" 
                 />
               </Form.Item>
@@ -149,12 +129,12 @@ const RegisterPage = () => {
                 rules={[
                   {
                     validator: (_, value) =>
-                      value ? Promise.resolve() : Promise.reject(new Error('You must agree to the terms and conditions')),
+                      value ? Promise.resolve() : Promise.reject(new Error('Bạn phải đồng ý với các điều khoản và điều kiện')),
                   },
                 ]}
               >
                 <Checkbox>
-                  I agree to the <Link to="/terms">Terms and Conditions</Link> and <Link to="/privacy">Privacy Policy</Link>
+                  Tôi đồng ý với <Link to="/terms">Điều khoản & Điều kiện</Link> và <Link to="/privacy">Chính sách bảo mật</Link>
                 </Checkbox>
               </Form.Item>
 
@@ -166,16 +146,16 @@ const RegisterPage = () => {
                   size="large"
                   block
                 >
-                  Register
+                  Đăng ký
                 </Button>
               </Form.Item>
             </Form>
 
             <div className="text-center">
               <Text>
-                Already have an account?{' '}
+                Đã có tài khoản?{' '}
                 <Link to="/login" className="text-primary">
-                  Login here
+                  Đăng nhập tại đây
                 </Link>
               </Text>
             </div>

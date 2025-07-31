@@ -50,6 +50,18 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const CoachManagement = () => {
+  // Map English day to Vietnamese
+  const dayOfWeekVN = {
+    Monday: 'Thứ Hai',
+    Tuesday: 'Thứ Ba',
+    Wednesday: 'Thứ Tư',
+    Thursday: 'Thứ Năm',
+    Friday: 'Thứ Sáu',
+    Saturday: 'Thứ Bảy',
+    Sunday: 'Chủ Nhật'
+  };
+
+  const getDayVN = (day) => dayOfWeekVN[day] || day;
   const [coaches, setCoaches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -81,8 +93,6 @@ const CoachManagement = () => {
       const response = await getAllCoaches(pagination.current - 1, pagination.pageSize);
       
       if (response && response.content) {
-        // Ensure each coach has the expected structure from API:
-        // coachId, name, email, certificates, contact_number, workingHours, currentMemberAssignedCount, full
         setCoaches(response.content);
         setPagination(prev => ({
           ...prev,
@@ -99,7 +109,7 @@ const CoachManagement = () => {
       setLoading(false);
     } catch (error) {
       console.error("Error fetching coaches:", error);
-      message.error("Failed to load coaches. Please try again later.");
+      message.error("Thất bại khi tải danh sách huấn luyện viên.");
       setCoaches([]);
       setLoading(false);
     }
@@ -123,32 +133,92 @@ const CoachManagement = () => {
   };
 
   const showCreateModal = () => {
+    // Reset toàn bộ form và clear mọi giá trị
     form.resetFields();
+    form.setFieldsValue({
+      name: '',
+      email: '',
+      password: '',
+      contact_number: '',
+      specialty: undefined,
+      certificates: '',
+      bio: ''
+    });
     workingHoursForm.resetFields();
     setWorkingHours([]);
     setModalVisible(true);
   };
 
-  const showProfileModal = (coach) => {
-    setSelectedCoach(coach);
-    setProfileModalVisible(true);
-  };
+  // Regex cho số điện thoại Việt Nam
+  const phoneRegex = /^(0[1-9][0-9]{8,9})$/;
 
   const addWorkingHour = () => {
     workingHoursForm.validateFields()
       .then(values => {
+        // Kiểm tra đầy đủ thông tin
+        if (!values.dayOfWeek || !values.startTime || !values.endTime) {
+          message.error('Vui lòng nhập đầy đủ thông tin lịch làm việc');
+          return;
+        }
+
+        // Kiểm tra trùng lặp ngày trong tuần
+        const existingDay = workingHours.find(hour => hour.dayOfWeek === values.dayOfWeek);
+        if (existingDay) {
+          message.error(`Ngày ${getDayVN(values.dayOfWeek)} đã có lịch làm việc. Vui lòng chọn ngày khác.`);
+          return;
+        }
+
+        const startTime = values.startTime.format('HH:mm');
+        const endTime = values.endTime.format('HH:mm');
+
+        // Kiểm tra giờ bắt đầu phải trước giờ kết thúc
+        if (startTime >= endTime) {
+          message.error('Giờ bắt đầu phải trước giờ kết thúc');
+          return;
+        }
+
+        // Kiểm tra thời gian hợp lý (6:00 - 23:00)
+        const startHour = parseInt(startTime.split(':')[0]);
+        const endHour = parseInt(endTime.split(':')[0]);
+        
+        if (startHour < 6 || startHour > 23) {
+          message.error('Giờ bắt đầu phải trong khoảng 06:00 - 23:00');
+          return;
+        }
+        
+        if (endHour < 6 || endHour > 23) {
+          message.error('Giờ kết thúc phải trong khoảng 06:00 - 23:00');
+          return;
+        }
+
+        // Kiểm tra thời gian làm việc tối thiểu 1 tiếng
+        const startMinutes = startHour * 60 + parseInt(startTime.split(':')[1]);
+        const endMinutes = endHour * 60 + parseInt(endTime.split(':')[1]);
+        const duration = endMinutes - startMinutes;
+        
+        if (duration < 60) {
+          message.error('Thời gian làm việc phải ít nhất 1 tiếng');
+          return;
+        }
+
+        // Kiểm tra thời gian làm việc tối đa 8 tiếng
+        if (duration > 480) {
+          message.error('Thời gian làm việc không được quá 8 tiếng');
+          return;
+        }
+
         const newWorkingHour = {
           dayOfWeek: values.dayOfWeek,
-          startTime: values.startTime.format('HH:mm'),
-          endTime: values.endTime.format('HH:mm')
+          startTime: startTime,
+          endTime: endTime
         };
         
         setWorkingHours([...workingHours, newWorkingHour]);
         workingHoursForm.resetFields();
-        message.success('Working hour added successfully');
+        message.success(`Thêm lịch làm việc ${getDayVN(values.dayOfWeek)} thành công`);
       })
-      .catch(error => {
-        console.error('Working hours validation failed:', error);
+      .catch(() => {
+        message.error('Vui lòng nhập đầy đủ thông tin lịch làm việc');
       });
   };
 
@@ -161,9 +231,51 @@ const CoachManagement = () => {
     try {
       setCreating(true);
       const values = await form.validateFields();
-      
-      // Format data according to API spec for POST /coach/create
-      // Expected format: { name, email, password, contact_number, certificates, bio, specialty, workingHours }
+
+      // FE validation
+      if (!values.name || values.name.trim().length < 2) {
+        message.error('Họ và tên phải có ít nhất 2 ký tự');
+        setCreating(false);
+        return;
+      }
+      if (!values.email) {
+        message.error('Vui lòng nhập email');
+        setCreating(false);
+        return;
+      }
+      // Email format đã được validate bởi Ant Design
+      if (!values.password || values.password.length < 6) {
+        message.error('Mật khẩu phải có ít nhất 6 ký tự');
+        setCreating(false);
+        return;
+      }
+      if (!values.contact_number || !phoneRegex.test(values.contact_number)) {
+        message.error('Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam hợp lệ.');
+        setCreating(false);
+        return;
+      }
+      if (!values.specialty) {
+        message.error('Vui lòng chọn chuyên môn');
+        setCreating(false);
+        return;
+      }
+      if (!values.certificates || values.certificates.trim().length < 2) {
+        message.error('Chứng chỉ phải có ít nhất 2 ký tự');
+        setCreating(false);
+        return;
+      }
+      if (!values.bio || values.bio.trim().length < 10) {
+        message.error('Giới thiệu bản thân phải có ít nhất 10 ký tự');
+        setCreating(false);
+        return;
+      }
+      if (!workingHours || workingHours.length === 0) {
+        message.error('Vui lòng thêm ít nhất một lịch làm việc');
+        setCreating(false);
+        return;
+      }
+
+      // Format data
       const formattedData = {
         name: values.name,
         email: values.email,
@@ -180,15 +292,12 @@ const CoachManagement = () => {
       };
 
       const response = await createCoach(formattedData);
-      
       if (response) {
-        message.success('Coach created successfully!');
+        message.success('Tạo huấn luyện viên thành công!');
         setModalVisible(false);
         form.resetFields();
         workingHoursForm.resetFields();
         setWorkingHours([]);
-        
-        // Refresh coaches list
         fetchCoaches();
       }
     } catch (error) {
@@ -196,35 +305,10 @@ const CoachManagement = () => {
       if (error.message) {
         message.error(error.message);
       } else {
-        message.error("Failed to create coach. Please try again.");
+        message.error("Tạo huấn luyện viên thất bại. Vui lòng thử lại.");
       }
     } finally {
       setCreating(false);
-    }
-  };
-
-  const fetchCoachProfile = async (coachId) => {
-    try {
-      setProfileLoading(true);
-      const response = await getCoachProfile(coachId);
-      const profileData = response.data || response; // Handle both response formats
-      
-      // Populate the form with coach profile data
-      form.setFieldsValue({
-        name: profileData.name,
-        email: profileData.email,
-        contact_number: profileData.contactNumber || profileData.contact_number,
-        certificates: profileData.certificates,
-        bio: profileData.bio,
-        specialty: profileData.specialty
-      });
-      
-      setWorkingHours(profileData.workingHour || profileData.workingHours || []);
-    } catch (error) {
-      console.error("Error fetching coach profile:", error);
-      message.error("Failed to load coach profile. Please try again later.");
-    } finally {
-      setProfileLoading(false);
     }
   };
 
@@ -325,42 +409,34 @@ const CoachManagement = () => {
 
   const columns = [
     {
-      title: 'Coach',
+      title: 'Huấn luyện viên',
       dataIndex: 'name',
       key: 'name',
       render: (text, record) => (
-        <Space>
-          <Avatar size="large" icon={<UserOutlined />} />
+        <Space align="start">
+          <Avatar size={48} icon={<UserOutlined />} />
           <div>
             <Text strong style={{ fontSize: '16px' }}>{text}</Text>
             <br />
             <Text type="secondary"><MailOutlined /> {record.email}</Text>
+            <br />
+            <Tag color="blue" style={{ marginTop: 4 }}>{record.specialty}</Tag>
           </div>
         </Space>
       ),
-      width: 250
+      width: 260
     },
     {
-      title: 'Contact',
+      title: 'Liên hệ',
       dataIndex: 'contact_number',
       key: 'contact_number',
       render: (contact) => (
         <Text><PhoneOutlined /> {contact}</Text>
-      )
-    },
-    {
-      title: 'Certificates',
-      dataIndex: 'certificates',
-      key: 'certificates',
-      render: (certificates) => (
-        <Text ellipsis style={{ maxWidth: 200 }}>
-          {certificates || 'Not specified'}
-        </Text>
       ),
-      ellipsis: true
+      width: 140
     },
     {
-      title: 'Working Hours',
+      title: 'Lịch làm việc',
       dataIndex: 'workingHours',
       key: 'workingHours',
       render: (workingHours) => (
@@ -368,15 +444,15 @@ const CoachManagement = () => {
           {workingHours && workingHours.length > 0 ? (
             workingHours.slice(0, 2).map((schedule, index) => (
               <div key={index} style={{ fontSize: '12px' }}>
-                <Text><ClockCircleOutlined /> {schedule.dayOfWeek}: {schedule.startTime} - {schedule.endTime}</Text>
+                <Text><ClockCircleOutlined /> {getDayVN(schedule.dayOfWeek)}: {schedule.startTime} - {schedule.endTime}</Text>
               </div>
             ))
           ) : (
-            <Text type="secondary">No schedule</Text>
+            <Text type="secondary">Chưa có lịch</Text>
           )}
           {workingHours && workingHours.length > 2 && (
             <Text type="secondary" style={{ fontSize: '11px' }}>
-              +{workingHours.length - 2} more...
+              +{workingHours.length - 2} lịch khác...
             </Text>
           )}
         </div>
@@ -384,19 +460,20 @@ const CoachManagement = () => {
       width: 200
     },
     {
-      title: 'Current Members',
+      title: 'Thành viên hiện tại',
       dataIndex: 'currentMemberAssignedCount',
       key: 'currentMemberAssignedCount',
       render: (count, record) => {
         const maxMembers = 10;
         const percentage = (count / maxMembers) * 100;
         return (
-          <div>
+          <div style={{ minWidth: 90 }}>
             <Progress 
               percent={percentage} 
               size="small" 
               strokeColor={percentage >= 90 ? '#ff4d4f' : percentage >= 70 ? '#faad14' : '#52c41a'}
               showInfo={false}
+              style={{ marginBottom: 2 }}
             />
             <Text style={{ fontSize: '12px' }}>{count}/{maxMembers}</Text>
           </div>
@@ -406,52 +483,31 @@ const CoachManagement = () => {
       width: 120
     },
     {
-      title: 'Status',
-      key: 'availability',
-      render: (_, record) => {
-        const status = getAvailabilityStatus(record);
-        return (
-          <Badge 
-            status={status.color === 'green' ? 'success' : status.color === 'orange' ? 'warning' : 'error'} 
-            text={status.text} 
-          />
-        );
-      },
-      filters: [
-        { text: 'Available', value: 'available' },
-        { text: 'Limited', value: 'limited' },
-        { text: 'Full', value: 'full' }
-      ],
-      onFilter: (value, record) => {
-        const status = getAvailabilityStatus(record);
-        return status.text.toLowerCase().includes(value);
-      }
-    },
-    {
-      title: 'Actions',
+      title: 'Thao tác',
       key: 'actions',
       render: (_, record) => (
-        <Space direction="vertical" size="small">
+        <Space direction="horizontal" size="middle">
           <Button 
             type="primary"
             size="small"
             icon={<EyeOutlined />}
             onClick={() => handleViewProfile(record.coachId)}
+            style={{ minWidth: 110 }}
           >
-            View Profile
+            Xem hồ sơ
           </Button>
           <Button 
             type="default"
             size="small"
             icon={<ExclamationCircleOutlined />}
             onClick={() => showAbsentReportModal(record)}
-            style={{ borderColor: '#faad14', color: '#faad14' }}
+            style={{ borderColor: '#faad14', color: '#faad14', minWidth: 110 }}
           >
-            Report Absent
+            Báo vắng mặt
           </Button>
         </Space>
       ),
-      width: 140
+      width: 240
     }
   ];
 
@@ -474,45 +530,45 @@ const CoachManagement = () => {
   return (
     <div className="coach-management">
       <div className="container py-4">
-        <Title level={2}>
-          <TeamOutlined /> Coach Management
+        <Title level={2} style={{ marginBottom: 24 }}>
+          <TeamOutlined /> Quản lý huấn luyện viên
         </Title>
 
-        {/* Summary Statistics */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={6}>
+        {/* Thống kê tổng quan */}
+        <Row gutter={[24, 24]} style={{ marginBottom: 32 }} justify="center">
+          <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
-                title="Total Coaches"
+                title="Tổng số huấn luyện viên"
                 value={totalCoaches}
                 prefix={<TeamOutlined />}
               />
             </Card>
           </Col>
-          <Col span={6}>
+          <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
-                title="Available Coaches"
+                title="Đang nhận thành viên"
                 value={availableCoaches}
                 prefix={<CheckCircleOutlined />}
                 valueStyle={{ color: '#3f8600' }}
               />
             </Card>
           </Col>
-          <Col span={6}>
+          <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
-                title="Coaches at Capacity"
+                title="Đã đủ thành viên"
                 value={fullCoaches}
                 prefix={<UserOutlined />}
                 valueStyle={{ color: '#cf1322' }}
               />
             </Card>
           </Col>
-          <Col span={6}>
+          <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
-                title="Avg. Members per Coach"
+                title="Số thành viên trung bình/HLV"
                 value={averageMembers}
                 prefix={<StarOutlined />}
               />
@@ -521,14 +577,14 @@ const CoachManagement = () => {
         </Row>
 
         <Card 
-          title="All Coaches" 
+          title="Danh sách huấn luyện viên" 
           extra={
             <Button 
               type="primary" 
               icon={<UserAddOutlined />} 
               onClick={showCreateModal}
             >
-              Create New Coach
+              Thêm huấn luyện viên
             </Button>
           }
         >
@@ -542,21 +598,36 @@ const CoachManagement = () => {
               total: pagination.total,
               showSizeChanger: true,
               showQuickJumper: true,
-              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} coaches`,
+              showTotal: (total, range) => `${range[0]}-${range[1]} trong tổng số ${total} HLV`,
+              locale: {
+                items_per_page: '/ trang',
+                jump_to: 'Đến trang',
+                page: ''
+              }
             }}
             onChange={handleTableChange}
             scroll={{ x: 1340 }}
           />
         </Card>
-        
-        {/* Create Coach Modal */}
+
+        {/* Modal tạo HLV */}
         <Modal
-          title="Create New Coach"
+          title="Thêm huấn luyện viên mới"
           visible={modalVisible}
-          onCancel={() => setModalVisible(false)}
+          onCancel={() => {
+            setModalVisible(false);
+            form.resetFields();
+            workingHoursForm.resetFields();
+            setWorkingHours([]);
+          }}
           footer={[
-            <Button key="back" onClick={() => setModalVisible(false)}>
-              Cancel
+            <Button key="back" onClick={() => {
+              setModalVisible(false);
+              form.resetFields();
+              workingHoursForm.resetFields();
+              setWorkingHours([]);
+            }}>
+              Hủy
             </Button>,
             <Button 
               key="submit" 
@@ -564,7 +635,7 @@ const CoachManagement = () => {
               loading={creating}
               onClick={handleSubmit}
             >
-              Create Coach
+              Tạo huấn luyện viên
             </Button>,
           ]}
           width={800}
@@ -577,10 +648,10 @@ const CoachManagement = () => {
               <Col span={12}>
                 <Form.Item
                   name="name"
-                  label="Full Name"
-                  rules={[{ required: true, message: 'Please enter full name' }]}
+                  label="Họ và tên"
+                  rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
                 >
-                  <Input placeholder="Enter full name" />
+                  <Input placeholder="Nhập họ và tên" />
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -588,11 +659,11 @@ const CoachManagement = () => {
                   name="email"
                   label="Email"
                   rules={[
-                    { required: true, message: 'Please enter email' },
-                    { type: 'email', message: 'Please enter a valid email' }
+                    { required: true, message: 'Vui lòng nhập email' },
+                    { type: 'email', message: 'Email không hợp lệ' }
                   ]}
                 >
-                  <Input placeholder="Enter email address" />
+                  <Input placeholder="Nhập địa chỉ email" />
                 </Form.Item>
               </Col>
             </Row>
@@ -601,19 +672,19 @@ const CoachManagement = () => {
               <Col span={12}>
                 <Form.Item
                   name="password"
-                  label="Password"
-                  rules={[{ required: true, message: 'Please enter password' }]}
+                  label="Mật khẩu"
+                  rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}
                 >
-                  <Input.Password placeholder="Enter password" />
+                  <Input.Password placeholder="Nhập mật khẩu" />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
                   name="contact_number"
-                  label="Contact Number"
-                  rules={[{ required: true, message: 'Please enter contact number' }]}
+                  label="Số điện thoại liên hệ"
+                  rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
                 >
-                  <Input placeholder="Enter contact number" />
+                  <Input placeholder="Nhập số điện thoại" />
                 </Form.Item>
               </Col>
             </Row>
@@ -622,10 +693,10 @@ const CoachManagement = () => {
               <Col span={12}>
                 <Form.Item
                   name="specialty"
-                  label="Specialty"
-                  rules={[{ required: true, message: 'Please select specialty' }]}
+                  label="Chuyên môn"
+                  rules={[{ required: true, message: 'Vui lòng chọn chuyên môn' }]}
                 >
-                  <Select placeholder="Select specialty">
+                  <Select placeholder="Chọn chuyên môn">
                     {specialties.map(specialty => (
                       <Option key={specialty} value={specialty}>{specialty}</Option>
                     ))}
@@ -635,79 +706,75 @@ const CoachManagement = () => {
               <Col span={12}>
                 <Form.Item
                   name="certificates"
-                  label="Certificates"
-                  rules={[{ required: true, message: 'Please enter certificates' }]}
+                  label="Chứng chỉ"
+                  rules={[{ required: true, message: 'Vui lòng nhập chứng chỉ' }]}
                 >
-                  <Input placeholder="Enter certificates" />
+                  <Input placeholder="Nhập chứng chỉ" />
                 </Form.Item>
               </Col>
             </Row>
 
             <Form.Item
               name="bio"
-              label="Biography"
-              rules={[{ required: true, message: 'Please enter biography' }]}
+              label="Giới thiệu bản thân"
+              rules={[{ required: true, message: 'Vui lòng nhập giới thiệu' }]}
             >
-              <TextArea rows={4} placeholder="Enter coach biography" />
+              <TextArea rows={4} placeholder="Nhập giới thiệu về huấn luyện viên" />
             </Form.Item>
 
-            {/* Working Hours Section */}
+            {/* Lịch làm việc */}
             <div style={{ marginTop: 24 }}>
-              <Title level={5}>Working Hours</Title>
-              
+              <Title level={5}>Lịch làm việc</Title>
               <Form form={workingHoursForm} layout="inline" style={{ marginBottom: 16 }}>
                 <Form.Item
                   name="dayOfWeek"
-                  rules={[{ required: true, message: 'Please select day' }]}
+                  rules={[{ required: true, message: 'Vui lòng chọn ngày' }]}
                 >
-                  <Select placeholder="Select day" style={{ width: 120 }}>
-                    <Option value="Monday">Monday</Option>
-                    <Option value="Tuesday">Tuesday</Option>
-                    <Option value="Wednesday">Wednesday</Option>
-                    <Option value="Thursday">Thursday</Option>
-                    <Option value="Friday">Friday</Option>
-                    <Option value="Saturday">Saturday</Option>
-                    <Option value="Sunday">Sunday</Option>
+                  <Select placeholder="Chọn ngày" style={{ width: 120 }}>
+                    <Option value="Monday">Thứ Hai</Option>
+                    <Option value="Tuesday">Thứ Ba</Option>
+                    <Option value="Wednesday">Thứ Tư</Option>
+                    <Option value="Thursday">Thứ Năm</Option>
+                    <Option value="Friday">Thứ Sáu</Option>
+                    <Option value="Saturday">Thứ Bảy</Option>
+                    <Option value="Sunday">Chủ Nhật</Option>
                   </Select>
                 </Form.Item>
-                
                 <Form.Item
                   name="startTime"
-                  rules={[{ required: true, message: 'Please select start time' }]}
+                  rules={[{ required: true, message: 'Vui lòng chọn giờ bắt đầu' }]}
                 >
-                  <TimePicker format="HH:mm" placeholder="Start time" />
+                  <TimePicker format="HH:mm" placeholder="Giờ bắt đầu" />
                 </Form.Item>
-                
                 <Form.Item
                   name="endTime"
-                  rules={[{ required: true, message: 'Please select end time' }]}
+                  rules={[{ required: true, message: 'Vui lòng chọn giờ kết thúc' }]}
                 >
-                  <TimePicker format="HH:mm" placeholder="End time" />
+                  <TimePicker format="HH:mm" placeholder="Giờ kết thúc" />
                 </Form.Item>
-                
                 <Form.Item>
                   <Button type="dashed" onClick={addWorkingHour} icon={<PlusOutlined />}>
-                    Add Working Hour
+                    Thêm lịch làm việc
                   </Button>
                 </Form.Item>
               </Form>
 
-              {/* Display Added Working Hours */}
+              {/* Hiển thị lịch đã thêm */}
               {workingHours.length > 0 && (
                 <div>
-                  <Text strong>Added Working Hours:</Text>
+                  <Text strong>Lịch đã thêm:</Text>
                   {workingHours.map((hour, index) => (
                     <div key={index} style={{ marginTop: 8, padding: 8, border: '1px solid #d9d9d9', borderRadius: 4 }}>
                       <Space>
                         <CalendarOutlined />
-                        <Text>{hour.dayOfWeek}: {hour.startTime} - {hour.endTime}</Text>
+                        <Text>{getDayVN(hour.dayOfWeek)}: {hour.startTime} - {hour.endTime}</Text>
                         <Button 
                           size="small" 
                           type="text" 
                           danger 
                           onClick={() => removeWorkingHour(index)}
                         >
-                          Remove
+                          Xóa
                         </Button>
                       </Space>
                     </div>
@@ -723,14 +790,14 @@ const CoachManagement = () => {
           title={
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <InfoCircleOutlined style={{ marginRight: 8, color: '#1890ff' }} />
-              Coach Profile Details
+              Chi tiết hồ sơ huấn luyện viên
             </div>
           }
           visible={profileModalVisible}
           onCancel={closeProfileModal}
           footer={[
             <Button key="close" onClick={closeProfileModal}>
-              Close
+              Đóng
             </Button>
           ]}
           width={800}
@@ -759,43 +826,30 @@ const CoachManagement = () => {
               {/* Coach Details */}
               <Row gutter={24}>
                 <Col span={12}>
-                  <Card size="small" title="Professional Information">
+                  <Card size="small" title="Thông tin chuyên môn">
                     <Space direction="vertical" size={8} style={{ width: '100%' }}>
                       <div>
-                        <Text strong>Certificates:</Text>
+                        <Text strong>Chứng chỉ:</Text>
                         <br />
-                        <Text>{selectedCoach.certificates || 'Not specified'}</Text>
+                        <Text>{selectedCoach.certificates || 'Chưa cập nhật'}</Text>
                       </div>
                       <div>
-                        <Text strong>Specialty:</Text>
+                        <Text strong>Chuyên môn:</Text>
                         <br />
                         <Text>{selectedCoach.specialty}</Text>
-                      </div>
-                      <div>
-                        <Text strong>Current Members:</Text>
-                        <br />
-                        <Text>{selectedCoach.currentMemberAssignedCount || 0}/10</Text>
-                      </div>
-                      <div>
-                        <Text strong>Status:</Text>
-                        <br />
-                        <Badge 
-                          status={selectedCoach.full ? 'error' : 'success'} 
-                          text={selectedCoach.full ? 'At Capacity' : 'Available'} 
-                        />
                       </div>
                     </Space>
                   </Card>
                 </Col>
                 <Col span={12}>
-                  <Card size="small" title="Working Hours">
+                  <Card size="small" title="Lịch làm việc">
                     {selectedCoach.workingHours && selectedCoach.workingHours.length > 0 ? (
                       <Space direction="vertical" size={4} style={{ width: '100%' }}>
                         {selectedCoach.workingHours.map((schedule, index) => (
                           <div key={index}>
                             <ClockCircleOutlined style={{ marginRight: 8 }} />
                             <Text>
-                              {schedule.dayOfWeek}: {schedule.startTime} - {schedule.endTime}
+                              {getDayVN(schedule.dayOfWeek)}: {schedule.startTime} - {schedule.endTime}
                             </Text>
                           </div>
                         ))}
@@ -806,13 +860,13 @@ const CoachManagement = () => {
                           <div key={index}>
                             <ClockCircleOutlined style={{ marginRight: 8 }} />
                             <Text>
-                              {schedule.dayOfWeek}: {schedule.startTime} - {schedule.endTime}
+                              {getDayVN(schedule.dayOfWeek)}: {schedule.startTime} - {schedule.endTime}
                             </Text>
                           </div>
                         ))}
                       </Space>
                     ) : (
-                      <Text type="secondary">No working hours specified</Text>
+                      <Text type="secondary">Chưa có lịch làm việc</Text>
                     ))}
                   </Card>
                 </Col>
@@ -820,14 +874,14 @@ const CoachManagement = () => {
 
               {/* Biography */}
               {selectedCoach.bio && (
-                <Card size="small" title="Biography" style={{ marginTop: 16 }}>
+                <Card size="small" title="Giới thiệu bản thân" style={{ marginTop: 16 }}>
                   <Text>{selectedCoach.bio}</Text>
                 </Card>
               )}
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
-              <Text type="secondary">No coach profile data available</Text>
+              <Text type="secondary">Không có dữ liệu hồ sơ huấn luyện viên</Text>
             </div>
           )}
         </Modal>
@@ -837,7 +891,7 @@ const CoachManagement = () => {
           title={
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <ExclamationCircleOutlined style={{ marginRight: 8, color: '#faad14' }} />
-              Report Coach Absent
+              Báo cáo HLV vắng mặt
             </div>
           }
           visible={absentReportModalVisible}
@@ -861,7 +915,7 @@ const CoachManagement = () => {
           {selectedCoach && (
             <div>
               <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#fafafa', borderRadius: 6 }}>
-                <Text strong>Coach: </Text>
+                <Text strong>HLV: </Text>
                 <Text>{selectedCoach.name}</Text>
                 <br />
                 <Text strong>Email: </Text>
@@ -874,23 +928,23 @@ const CoachManagement = () => {
               >
                 <Form.Item
                   name="reason"
-                  label="Reason for Absence"
-                  rules={[{ required: true, message: 'Please enter the reason for absence' }]}
+                  label="Lý do vắng mặt"
+                  rules={[{ required: true, message: 'Vui lòng nhập lý do vắng mặt' }]}
                 >
                   <TextArea 
                     rows={4} 
-                    placeholder="Please describe the reason why this coach is reported as absent..."
+                    placeholder="Vui lòng mô tả lý do tại sao HLV này bị báo cáo vắng mặt..."
                   />
                 </Form.Item>
 
                 <Form.Item
                   name="suggestion"
-                  label="Suggestion for Members"
-                  rules={[{ required: true, message: 'Please enter suggestions for affected members' }]}
+                  label="Gợi ý cho thành viên"
+                  rules={[{ required: true, message: 'Vui lòng nhập đề xuất cho các thành viên bị ảnh hưởng' }]}
                 >
                   <TextArea 
                     rows={4} 
-                    placeholder="Please provide suggestions or alternative solutions for members assigned to this coach..."
+                    placeholder="Vui lòng cung cấp gợi ý hoặc giải pháp thay thế cho các thành viên được phân công cho HLV này..."
                   />
                 </Form.Item>
               </Form>

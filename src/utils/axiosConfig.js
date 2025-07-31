@@ -48,21 +48,24 @@ axiosInstance.interceptors.request.use(
       '/auth/login',
       '/auth/register', 
       '/auth/send-verify-otp',
+      '/auth/validate-otp',
       '/auth/send-reset-otp',
       '/auth/verify-account',
       '/auth/reset-password',
-      '/auth/get-testers',
-      '/blog',
-      '/public',
+      '/api/feedbacks/published',
+      '/api/notifications/all',
+      '/api/notifications/unread',
+      '/api/notifications/read',
+      '/api/notifications/important',
+      '/api/notifications/mark-read'
     ];
     
-    // Check if current request is to a public endpoint
-    const isPublicEndpoint = publicEndpoints.some(endpoint => {
-      const fullUrl = config.url || '';
-      return fullUrl.includes(endpoint);
-    });
-    
-    // Add authorization header for authenticated endpoints
+      // Check if current request is to a public endpoint - improved matching
+      const isPublicEndpoint = publicEndpoints.some(endpoint => {
+        const fullUrl = config.url || '';
+        // Check if URL starts with or contains the public endpoint pattern
+        return fullUrl.startsWith(endpoint) || fullUrl.includes(endpoint);
+      });    // Add authorization header for authenticated endpoints
     if (token && !isPublicEndpoint) {
       // Validate token before using it
       if (isTokenValid(token)) {
@@ -112,47 +115,109 @@ axiosInstance.interceptors.response.use(
         errorMessage = Object.values(data.errors).flat().join(', ');
       }
       
+      // Lọc các thông báo lỗi có chứa status code hoặc HTTP code
+      if (errorMessage) {
+        if (errorMessage.includes('status code') || 
+            errorMessage.includes('HTTP') || 
+            errorMessage.includes('Status Code') || 
+            errorMessage.includes('failed with status')) {
+          console.log('Removing status code from error message');
+          errorMessage = ''; // Loại bỏ hoàn toàn thông báo kỹ thuật
+        }
+      }
+      
+      // Loại bỏ hoàn toàn các phần thông báo kỹ thuật
+      if (errorMessage) {
+        const technicalTerms = ['status code', 'HTTP', 'Status Code', 'failed with status', 'error code', 'statusCode', 
+                                'status: ', 'code: ', 'exception', 'Exception', 'stack trace', 'Request failed'];
+        
+        for (const term of technicalTerms) {
+          if (errorMessage.includes(term)) {
+            console.log(`Filtered out technical error message containing "${term}":`, errorMessage);
+            errorMessage = ''; // Reset error message to use friendly defaults
+            break;
+          }
+        }
+      }
+      
       switch (status) {
+        case 400:
+          // Bad Request - including login credential errors
+          console.error('Bad request:', errorMessage || 'Bad request');
+          
+          if (errorMessage && errorMessage.trim() !== '') {
+            message.error(errorMessage);
+          } else {
+            message.error('Yêu cầu không hợp lệ. Vui lòng kiểm tra lại thông tin đã nhập.');
+          }
+          break;
         case 401:
           // Unauthorized - clear token and auth data
           console.error('Authentication failed:', errorMessage || 'Unauthorized access');
-          if (errorMessage) {
-            message.error(errorMessage);
+          
+          // Xử lý chi tiết các trường hợp lỗi 401 từ Spring Security
+          if (errorMessage && errorMessage.includes('Invalid token')) {
+            message.error('Token không hợp lệ. Vui lòng đăng nhập lại.');
+          } else if (errorMessage && errorMessage.includes('expired')) {
+            message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          } else if (errorMessage && errorMessage.trim() !== '') {
+            message.error('Lỗi xác thực: ' + errorMessage);
           } else {
             message.error('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại');
           }
+          
           clearAuthData();
           // Let components handle the redirect
           break;
         case 403:
           // Forbidden
           console.error('Access forbidden:', errorMessage);
-          message.error(errorMessage || 'Bạn không có quyền truy cập tài nguyên này');
+          // Xử lý cụ thể cho lỗi Spring Security
+          if (errorMessage && errorMessage.includes('Access Denied')) {
+            message.error('Quyền truy cập bị từ chối. Bạn không có đủ quyền để thực hiện thao tác này.');
+          } else if (errorMessage && errorMessage.includes('Full authentication')) {
+            message.error('Yêu cầu xác thực đầy đủ. Vui lòng đăng nhập lại để tiếp tục.');
+            clearAuthData(); // Xóa dữ liệu xác thực nếu có lỗi Full authentication
+          } else if (errorMessage && errorMessage.trim() !== '') {
+            message.error('Lỗi quyền truy cập: ' + errorMessage);
+          } else {
+            message.error('Bạn không có quyền truy cập tài nguyên này');
+          }
           break;
         case 404:
           console.error('Resource not found:', errorMessage);
-          message.error(errorMessage || 'Không tìm thấy tài nguyên yêu cầu');
+          // Hiển thị thông báo thân thiện
+          if (errorMessage && errorMessage.trim() !== '') {
+            message.error('Không tìm thấy: ' + errorMessage);
+          } else {
+            message.error('Không tìm thấy tài nguyên yêu cầu');
+          }
           break;
         case 422:
           // Validation errors
           console.error('Validation errors:', data.errors);
-          if (errorMessage) {
-            message.error(errorMessage);
+          // Hiển thị thông báo thân thiện
+          if (errorMessage && errorMessage.trim() !== '') {
+            message.error('Dữ liệu không hợp lệ: ' + errorMessage);
           } else {
-            message.error('Dữ liệu không hợp lệ');
+            message.error('Dữ liệu không hợp lệ, vui lòng kiểm tra lại thông tin đã nhập');
           }
+          break;
+        case 429:
+          // Rate limit exceeded
+          console.error('Rate limit exceeded:', errorMessage);
+          // Hiển thị thông báo thân thiện
+          message.error('Đã vượt quá giới hạn số lần sử dụng là 3 / 5 nếu là premium trên ngày. Vui lòng thử lại vào ngày mai.');
           break;
         case 500:
           console.error('Server error:', errorMessage);
-          message.error(errorMessage || 'Lỗi máy chủ, vui lòng thử lại sau');
+          // Hiển thị thông báo đơn giản cho người dùng
+          message.error('Lỗi máy chủ, vui lòng thử lại sau');
           break;
         default:
           console.error(`HTTP ${status}:`, errorMessage);
-          if (errorMessage) {
-            message.error(errorMessage);
-          } else {
-            message.error(`Lỗi ${status}: Có lỗi xảy ra, vui lòng thử lại`);
-          }
+          // Chỉ hiển thị thông báo đơn giản
+          message.error('Có lỗi xảy ra, vui lòng thử lại sau');
       }
       
       return Promise.reject(error);

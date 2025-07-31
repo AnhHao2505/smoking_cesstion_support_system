@@ -8,23 +8,36 @@ const NotificationPanel = ({ isOpen, onClose }) => {
     notifications,
     reminders,
     unreadCount,
+    loading,
     markNotificationAsRead,
     clearNotification,
     clearAllNotifications,
     clearReminder,
     clearAllReminders,
-    isConnected
+    refreshNotifications,
+    getImportantNotifications,
+    fetchImportantNotifications
   } = useNotification();
 
   const [activeTab, setActiveTab] = useState('notifications');
   const [savedReminders, setSavedReminders] = useState([]);
+  const [importantNotifications, setImportantNotifications] = useState([]);
 
   // Load saved reminders when panel opens
   useEffect(() => {
     if (isOpen) {
       loadSavedReminders();
+      refreshNotifications(); // Refresh notifications when panel opens
+      
+      // Load important notifications
+      const loadImportantNotifications = async () => {
+        const important = await fetchImportantNotifications();
+        // Backend already filters unread important notifications, no need to filter again
+        setImportantNotifications(important);
+      };
+      loadImportantNotifications();
     }
-  }, [isOpen]);
+  }, [isOpen, refreshNotifications, fetchImportantNotifications]);
 
   const loadSavedReminders = async () => {
     try {
@@ -44,9 +57,6 @@ const NotificationPanel = ({ isOpen, onClose }) => {
         });
       }
 
-      // Note: User reminders are not loaded here since getAllReminders is admin-only
-      // User can view their reminders in the dedicated reminder pages
-
       setSavedReminders(allReminders);
     } catch (error) {
       console.error('Error loading saved reminders:', error);
@@ -59,8 +69,30 @@ const NotificationPanel = ({ isOpen, onClose }) => {
   };
 
   const handleNotificationClick = (notification) => {
-    if (!notification.read) {
-      markNotificationAsRead(notification.id);
+    if (!notification.isRead) {
+      handleMarkAsRead(notification.id);
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      console.log('🔄 Marking notification as read from panel:', notificationId);
+      await markNotificationAsRead(notificationId);
+      
+      // Remove notification immediately from current view
+      if (activeTab === 'important') {
+        // Remove from important notifications list
+        setImportantNotifications(prev => 
+          prev.filter(n => n.id !== notificationId)
+        );
+      }
+      
+      // Refresh both main notifications and important notifications to ensure consistency
+      refreshNotifications();
+      
+      console.log('✅ Notification marked as read and removed from view');
+    } catch (error) {
+      console.error('❌ Error marking notification as read:', error);
     }
   };
 
@@ -85,12 +117,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
     <div className="notification-panel-overlay" onClick={onClose}>
       <div className="notification-panel" onClick={(e) => e.stopPropagation()}>
         <div className="notification-panel-header">
-          <h3>Notifications & Reminders</h3>
-          <div className="connection-status">
-            <span className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
-              {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
-            </span>
-          </div>
+          <h3>Thông báo & Nhắc nhở</h3>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
@@ -99,15 +126,26 @@ const NotificationPanel = ({ isOpen, onClose }) => {
             className={`tab-btn ${activeTab === 'notifications' ? 'active' : ''}`}
             onClick={() => setActiveTab('notifications')}
           >
-            Notifications
+            Chưa đọc
             {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'important' ? 'active' : ''}`}
+            onClick={() => setActiveTab('important')}
+          >
+            Quan trọng
+            {importantNotifications.length > 0 && 
+              <span className="badge important">{importantNotifications.length}</span>
+            }
           </button>
           <button
             className={`tab-btn ${activeTab === 'reminders' ? 'active' : ''}`}
             onClick={() => setActiveTab('reminders')}
           >
-            Reminders
-            {reminders.length > 0 && <span className="badge">{reminders.length}</span>}
+            Nhắc nhở
+            {(reminders.length + savedReminders.length) > 0 && 
+              <span className="badge">{reminders.length + savedReminders.length}</span>
+            }
           </button>
         </div>
 
@@ -115,51 +153,148 @@ const NotificationPanel = ({ isOpen, onClose }) => {
           {activeTab === 'notifications' && (
             <div className="notifications-tab">
               <div className="tab-header">
-                <h4>Notifications ({notifications.length})</h4>
-                {notifications.length > 0 && (
+                <h4>Thông báo chưa đọc ({notifications.length})</h4>
+                <div className="header-actions">
+                  {loading && <span className="loading-text">Đang tải...</span>}
                   <button 
-                    className="clear-all-btn"
-                    onClick={clearAllNotifications}
+                    className="refresh-btn"
+                    onClick={refreshNotifications}
+                    disabled={loading}
                   >
-                    Clear All
+                    🔄
                   </button>
-                )}
+                  {notifications.length > 0 && (
+                    <button 
+                      className="clear-all-btn"
+                      onClick={clearAllNotifications}
+                    >
+                      Xóa tất cả
+                    </button>
+                  )}
+                </div>
               </div>
               
               <div className="notifications-list">
                 {notifications.length === 0 ? (
                   <div className="empty-state">
-                    <p>No notifications yet</p>
+                    <p>Không có thông báo mới</p>
                   </div>
                 ) : (
                   notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`notification-item ${!notification.read ? 'unread' : ''}`}
+                      className={`notification-item ${!notification.isRead ? 'unread' : ''} ${notification.isImportant ? 'important' : ''}`}
                       onClick={() => handleNotificationClick(notification)}
                     >
                       <div className="notification-content">
                         <div className="notification-header">
                           <h5 className="notification-title">
-                            {notification.title || 'Notification'}
+                            {notification.isImportant && '🚨 '}
+                            Thông báo
                           </h5>
                           <span className="notification-time">
-                            {formatTime(notification.timestamp || notification.createdAt)}
+                            {formatTime(notification.timestamp)}
                           </span>
                         </div>
                         <p className="notification-message">
-                          {notification.message || notification.content}
+                          {notification.content}
                         </p>
-                        {notification.type && (
-                          <span className={`notification-type ${notification.type}`}>
-                            {notification.type}
-                          </span>
+                        {!notification.isRead && (
+                          <div className="notification-actions">
+                            <button
+                              className="mark-read-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMarkAsRead(notification.id);
+                              }}
+                            >
+                              Đánh dấu đã đọc
+                            </button>
+                          </div>
                         )}
                       </div>
                       <button
-                        className="delete-btn"
+                        className="remove-btn"
                         onClick={(e) => {
                           e.stopPropagation();
+                          clearNotification(notification.id);
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'important' && (
+            <div className="important-tab">
+              <div className="tab-header">
+                <h4>Thông báo quan trọng ({importantNotifications.length})</h4>
+                <div className="header-actions">
+                  {loading && <span className="loading-text">Đang tải...</span>}
+                  <button 
+                    className="refresh-btn"
+                    onClick={async () => {
+                      const important = await fetchImportantNotifications();
+                      // Backend already filters unread important notifications
+                      setImportantNotifications(important);
+                    }}
+                    disabled={loading}
+                  >
+                    🔄
+                  </button>
+                </div>
+              </div>
+              
+              <div className="notifications-list">
+                {importantNotifications.length === 0 ? (
+                  <div className="empty-state">
+                    <p>Không có thông báo quan trọng</p>
+                  </div>
+                ) : (
+                  importantNotifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`notification-item important ${!notification.isRead ? 'unread' : ''}`}
+                      onClick={() => handleNotificationClick(notification)}
+                    >
+                      <div className="notification-content">
+                        <div className="notification-header">
+                          <h5 className="notification-title">
+                            🚨 Thông báo quan trọng
+                            <span className="important-indicator">Quan trọng</span>
+                          </h5>
+                          <span className="notification-time">
+                            {formatTime(notification.timestamp)}
+                          </span>
+                        </div>
+                        <p className="notification-message">
+                          {notification.content}
+                        </p>
+                        {!notification.isRead && (
+                          <div className="notification-actions">
+                            <button
+                              className="mark-read-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMarkAsRead(notification.id);
+                              }}
+                            >
+                              Đánh dấu đã đọc
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        className="remove-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setImportantNotifications(prev => 
+                            prev.filter(n => n.id !== notification.id)
+                          );
                           clearNotification(notification.id);
                         }}
                       >
@@ -175,7 +310,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
           {activeTab === 'reminders' && (
             <div className="reminders-tab">
               <div className="tab-header">
-                <h4>Reminders ({reminders.length + savedReminders.length})</h4>
+                <h4>Nhắc nhở ({reminders.length + savedReminders.length})</h4>
                 {(reminders.length > 0 || savedReminders.length > 0) && (
                   <button 
                     className="clear-all-btn"
@@ -185,7 +320,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
                       authService.clearLoginReminder();
                     }}
                   >
-                    Clear All
+                    Xóa tất cả
                   </button>
                 )}
               </div>
@@ -231,46 +366,47 @@ const NotificationPanel = ({ isOpen, onClose }) => {
                   </div>
                 ))}
 
-                {/* Show WebSocket reminders */}
-                {reminders.length === 0 && savedReminders.length === 0 ? (
-                  <div className="empty-state">
-                    <p>No reminders yet</p>
-                  </div>
-                ) : (
-                  reminders.map((reminder) => (
-                    <div
-                      key={reminder.id}
-                      className="reminder-item"
-                    >
-                      <div className="reminder-content">
-                        <div className="reminder-header">
-                          <h5 className="reminder-title">
-                            ⏰ Live Reminder
-                          </h5>
-                          <span className="reminder-time">
-                            {formatTime(reminder.timestamp || reminder.createdAt)}
-                          </span>
-                        </div>
-                        <p className="reminder-message">
-                          {reminder.content || reminder.message}
-                        </p>
-                        {reminder.category && (
-                          <span className={`reminder-category ${reminder.category}`}>
-                            {reminder.category}
-                          </span>
-                        )}
+                {/* Show other reminders */}
+                {reminders.map((reminder) => (
+                  <div
+                    key={reminder.id}
+                    className="reminder-item"
+                  >
+                    <div className="reminder-content">
+                      <div className="reminder-header">
+                        <h5 className="reminder-title">
+                          ⏰ Reminder
+                        </h5>
+                        <span className="reminder-time">
+                          {formatTime(reminder.timestamp || reminder.createdAt)}
+                        </span>
                       </div>
-                      <button
-                        className="delete-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          clearReminder(reminder.id);
-                        }}
-                      >
-                        ×
-                      </button>
+                      <p className="reminder-message">
+                        {reminder.content || reminder.message}
+                      </p>
+                      {reminder.category && (
+                        <span className={`reminder-category ${reminder.category}`}>
+                          {reminder.category}
+                        </span>
+                      )}
                     </div>
-                  ))
+                    <button
+                      className="delete-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearReminder(reminder.id);
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+
+                {/* Empty state */}
+                {reminders.length === 0 && savedReminders.length === 0 && (
+                  <div className="empty-state">
+                    <p>Chưa có nhắc nhở nào</p>
+                  </div>
                 )}
               </div>
             </div>

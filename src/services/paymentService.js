@@ -65,7 +65,10 @@ export const handleVNPayReturn = async (params) => {
 export const getMyTransactions = async (page = 1, size = 10) => {
   try {
     const response = await axiosInstance.get(API_ENDPOINTS.PAYMENT.MY_TRANSACTIONS, {
-      params: { page, size }
+      params: { 
+        pageNo: page - 1, // Convert to 0-based indexing for backend
+        pageSize: size 
+      }
     });
     return handleApiResponse(response);
   } catch (error) {

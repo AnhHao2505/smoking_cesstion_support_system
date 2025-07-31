@@ -552,7 +552,7 @@ const SmokingStatusTracker = () => {
             <Button 
               type="primary" 
               icon={<PlusOutlined />}
-              onClick={() => navigate('/member/daily-checkin')}
+              onClick={() => navigate('/member/daily-record')}
             >
               Cập nhật hôm nay
             </Button>
@@ -754,7 +754,7 @@ const SmokingStatusTracker = () => {
             >
               <Button 
                 type="primary" 
-                onClick={() => navigate('/member/daily-checkin')}
+                onClick={() => navigate('/member/initial-addiction-smoking')}
               >
                 Bắt đầu theo dõi
               </Button>
