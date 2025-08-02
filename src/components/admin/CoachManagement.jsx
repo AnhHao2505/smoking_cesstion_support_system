@@ -43,7 +43,6 @@ import {
   getCoachProfile
 } from '../../services/coachManagementService';
 import { reportCoachAbsent } from '../../services/profileService';
-import moment from 'moment';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -379,31 +378,6 @@ const CoachManagement = () => {
       }
     } finally {
       setReportingAbsent(false);
-    }
-  };
-
-  const getWorkingHoursDisplay = (workingHours) => {
-    if (!workingHours || workingHours.length === 0) {
-      return "No schedule available";
-    }
-    
-    return workingHours.map(schedule => 
-      `${schedule.dayOfWeek}: ${schedule.startTime} - ${schedule.endTime}`
-    ).join(', ');
-  };
-
-  const getAvailabilityStatus = (coach) => {
-    if (coach.full) {
-      return { color: 'red', text: 'Full' };
-    }
-    
-    const availableSlots = 10 - coach.currentMemberAssignedCount;
-    if (availableSlots > 10) {
-      return { color: 'green', text: 'Available' };
-    } else if (availableSlots > 5) {
-      return { color: 'orange', text: 'Limited' };
-    } else {
-      return { color: 'red', text: 'Almost Full' };
     }
   };
 
