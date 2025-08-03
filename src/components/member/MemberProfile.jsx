@@ -302,38 +302,6 @@ const MemberProfile = () => {
                       offset={[-10, 10]}
                     />
                   )}
-                  {/* Updated Cancel Premium Button */}
-                  {memberProfile.premiumMembership && (
-                    <div style={{ marginTop: 16 }}>
-                      <Button
-                        type="text"
-                        danger
-                        size="small"
-                        onClick={handleCancelPremium}
-                        loading={upgradeLoading}
-                        style={{
-                          fontSize: '12px',
-                          padding: '4px 12px',
-                          height: 'auto',
-                          border: '1px solid #ff7875',
-                          borderRadius: '4px',
-                          transition: 'all 0.3s ease',
-                          backgroundColor: 'transparent',
-                          color: '#ff4d4f'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = '#fff2f0';
-                          e.target.style.borderColor = '#ff4d4f';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = 'transparent';
-                          e.target.style.borderColor = '#ff7875';
-                        }}
-                      >
-                        Hủy Premium
-                      </Button>
-                    </div>
-                  )}
                 </div>
                 <div className="profile-info">
                   {isEditing ? (
