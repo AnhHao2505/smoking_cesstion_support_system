@@ -1,4 +1,4 @@
-import * as authService from '../services/authService';
+import * as authService from "../services/authService";
 
 // Helper function to get current user
 export const getCurrentUser = () => {
@@ -32,11 +32,14 @@ export const logout = () => {
   return authService.logout();
 };
 
-export default {
+// ✅ Export default object – Đã gán tên rõ ràng
+const authUtils = {
   getCurrentUser,
   isAuthenticated,
   getUserRole,
   hasRole,
   getToken,
-  logout
+  logout,
 };
+
+export default authUtils;
