@@ -145,14 +145,39 @@ export const getAssignedMembers = async (coachId) => {
 /**
  * Member cancels their coach
  * Endpoint: PUT /coach/member/cancel
- * Summary: Member cancel Consultation with this coach
- * Description: Member disables their current coach's assignment and chat room
+ * Summary: Member cancels consultation with current coach
  */
-export const cancelCoach = async (coachId) => {
+export const cancelCurrentCoach = async () => {
   try {
-    const response = await axiosInstance.put('/coach/member/cancel', null, {
-      params: { coachId }
-    });
+    const response = await axiosInstance.put('/coach/member/cancel');
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Member cancels their premium subscription
+ * Endpoint: PATCH /profile/cancel/my-premium
+ * Summary: Member cancels their premium subscription
+ */
+export const cancelMyPremium = async () => {
+  try {
+    const response = await axiosInstance.patch('/profile/cancel/my-premium');
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Check if member has a coach
+ * Endpoint: GET /profile/check/has-coach
+ * Summary: Check if the current member has a coach assigned
+ */
+export const doesHaveCoach = async () => {
+  try {
+    const response = await axiosInstance.get('/profile/check/has-coach');
     return handleApiResponse(response);
   } catch (error) {
     throw handleApiError(error);
@@ -1141,7 +1166,6 @@ export default {
   createCoach,
   chooseCoach,
   getAssignedMembers,
-  cancelCoach,
   
   // User Management
   getAllUsers,
@@ -1227,5 +1251,8 @@ export default {
   
   // Legacy compatibility
   getMemberProfile,
-  updateMemberProfile
+  updateMemberProfile,
+  cancelMyPremium,
+  doesHaveCoach,
+  cancelCurrentCoach
 };

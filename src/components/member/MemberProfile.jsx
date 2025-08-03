@@ -12,7 +12,7 @@ import {
 import { getMyProfile, updateMemberProfile } from '../../services/memberProfileService';
 import { getCurrentUser } from '../../services/authService';
 import PaymentModal from '../payment/PaymentModal';
-import { getProfileImage, uploadProfileImage } from '../../services/profileService';
+import { getProfileImage, uploadProfileImage, cancelMyPremium, doesHaveCoach, cancelCurrentCoach } from '../../services/profileService';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -25,6 +25,7 @@ const MemberProfile = () => {
   const [form] = Form.useForm();
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [hasCoach, setHasCoach] = useState(false);
   
   // Get member ID from current user
   const getMemberId = () => {
@@ -45,6 +46,9 @@ const MemberProfile = () => {
             name: profile.name
           });
         }
+        // Gọi API kiểm tra có coach không
+        const hasCoachRes = await doesHaveCoach();
+        setHasCoach(!!hasCoachRes);
       } catch (error) {
         console.error("Error fetching member profile:", error);
         message.error("Không thể tải dữ liệu hồ sơ");
@@ -156,6 +160,57 @@ const MemberProfile = () => {
     setIsEditing(false);
   };
 
+  const handleCancelPremium = async () => {
+    Modal.confirm({
+      title: 'Xác nhận hủy Premium',
+      content: 'Bạn có chắc chắn muốn hủy gói thành viên Cao cấp? Bạn sẽ mất quyền truy cập các tính năng nâng cao.',
+      okText: 'Hủy Premium',
+      okType: 'danger',
+      cancelText: 'Giữ lại',
+      onOk: async () => {
+        try {
+          await cancelMyPremium();
+          // Cập nhật local state và localStorage
+          setMemberProfile(prev => ({
+            ...prev,
+            premiumMembership: false,
+            planName: 'GÓI CƠ BẢN',
+            membershipExpiryDate: null,
+            membershipDaysLeft: null
+          }));
+          // Update localStorage user
+          const user = getCurrentUser();
+          if (user) {
+            const updatedUser = { ...user, isPremiumMembership: false };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+          }
+          message.success('Đã hủy thành viên Cao cấp thành công!');
+        } catch (error) {
+          message.error('Không thể hủy Premium. Vui lòng thử lại.');
+        }
+      }
+    });
+  };
+
+  const handleCancelCoach = async () => {
+    Modal.confirm({
+      title: 'Xác nhận hủy huấn luyện viên',
+      content: 'Bạn có chắc chắn muốn hủy tư vấn với huấn luyện viên hiện tại?',
+      okText: 'Hủy huấn luyện viên',
+      okType: 'danger',
+      cancelText: 'Giữ lại',
+      onOk: async () => {
+        try {
+          await cancelCurrentCoach();
+          setHasCoach(false);
+          message.success('Đã hủy huấn luyện viên thành công!');
+        } catch (error) {
+          message.error('Không thể hủy huấn luyện viên. Vui lòng thử lại.');
+        }
+      }
+    });
+  };
+
   // Function to check if membership is about to expire (7 days or less)
   const isMembershipExpiringSoon = () => {
     if (!memberProfile || memberProfile.membershipDaysLeft === null || memberProfile.membershipDaysLeft === undefined) return false;
@@ -246,6 +301,38 @@ const MemberProfile = () => {
                       count={<CrownOutlined style={{ color: '#faad14' }} />} 
                       offset={[-10, 10]}
                     />
+                  )}
+                  {/* Updated Cancel Premium Button */}
+                  {memberProfile.premiumMembership && (
+                    <div style={{ marginTop: 16 }}>
+                      <Button
+                        type="text"
+                        danger
+                        size="small"
+                        onClick={handleCancelPremium}
+                        loading={upgradeLoading}
+                        style={{
+                          fontSize: '12px',
+                          padding: '4px 12px',
+                          height: 'auto',
+                          border: '1px solid #ff7875',
+                          borderRadius: '4px',
+                          transition: 'all 0.3s ease',
+                          backgroundColor: 'transparent',
+                          color: '#ff4d4f'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#fff2f0';
+                          e.target.style.borderColor = '#ff4d4f';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                          e.target.style.borderColor = '#ff7875';
+                        }}
+                      >
+                        Hủy Premium
+                      </Button>
+                    </div>
                   )}
                 </div>
                 <div className="profile-info">
@@ -397,6 +484,33 @@ const MemberProfile = () => {
                         </Button>
                       </div>
                     )}
+                    
+                    <div style={{ 
+                      marginTop: '24px', 
+                      padding: '12px', 
+                      backgroundColor: '#fff2f0',
+                      borderRadius: '6px',
+                      border: '1px solid #ffccc7'
+                    }}>
+                      <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '8px' }}>
+                        Không hài lòng với gói Premium?
+                      </Text>
+                      <Button
+                        type="link"
+                        danger
+                        size="small"
+                        onClick={handleCancelPremium}
+                        loading={upgradeLoading}
+                        style={{
+                          padding: 0,
+                          height: 'auto',
+                          fontSize: '12px',
+                          textDecoration: 'underline'
+                        }}
+                      >
+                        Hủy gói Premium
+                      </Button>
+                    </div>
                   </>
                 ) : (
                   <>
@@ -415,6 +529,22 @@ const MemberProfile = () => {
                       Nâng cấp lên Cao cấp
                     </Button>
                   </>
+                )}
+              </div>
+              <Divider />
+              <div style={{ textAlign: 'center', marginTop: 16 }}>
+                <Tag color={hasCoach ? "green" : "red"}>
+                  {hasCoach ? "Đã có huấn luyện viên" : "Chưa có huấn luyện viên"}
+                </Tag>
+                {hasCoach && (
+                  <Button 
+                    danger 
+                    size="small" 
+                    style={{ marginLeft: 8 }}
+                    onClick={handleCancelCoach}
+                  >
+                    Hủy huấn luyện viên
+                  </Button>
                 )}
               </div>
             </Card>
