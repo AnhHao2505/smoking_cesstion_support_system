@@ -1,3 +1,5 @@
+// Payment: Feature Package List
+import FeaturePackageList from './payment/FeaturePackageList';
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
@@ -107,6 +109,10 @@ const App = () => {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               
               {/* Payment Routes */}
+              <Route 
+                path="/feature-packages" 
+                element={<FeaturePackageList />} 
+              />
               <Route 
                 path="/vn-pay/callback" 
                 element={

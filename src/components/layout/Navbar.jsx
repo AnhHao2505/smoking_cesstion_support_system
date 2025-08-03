@@ -6,30 +6,19 @@ import {
   DownOutlined,
   UserOutlined,
   DashboardOutlined,
-  CalendarOutlined,
   HeartOutlined,
-  BarChartOutlined,
-  QuestionCircleOutlined,
   FileTextOutlined,
-  PlusOutlined,
-  HistoryOutlined,
-  AimOutlined,
-  ClockCircleOutlined,
-  EditOutlined,
   CrownOutlined,
-  BellOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
 import * as authService from "../../services/authService";
 import NotificationBell from "../notifications/NotificationBell";
-import PaymentModal from "../payment/PaymentModal";
 import logo from "../../assets/logo.jpg";
 import "../../styles/Navbar.css";
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -73,21 +62,7 @@ const NavBar = () => {
 
   // Handle upgrade button click
   const handleUpgradeClick = () => {
-    setPaymentModalVisible(true);
-  };
-
-  // Handle payment modal close
-  const handlePaymentModalClose = () => {
-    setPaymentModalVisible(false);
-  };
-
-  // Handle payment success
-  const handlePaymentSuccess = () => {
-    setPaymentModalVisible(false);
-    // Refresh user data
-    if (authService.isAuthenticated()) {
-      setUser(authService.getCurrentUser());
-    }
+    navigate("/feature-packages");
   };
 
   // Member-specific dropdown menus
@@ -383,12 +358,7 @@ const NavBar = () => {
         </div>
       </div>
 
-      {/* Payment Modal */}
-      <PaymentModal
-        visible={paymentModalVisible}
-        onClose={handlePaymentModalClose}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
+      {/* Payment Modal removed, now routing to FeaturePackageList */}
     </nav>
   );
 };

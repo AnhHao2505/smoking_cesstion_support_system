@@ -1,21 +1,25 @@
 import axiosInstance from '../utils/axiosConfig';
 import { API_ENDPOINTS, handleApiResponse, handleApiError } from '../utils/apiEndpoints';
 
-// Create VNPay payment - Updated to match new API
-export const createVNPayPayment = async (amount, language = 'vn') => {
+// Create VNPay payment - Updated to match new API (requires packageId)
+export const createVNPayPayment = async (amount, language = 'vn', packageId) => {
   try {
     // Validate input
     const validAmount = Math.floor(Number(amount));
     if (!validAmount || validAmount <= 0) {
       throw new Error('Số tiền không hợp lệ');
     }
+    if (!packageId) {
+      throw new Error('Thiếu thông tin gói thành viên (packageId)');
+    }
 
-    console.log('Creating VNPay payment:', { amount: validAmount, language });
+    console.log('Creating VNPay payment:', { amount: validAmount, language, packageId });
 
     const response = await axiosInstance.post('/vn-pay/create-payment', null, {
       params: { 
         amount: validAmount, 
         language,
+        packageId,
         // Add return URL for proper callback handling
         returnUrl: `${window.location.origin}/payment/callback`,
         cancelUrl: `${window.location.origin}/payment/cancel`

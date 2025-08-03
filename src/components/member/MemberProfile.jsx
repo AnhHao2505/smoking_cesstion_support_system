@@ -1,27 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Card, Avatar, Typography, Row, Col, Statistic, Badge, 
-  List, Tag, Divider, Form, Input, Button, message, Modal, Spin,
+  Tag, Divider, Form, Input, Button, message, Modal, Spin,
   Upload, Tooltip
 } from 'antd';
 import { 
-  UserOutlined, MailOutlined, PhoneOutlined, 
-  TrophyOutlined, EditOutlined, SaveOutlined, CrownOutlined,
+  UserOutlined, MailOutlined, EditOutlined, SaveOutlined, CrownOutlined,
   UploadOutlined
 } from '@ant-design/icons';
 import { getMyProfile, updateMemberProfile } from '../../services/memberProfileService';
 import { getCurrentUser } from '../../services/authService';
-import PaymentModal from '../payment/PaymentModal';
 import { getProfileImage, uploadProfileImage, cancelMyPremium, doesHaveCoach, cancelCurrentCoach } from '../../services/profileService';
 
 const { Title, Text, Paragraph } = Typography;
 
 const MemberProfile = () => {
+  const navigate = useNavigate();
   const [memberProfile, setMemberProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
-  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -45,6 +44,13 @@ const MemberProfile = () => {
           form.setFieldsValue({
             name: profile.name
           });
+          // Fetch and set avatar image
+          try {
+            const imgRes = await getProfileImage(getMemberId());
+            setAvatarUrl(imgRes);
+          } catch (e) {
+            setAvatarUrl(null);
+          }
         }
         // Gọi API kiểm tra có coach không
         const hasCoachRes = await doesHaveCoach();
@@ -91,65 +97,7 @@ const MemberProfile = () => {
   };
 
   const handleUpgradeToPremium = () => {
-    setPaymentModalVisible(true);
-  };
-
-  const handlePaymentModalClose = () => {
-    setPaymentModalVisible(false);
-  };
-
-  const handlePaymentSuccess = async () => {
-    try {
-      setPaymentModalVisible(false);
-      setUpgradeLoading(true);
-      
-      const isRenewal = memberProfile.premiumMembership;
-      
-      // Just update the UI state directly
-      if (isRenewal) {
-        message.success("Gia hạn gói Cao cấp thành công!");
-        
-        // Update local state - add 30 days to membership expiry
-        const newExpiryDate = new Date();
-        newExpiryDate.setDate(newExpiryDate.getDate() + 30); // Add 30 days
-        
-        setMemberProfile(prev => ({
-          ...prev,
-          premiumMembership: true,
-          planName: 'CAO CẤP',
-          membershipExpiryDate: newExpiryDate.toISOString().split('T')[0],
-          membershipDaysLeft: 30
-        }));
-      } else {
-        message.success("Nâng cấp lên Thành viên Cao cấp thành công!");
-        
-        // Update local state
-        setMemberProfile(prev => ({
-          ...prev,
-          premiumMembership: true,
-          planName: 'CAO CẤP',
-          membershipExpiryDate: (() => {
-            const date = new Date();
-            date.setDate(date.getDate() + 30);
-            return date.toISOString().split('T')[0];
-          })(),
-          membershipDaysLeft: 30
-        }));
-      }
-      
-      // Update user data in localStorage if needed
-      const user = getCurrentUser();
-      if (user) {
-        const updatedUser = { ...user, isPremiumMembership: true };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-      }
-      
-    } catch (error) {
-      console.error("Error with payment:", error);
-      message.error("Không thể hoàn tất thanh toán. Vui lòng thử lại.");
-    } finally {
-      setUpgradeLoading(false);
-    }
+    navigate('/feature-packages');
   };
 
   const handleCancel = () => {
@@ -382,18 +330,6 @@ const MemberProfile = () => {
                         <Tag color="gold">Cao cấp</Tag>
                         {isMembershipExpired() && <Tag color="red">Đã hết hạn</Tag>}
                       </div>
-                      
-                      {(isMembershipExpiringSoon() || isMembershipExpired()) && (
-                        <Button 
-                          type="primary"
-                          danger={isMembershipExpired()}
-                          style={{ marginTop: '16px', width: '100%' }}
-                          onClick={handleUpgradeToPremium}
-                          icon={<CrownOutlined />}
-                        >
-                          {isMembershipExpired() ? 'Gói đã hết hạn - Gia hạn ngay' : 'Gia hạn gói cao cấp'}
-                        </Button>
-                      )}
                     </Card>
                   )}
                   {!memberProfile.premiumMembership && (
@@ -519,15 +455,7 @@ const MemberProfile = () => {
           </Col>
         </Row>
       </div>
-      
-      {/* Payment Modal */}
-      <PaymentModal
-        visible={paymentModalVisible}
-        onClose={handlePaymentModalClose}
-        onPaymentSuccess={handlePaymentSuccess}
-        isRenewal={memberProfile?.premiumMembership}
-        daysLeft={memberProfile?.membershipDaysLeft}
-      />
+
     </div>
   );
 };

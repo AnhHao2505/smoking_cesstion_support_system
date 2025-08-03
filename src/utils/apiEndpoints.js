@@ -67,7 +67,7 @@ export const API_ENDPOINTS = {
     GET_BY_MEMBER_DATE: '/api/daily-logs/member/date'
   },
 
-  // Member Smoking Status
+  // Member Smoking Status - Survey or a quiz to help coach create plan
   MEMBER_SMOKING_STATUS: {
     CREATE: '/api/member-smoking-status',
     LATEST: '/api/member-smoking-status/latest', // Cho member tự xem
