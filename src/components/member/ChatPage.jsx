@@ -715,17 +715,6 @@ const ChatPage = () => {
                   >
                     Video Call
                   </Button>
-                  <Button
-                    type="default"
-                    icon={<PhoneOutlined />}
-                    onClick={() => {
-                      message.info('Tính năng gọi thoại sẽ được cập nhật sớm');
-                    }}
-                    disabled={!wsConnected}
-                    title="Audio Call"
-                  >
-                    Audio Call
-                  </Button>
                   <Badge
                     status={wsConnected ? 'success' : 'error'}
                     text={wsConnected ? 'Connected' : 'Disconnected'}
