@@ -1,3 +1,20 @@
+/* Video Call Button and Message Styles */
+.video-call-button {
+  background: linear-gradient(45deg, #1890ff, #52c41a);
+  border: none;
+}
+
+.video-call-button:hover {
+  background: linear-gradient(45deg, #40a9ff, #73d13d);
+  border: none;
+}
+
+.video-call-message {
+  background: rgba(24, 144, 255, 0.1);
+  border-left: 4px solid #1890ff;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
 /* Chat Page Styles */
 .chat-page {
   height: 100vh;
