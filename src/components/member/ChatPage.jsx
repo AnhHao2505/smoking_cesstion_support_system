@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import VideoCallWithProps from '../videos/VideoCallWithProps';
+import { AgoraProvider } from '../videos/AgoraContext';
 import {
   Layout,
   Typography,
@@ -61,6 +63,102 @@ const ChatPage = () => {
   const [wsConnected, setWsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const messagesEndRef = useRef(null);
+  // Video call states
+  const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
+  const [currentCallData, setCurrentCallData] = useState(null);
+
+  // Khởi tạo video call
+  const initiateVideoCall = async (roomId, coachInfo = null) => {
+    try {
+      if (!roomId) {
+        message.error('Không thể khởi tạo cuộc gọi - thiếu thông tin phòng');
+        return;
+      }
+      // Chuẩn bị data cho video call
+      const callData = {
+        channelName: `video-room-${roomId}`,
+        userId: currentUser.userId,
+        appointmentId: 2, // Sử dụng roomId làm appointmentId
+        coachInfo: coachInfo,
+        roomId: roomId
+      };
+      setCurrentCallData(callData);
+      setIsVideoCallOpen(true);
+      // Gửi thông báo về video call trong chat
+      if (wsConnected) {
+        const callMessage = {
+          content: `📞 Bắt đầu cuộc gọi video`,
+          type: 'video_call_start',
+          sender_id: currentUser.userId,
+          sender_name: currentUser.fullName || currentUser.name || 'You',
+          receiver_id: coachInfo?.coachId || null,
+          receiver_name: coachInfo?.name || '',
+          timestamp: new Date().toISOString()
+        };
+        try {
+          await webSocketService.sendPrivateMessage(roomId, callMessage);
+        } catch (error) {
+          console.error('Failed to send call notification:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error initiating video call:', error);
+      message.error('Không thể khởi tạo cuộc gọi video');
+    }
+  };
+
+  // Xử lý khi join video call thành công
+  const handleVideoCallJoinSuccess = (credentials) => {
+    console.log('Video call joined successfully:', credentials);
+    message.success('Đã tham gia cuộc gọi video thành công');
+  };
+
+  // Xử lý khi join video call thất bại
+  const handleVideoCallJoinError = (error) => {
+    console.error('Video call join failed:', error);
+    message.error(`Không thể tham gia cuộc gọi: ${error.message}`);
+    setIsVideoCallOpen(false);
+    setCurrentCallData(null);
+  };
+
+  // Xử lý khi rời khỏi video call
+  const handleVideoCallLeave = async () => {
+    console.log('Left video call');
+    setIsVideoCallOpen(false);
+    // Gửi thông báo kết thúc cuộc gọi
+    if (wsConnected && currentCallData?.roomId) {
+      const endCallMessage = {
+        content: `📞 Kết thúc cuộc gọi video`,
+        type: 'video_call_end',
+        sender_id: currentUser.userId,
+        sender_name: currentUser.fullName || currentUser.name || 'You',
+        receiver_id: currentCallData.coachInfo?.coachId || null,
+        receiver_name: currentCallData.coachInfo?.name || '',
+        timestamp: new Date().toISOString()
+      };
+      try {
+        await webSocketService.sendPrivateMessage(currentCallData.roomId, endCallMessage);
+      } catch (error) {
+        console.error('Failed to send call end notification:', error);
+      }
+    }
+    setCurrentCallData(null);
+    message.info('Đã kết thúc cuộc gọi video');
+  };
+
+  // Lấy thông tin coach từ room
+  const getCoachInfoFromRoom = (room) => {
+    if (room.roomName) {
+      const match = room.roomName.match(/between (.+?) and/);
+      if (match) {
+        return {
+          name: match[1],
+          coachId: room.coachId || room.participants?.find(p => p.id !== currentUser.userId)?.id
+        };
+      }
+    }
+    return null;
+  };
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -604,6 +702,30 @@ const ChatPage = () => {
                   </div>
                 </Space>
                 <Space>
+                  <Button
+                    type="primary"
+                    icon={<VideoCameraOutlined />}
+                    onClick={() => {
+                      const coachInfo = getCoachInfoFromRoom(selectedChatRoom);
+                      initiateVideoCall(selectedChatRoom.roomId, coachInfo);
+                    }}
+                    disabled={!wsConnected}
+                    title={!wsConnected ? 'Cần kết nối WebSocket để thực hiện cuộc gọi' : 'Bắt đầu cuộc gọi video'}
+                    className="video-call-button"
+                  >
+                    Video Call
+                  </Button>
+                  <Button
+                    type="default"
+                    icon={<PhoneOutlined />}
+                    onClick={() => {
+                      message.info('Tính năng gọi thoại sẽ được cập nhật sớm');
+                    }}
+                    disabled={!wsConnected}
+                    title="Audio Call"
+                  >
+                    Audio Call
+                  </Button>
                   <Badge
                     status={wsConnected ? 'success' : 'error'}
                     text={wsConnected ? 'Connected' : 'Disconnected'}
@@ -655,7 +777,32 @@ const ChatPage = () => {
                             }}
                             bodyStyle={{ padding: '8px 12px' }}
                           >
-                            <div>{msg.content}</div>
+                            {/* Video call message types */}
+                            {msg.type === 'video_call_start' && (
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                color: msg.sender_id === currentUser.userId ? '#fff' : '#1890ff'
+                              }} className="video-call-message">
+                                <VideoCameraOutlined />
+                                <span>Bắt đầu cuộc gọi video</span>
+                              </div>
+                            )}
+                            {msg.type === 'video_call_end' && (
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                color: msg.sender_id === currentUser.userId ? '#fff' : '#999'
+                              }} className="video-call-message">
+                                <VideoCameraOutlined />
+                                <span>Kết thúc cuộc gọi video</span>
+                              </div>
+                            )}
+                            {msg.type === 'text' && (
+                              <div>{msg.content}</div>
+                            )}
                             <div style={{
                               fontSize: '11px',
                               opacity: 0.7,
@@ -760,8 +907,37 @@ const ChatPage = () => {
           </div>
         )}
       </Content>
+      {/* Video Call Modal */}
+      {isVideoCallOpen && currentCallData && (
+        <Modal
+          title={`Video Call - ${currentCallData.coachInfo?.name || 'Unknown'}`}
+          open={isVideoCallOpen}
+          onCancel={handleVideoCallLeave}
+          footer={null}
+          width="90%"
+          style={{ top: 20 }}
+          bodyStyle={{ padding: 0, height: '80vh' }}
+          destroyOnClose={true}
+        >
+          <VideoCallWithProps
+            channelName={currentCallData.channelName}
+            userId={currentCallData.userId}
+            appointmentId={currentCallData.appointmentId}
+            onJoinSuccess={handleVideoCallJoinSuccess}
+            onJoinError={handleVideoCallJoinError}
+            onLeave={handleVideoCallLeave}
+          />
+        </Modal>
+      )}
     </Layout>
   );
 };
 
-export default ChatPage;
+// Export với AgoraProvider wrapper
+const ChatPageWithAgora = () => (
+  <AgoraProvider>
+    <ChatPage />
+  </AgoraProvider>
+);
+
+export default ChatPageWithAgora;
