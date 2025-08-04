@@ -139,19 +139,19 @@ const NavBar = () => {
         },
       ],
     },
-    quitPlans: {
-      label: "Quản lý kế hoạch",
-      icon: <FileTextOutlined />,
-      items: [
-        {
-          key: "/coach/create-quit-plan",
-          label: "Tạo kế hoạch",
-          path: "/coach/create-quit-plan",
-        },
-        // { key: '/coach/quit-plan-approval', label: 'Phê duyệt kế hoạch', path: '/coach/quit-plan-approval' },
-        // { key: '/coach/quit-plan-approval-new', label: 'Phê duyệt - Luồng mới', path: '/coach/quit-plan-approval-new' }
-      ],
-    },
+    // quitPlans: {
+    //   label: "Quản lý kế hoạch",
+    //   icon: <FileTextOutlined />,
+    //   items: [
+    //     {
+    //       key: "/coach/create-quit-plan",
+    //       label: "Tạo kế hoạch",
+    //       path: "/coach/create-quit-plan",
+    //     },
+    //     // { key: '/coach/quit-plan-approval', label: 'Phê duyệt kế hoạch', path: '/coach/quit-plan-approval' },
+    //     // { key: '/coach/quit-plan-approval-new', label: 'Phê duyệt - Luồng mới', path: '/coach/quit-plan-approval-new' }
+    //   ],
+    // },
     support: {
       label: "Hỗ trợ thành viên",
       icon: <UserOutlined />,

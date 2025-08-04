@@ -33,18 +33,14 @@ import {
   SendOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
-import moment from "moment";
 import {
   getAllCoaches,
   chooseCoach,
-  getAssignedMembers,
 } from "../../services/coachManagementService";
 import {
-  submitFeedbackToCoach,
   submitFeedbackToAnyCoach,
-  submitFeedbackToPlatform,
 } from "../../services/feebackService";
-import { getCoachProfile } from '../../services/profileService';
+import { getCoachProfile, getProfileImage } from '../../services/profileService';
 import { useAuth } from "../../contexts/AuthContext";
 
 const { Title, Text, Paragraph } = Typography;
@@ -210,49 +206,6 @@ const AppointmentManagement = () => {
     }
   };
 
-  const handleViewAssignedMembers = async (coach) => {
-    try {
-      setSelectedCoachForMembers(coach);
-      setAssignedMembersModalVisible(true);
-      setLoadingAssignedMembers(true);
-
-      const response = await getAssignedMembers(coach.coachId);
-
-      // Kiểm tra response và xử lý các trường hợp
-      if (response) {
-        if (Array.isArray(response)) {
-          setAssignedMembers(response);
-          if (response.length === 0) {
-            message.info(`Huấn luyện viên ${formatCoachName(coach.name)} chưa có thành viên nào được gán.`);
-          }
-        } else if (response.success === false) {
-          // API trả về lỗi logic
-          setAssignedMembers([]);
-          message.error(response.message || "Không thể lấy danh sách thành viên.");
-        } else {
-          // Có thể response là dạng khác không mong đợi
-          setAssignedMembers(Array.isArray(response.data) ? response.data : []);
-        }
-      } else {
-        setAssignedMembers([]);
-        message.info(`Huấn luyện viên ${formatCoachName(coach.name)} chưa có thành viên nào được gán.`);
-      }
-    } catch (error) {
-      console.error("Error fetching assigned members:", error);
-      // Xử lý chi tiết các loại lỗi
-      if (error.response?.data?.message) {
-        message.error(error.response.data.message);
-      } else if (error.message) {
-        message.error(error.message);
-      } else {
-        message.error("Không thể tải danh sách thành viên. Vui lòng thử lại!");
-      }
-      setAssignedMembers([]);
-    } finally {
-      setLoadingAssignedMembers(false);
-    }
-  };
-
   // Handler to view coach profile
   const handleViewProfile = async (coach) => {
     setProfileModalVisible(true);
@@ -266,17 +219,6 @@ const AppointmentManagement = () => {
     } finally {
       setProfileLoading(false);
     }
-  };
-
-  const renderStarDescription = (value) => {
-    const descriptions = {
-      1: "Rất không hài lòng",
-      2: "Không hài lòng",
-      3: "Bình thường",
-      4: "Hài lòng",
-      5: "Rất hài lòng",
-    };
-    return descriptions[value] || "";
   };
 
   // Chuyển đổi tên ngày trong tuần sang tiếng Việt
@@ -312,19 +254,6 @@ const AppointmentManagement = () => {
       // Nếu không có prefix, thêm "Huấn luyện viên" vào đầu
       return "Huấn luyện viên " + name;
     }
-  };
-
-  const getWorkingHoursDisplay = (workingHours) => {
-    if (!workingHours || workingHours.length === 0) {
-      return "Không có lịch trình";
-    }
-
-    return workingHours
-      .map(
-        (schedule) =>
-          `${translateDayOfWeek(schedule.dayOfWeek)}: ${formatTime(schedule.startTime)} - ${formatTime(schedule.endTime)}`
-      )
-      .join(", ");
   };
 
   const getAvailabilityStatus = (coach) => {
@@ -993,7 +922,6 @@ const AppointmentManagement = () => {
 };
 
 export default AppointmentManagement;
-
 // Add some custom styling
 const styles = `
   .coach-selection .ant-table-tbody > tr:hover > td {
