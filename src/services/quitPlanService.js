@@ -42,9 +42,35 @@ export const getSuggestedMedications = () => {
 // REAL API FUNCTIONS - ALIGNED WITH BACKEND
 // ========================
 
+// Notes: Tui đã bỏ phần deny plan + final evaluation vì không cần thiết show đên mức độ hoàn thành của plan 
+// Nhớ fix nút "Xem kế hoạch hiện tại" trong CoachDashboard nha
+
+/*
+/
+/ Normal Flow:
+/ Steps:
+/   1. Member tự tạo kế hoạch cai thuốc lá (/api/quit-plans/create-by-member)
+/   2. Member tiến hành kế hoạch cai thuốc của chính mình đến kết thúc
+/   3. Member kiểm tra lại plan mới NEWEST hoặc OLDs. (/api/quit-plans/olds) && (/api/quit-plans/newest)
+/ 
+/ Alternative Flow:
+/ A. Member không tự tạo kế hoạch (COACH tạo kế hoạch) (nguồn gốc: step 1 của normal flow)
+/   Steps:
+/     1. Member yêu cầu coach tạo kế hoạch cai thuốc lá (/api/quit-plans/request)
+/     2. Coach tạo kế hoạch cai thuốc lá cho member (/api/quit-plans/coach/create)
+/     3. Member chấp nhận và xác định ngày bắt đầu (/api/quit-plans/accept-plan)
+/     4. Back to step 2 of normal flow
+/ B. Member edit kế hoạch cai thuốc lá của chính mình (nguồn gốc: step 2 của normal flow)
+/   Steps:
+/     1. Member kiểm tra xem mình có thể chỉnh sửa kế hoạch cai thuốc hay không (/api/quit-plans/can-self-adjust)
+/     2. Member chỉnh sửa kế hoạch cai thuốc lá của chính mình (/api/quit-plans/self-adjust)
+/     3. Back to step 2 of normal flow
+/
+*/
+
 // Missing "Thành viên tự tạo kế hoạch cai thuốc" endpoint --> /api/quit-plans/create-by-member
 // Missing "Kiểm tra thành viên còn có thể edit kế hoạch cai thuốc hay không" endpoint 
-// --> /api/quit-plans/self-adjust
+// --> /api/quit-plans/can-self-adjust
 // Missing "Thành viên edit kế hoạch cai thuốc" endpoint --> /api/quit-plans/self-adjust
 
 /**
@@ -117,12 +143,12 @@ export const getOldPlansOfMember = async (page = 0, size = 10) => {
 
 /**
  * Member accepts a quit plan
- * PATCH /api/quit-plans/accept
+ * PATCH /api/quit-plans/accept-plan
  */
 export const acceptQuitPlan = async (planId, startDate) => {
   try {
     console.log('Accepting quit plan:', planId, 'Start date:', startDate);
-    const response = await axiosInstance.patch('/api/quit-plans/accept', startDate, {
+    const response = await axiosInstance.patch('/api/quit-plans/accept-plan', startDate, {
       params: { planId }
     });
     console.log('Accept quit plan response:', response.data);
