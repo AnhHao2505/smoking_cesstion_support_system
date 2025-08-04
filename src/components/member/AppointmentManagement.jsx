@@ -136,7 +136,9 @@ const AppointmentManagement = () => {
           // Thông báo hướng dẫn người dùng bước tiếp theo
           setTimeout(() => {
             message.info("Bạn có thể trò chuyện với huấn luyện viên trong mục 'Tin nhắn'");
-          }, 1000);
+            // Navigate to chat page after choosing coach
+            window.location.href = '/member/chat';
+          }, 2000);
         }
       } else {
         // Trường hợp response là null hoặc undefined
