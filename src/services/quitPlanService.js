@@ -43,6 +43,44 @@ export const getSuggestedMedications = () => {
 // ========================
 
 /**
+ * Kiểm tra member có thể tự điều chỉnh kế hoạch không
+ * GET /api/quit-plans/can-self-adjust
+ * @param {number} planId
+ * @returns {Promise<{success: boolean, message: string}>}
+ */
+export const canSelfAdjustQuitPlan = async (planId) => {
+  try {
+    const response = await axiosInstance.get('/api/quit-plans/can-self-adjust', {
+      params: { planId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error checking can self-adjust quit plan:', error);
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Member self-adjusts quit plan in first 10 days
+ * PATCH /api/quit-plans/self-adjust
+ * @param {number} planId
+ * @param {object} adjustData
+ */
+export const selfAdjustQuitPlan = async (planId, adjustData) => {
+  try {
+    const response = await axiosInstance.patch('/api/quit-plans/self-adjust', adjustData, {
+      params: { planId }
+    });
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error self-adjusting quit plan:', error);
+    throw handleApiError(error);
+  }
+};
+
+
+
+/**
  * Coach creates quit plan for member
  * POST /api/quit-plans/create
  */

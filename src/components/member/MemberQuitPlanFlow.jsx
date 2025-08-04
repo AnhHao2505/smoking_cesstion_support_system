@@ -21,6 +21,8 @@ import {
   Statistic,
   Divider,
   DatePicker,
+  Select,
+  Input,
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -38,6 +40,7 @@ import {
   ExclamationCircleOutlined,
   FlagOutlined,
   PlusOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
 import {
@@ -48,6 +51,11 @@ import {
   getQuitPlanStatusText,
   getQuitPlanStatusColor,
   requestQuitPlan,
+  canSelfAdjustQuitPlan,
+  selfAdjustQuitPlan,
+  getSmokingCircumstances,
+  getSuggestedStrategies,
+  getSuggestedMedications,
 } from "../../services/quitPlanService";
 import { getPhasesOfPlan } from "../../services/phaseService";
 import { getCurrentUser } from "../../services/authService";
@@ -55,6 +63,8 @@ import "../../styles/Dashboard.css";
 
 const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
+const { Option } = Select;
+const { TextArea } = Input;
 
 const MemberQuitPlanFlow = () => {
   const navigate = useNavigate();
@@ -64,6 +74,67 @@ const MemberQuitPlanFlow = () => {
   const [actionModalVisible, setActionModalVisible] = useState(false);
   const [actionType, setActionType] = useState(""); // 'accept' or 'deny'
   const [submitting, setSubmitting] = useState(false);
+  // Edit modal state
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [editForm] = Form.useForm();
+  const [circumstances] = useState(getSmokingCircumstances());
+  const [suggestedStrategies] = useState(getSuggestedStrategies());
+  const [suggestedMedications] = useState(getSuggestedMedications());
+  // Handler for Edit button
+  const handleEditPlan = async () => {
+    if (!currentPlan?.quit_plan_id) return;
+    setEditLoading(true);
+    try {
+      const res = await canSelfAdjustQuitPlan(currentPlan.quit_plan_id);
+      if (res && res.success) {
+        setCanEdit(true);
+        // Prefill form with current plan data
+        editForm.setFieldsValue({
+          currentSmokingStatus: currentPlan.current_smoking_status,
+          durationInDays: currentPlan.durationInDays,
+          medicationInstructions: currentPlan.medication_instructions,
+          medicationsToUse: Array.isArray(currentPlan.medications_to_use) ? currentPlan.medications_to_use : (currentPlan.medications_to_use ? [currentPlan.medications_to_use] : []),
+          smokingTriggersToAvoid: Array.isArray(currentPlan.smoking_triggers_to_avoid) ? currentPlan.smoking_triggers_to_avoid : (currentPlan.smoking_triggers_to_avoid ? [currentPlan.smoking_triggers_to_avoid] : []),
+          copingStrategies: Array.isArray(currentPlan.strategies_to_use) ? currentPlan.strategies_to_use : (currentPlan.strategies_to_use ? [currentPlan.strategies_to_use] : []),
+          relapsePreventionStrategies: currentPlan.preparation_steps,
+          supportResources: currentPlan.support_resources,
+          motivation: currentPlan.motivation,
+          rewardPlan: currentPlan.reward_plan,
+          additionalNotes: currentPlan.note,
+        });
+        setEditModalVisible(true);
+      } else {
+        setCanEdit(false);
+        message.warning(res?.message || "Bạn không thể chỉnh sửa kế hoạch ở thời điểm này.");
+      }
+    } catch (err) {
+      setCanEdit(false);
+      message.error(err.message || "Không thể kiểm tra quyền chỉnh sửa kế hoạch.");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  // Handler for submitting edit form
+  const handleEditSubmit = async (values) => {
+    setEditLoading(true);
+    try {
+      const res = await selfAdjustQuitPlan(currentPlan.quit_plan_id, values);
+      if (res && res.success) {
+        message.success("Chỉnh sửa kế hoạch thành công!");
+        setEditModalVisible(false);
+        fetchMemberQuitPlanData();
+      } else {
+        message.error(res?.message || "Chỉnh sửa kế hoạch thất bại.");
+      }
+    } catch (err) {
+      message.error(err.message || "Chỉnh sửa kế hoạch thất bại.");
+    } finally {
+      setEditLoading(false);
+    }
+  };
 
   const user = getCurrentUser();
   const memberId = user?.userId;
@@ -473,6 +544,72 @@ const MemberQuitPlanFlow = () => {
     );
   }
 
+  // Render Edit Modal
+  const renderEditModal = () => (
+    <Modal
+      title="Chỉnh sửa kế hoạch cai thuốc"
+      open={editModalVisible}
+      onCancel={() => setEditModalVisible(false)}
+      footer={null}
+      destroyOnClose
+    >
+      <Form
+        form={editForm}
+        layout="vertical"
+        onFinish={handleEditSubmit}
+        initialValues={{}}
+      >
+        <Form.Item name="currentSmokingStatus" label="Tình trạng hút thuốc hiện tại" rules={[{ required: true, message: 'Vui lòng chọn tình trạng' }]}> 
+          <Select>
+            <Option value="NONE">Không hút thuốc</Option>
+            <Option value="LIGHT">Hút ít (1-10 điếu/ngày)</Option>
+            <Option value="MEDIUM">Hút vừa (11-20 điếu/ngày)</Option>
+            <Option value="SEVERE">Hút nhiều (&gt;20 điếu/ngày)</Option>
+          </Select>
+        </Form.Item>
+        <Form.Item name="durationInDays" label="Thời gian thực hiện (ngày)" rules={[{ required: true, message: 'Vui lòng nhập số ngày' }]}> 
+          <Input type="number" min={1} />
+        </Form.Item>
+        <Form.Item name="medicationInstructions" label="Hướng dẫn dùng thuốc"> 
+          <TextArea rows={2} />
+        </Form.Item>
+        <Form.Item name="medicationsToUse" label="Thuốc sử dụng"> 
+          <Select mode="multiple" allowClear>
+            {suggestedMedications.map(med => <Option key={med} value={med}>{med}</Option>)}
+          </Select>
+        </Form.Item>
+        <Form.Item name="smokingTriggersToAvoid" label="Tác nhân kích thích cần tránh"> 
+          <Select mode="multiple" allowClear>
+            {circumstances.map(c => <Option key={c.id} value={c.name}>{c.name}</Option>)}
+          </Select>
+        </Form.Item>
+        <Form.Item name="copingStrategies" label="Chiến lược đối phó"> 
+          <Select mode="multiple" allowClear>
+            {suggestedStrategies.map(s => <Option key={s} value={s}>{s}</Option>)}
+          </Select>
+        </Form.Item>
+        <Form.Item name="relapsePreventionStrategies" label="Chiến lược phòng ngừa tái nghiện"> 
+          <TextArea rows={2} />
+        </Form.Item>
+        <Form.Item name="supportResources" label="Nguồn lực hỗ trợ"> 
+          <TextArea rows={2} />
+        </Form.Item>
+        <Form.Item name="motivation" label="Động lực" rules={[{ required: true, message: 'Vui lòng nhập động lực' }]}> 
+          <TextArea rows={2} />
+        </Form.Item>
+        <Form.Item name="rewardPlan" label="Kế hoạch phần thưởng"> 
+          <TextArea rows={2} />
+        </Form.Item>
+        <Form.Item name="additionalNotes" label="Ghi chú thêm"> 
+          <TextArea rows={2} />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" loading={editLoading} block> Lưu chỉnh sửa </Button>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+
   return (
     <div className="member-quit-plan-flow">
       <div className="container py-4">
@@ -487,8 +624,17 @@ const MemberQuitPlanFlow = () => {
             >
               Lịch sử kế hoạch
             </Button>
+            <Button
+              icon={<EditOutlined />}
+              onClick={handleEditPlan}
+              loading={editLoading}
+              disabled={!currentPlan?.quit_plan_id}
+            >
+              Chỉnh sửa
+            </Button>
           </Space>
         </div>
+        {renderEditModal()}
 
         {/* Important reminders and warnings */}
         <div style={{ marginBottom: "24px" }}>
