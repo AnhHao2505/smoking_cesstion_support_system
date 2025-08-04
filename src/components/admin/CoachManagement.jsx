@@ -872,7 +872,7 @@ const CoachManagement = () => {
           onCancel={closeAbsentReportModal}
           footer={[
             <Button key="cancel" onClick={closeAbsentReportModal}>
-              Cancel
+              Hủy
             </Button>,
             <Button 
               key="submit" 
@@ -881,7 +881,7 @@ const CoachManagement = () => {
               onClick={handleAbsentReport}
               style={{ backgroundColor: '#faad14', borderColor: '#faad14' }}
             >
-              Submit Report
+              Nộp Report
             </Button>,
           ]}
           width={600}

@@ -48,6 +48,7 @@ import * as adminDashboardService from '../../services/adminDashboardService';
 import * as userService from '../../services/userService';
 import * as feedbackService from '../../services/feebackService';
 import * as reminderService from '../../services/reminderService';
+import packageService from '../../services/packageService'; // You need to implement this service for the 4 APIs
 import '../../styles/Dashboard.css';
 
 const { Title, Text } = Typography;
@@ -79,6 +80,13 @@ const AdminDashboard = () => {
     pageSize: 10,
     total: 0
   });
+  
+  // --- Feature Package Management State ---
+  const [packages, setPackages] = useState([]);
+  const [packageLoading, setPackageLoading] = useState(false);
+  const [packageModalVisible, setPackageModalVisible] = useState(false);
+  const [editingPackage, setEditingPackage] = useState(null);
+  const [packageForm] = Form.useForm();
   
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -233,6 +241,31 @@ const AdminDashboard = () => {
     }
   };
 
+  // Fetch all packages
+  const fetchPackages = async () => {
+    setPackageLoading(true);
+    try {
+      const res = await packageService.getAll();
+      // Map đúng field từ FeaturePackage model
+      const mapped = (res.data || []).map(pkg => ({
+        id: pkg.id,
+        packageName: pkg.packageName,
+        level: pkg.level,
+        price: pkg.price,
+        durationInUnit: pkg.durationInUnit,
+        unitOfDuration: pkg.unitOfDuration,
+        feature: Array.isArray(pkg.feature) ? pkg.feature : [],
+        active: Boolean(pkg.active)
+      }));
+      setPackages(mapped);
+    } catch (e) {
+      setPackages([]);
+      message.error('Không thể tải danh sách gói');
+    } finally {
+      setPackageLoading(false);
+    }
+  };
+
   // Initial data fetch
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -241,7 +274,8 @@ const AdminDashboard = () => {
         fetchDashboardStats(),
         fetchUsersData(0, pageSize),
         fetchFeedbackData(),
-        fetchReminderData(0, pageSize)
+        fetchReminderData(0, pageSize),
+        fetchPackages()
       ]);
       setLoading(false);
     };
@@ -653,6 +687,113 @@ const AdminDashboard = () => {
     setReminderModalVisible(false);
     setEditingReminder(null);
     reminderForm.resetFields();
+  };
+
+  // Create or edit package
+  const handlePackageSubmit = async () => {
+    try {
+      const values = await packageForm.validateFields();
+      // Kiểm tra nếu đang tạo mới và đã có gói FREE thì không cho submit nếu chọn level là FREE
+      const hasFree = packages.some(pkg => {
+        const name = (pkg.packageName || '').toLowerCase();
+        return pkg.level === 'FREE' || pkg.price === 0 || name.includes('free') || name.includes('cơ bản');
+      });
+      if (!editingPackage && hasFree && values.level === 'FREE') {
+        Modal.warning({
+          title: 'Chỉ được phép có 1 gói FREE',
+          content: 'Bạn không thể tạo thêm gói FREE mới khi đã tồn tại. Vui lòng chọn cấp độ PREMIUM.',
+        });
+        return;
+      }
+      // Validate price for VND: integer, >= 0, no decimals, max 1,000,000,000
+      if (values.level === 'PREMIUM') {
+        if (typeof values.price !== 'number' || !Number.isInteger(values.price) || values.price < 1000 || values.price > 1000000000) {
+          message.error('Giá phải là số nguyên từ 1,000 đến 1,000,000,000 VNĐ');
+          return;
+        }
+      } else if (values.level === 'FREE') {
+        if (values.price !== 0) {
+          message.error('Gói FREE phải có giá là 0 VNĐ');
+          return;
+        }
+      }
+      // Chuyển textarea feature thành mảng (mỗi dòng 1 tính năng)
+      const featuresList = typeof values.feature === 'string' ? values.feature.split('\n').map(f => f.trim()).filter(Boolean) : (values.feature || []);
+      const payload = {
+        packageName: values.packageName,
+        level: values.level,
+        price: values.price,
+        durationInUnit: values.durationInUnit,
+        unitOfDuration: values.unitOfDuration,
+        featuresList
+      };
+      if (editingPackage) {
+        await packageService.edit(editingPackage.id, payload);
+        message.success('Cập nhật gói thành công');
+      } else {
+        await packageService.create(payload);
+        message.success('Tạo gói thành công');
+      }
+      setPackageModalVisible(false);
+      setEditingPackage(null);
+      packageForm.resetFields();
+      fetchPackages();
+    } catch (e) {
+      message.error(e.message || 'Có lỗi xảy ra');
+    }
+  };
+
+  // Disable package
+  const handleDisablePackage = async (id) => {
+    try {
+      await packageService.disable(id);
+      message.success('Đã vô hiệu hóa gói');
+      fetchPackages();
+    } catch (e) {
+      message.error('Không thể vô hiệu hóa');
+    }
+  };
+
+  // Re-enable package
+  const handleReEnablePackage = async (id) => {
+    try {
+      await packageService.reEnable(id);
+      message.success('Đã kích hoạt lại gói');
+      fetchPackages();
+    } catch (e) {
+      message.error('Không thể kích hoạt lại');
+    }
+  };
+
+  // Open modal for edit
+  const handleEditPackage = (pkg) => {
+    setEditingPackage(pkg);
+    packageForm.setFieldsValue({
+      packageName: pkg.packageName,
+      level: pkg.level,
+      price: pkg.price,
+      durationInUnit: pkg.durationInUnit,
+      unitOfDuration: pkg.unitOfDuration,
+      feature: (pkg.feature || []).join('\n')
+    });
+    setPackageModalVisible(true);
+  };
+
+  // Open modal for create
+  const handleCreatePackage = () => {
+    setEditingPackage(null);
+    packageForm.resetFields();
+    // Kiểm tra nếu đã có gói FREE thì chỉ cho phép tạo PREMIUM
+    const hasFree = packages.some(pkg => {
+      const name = (pkg.packageName || '').toLowerCase();
+      return pkg.level === 'FREE' || pkg.price === 0 || name.includes('free') || name.includes('cơ bản');
+    });
+    if (hasFree) {
+      packageForm.setFieldsValue({ level: 'PREMIUM', price: 1000 });
+    } else {
+      packageForm.setFieldsValue({ level: 'FREE', price: 0 });
+    }
+    setPackageModalVisible(true);
   };
 
   // Table columns for users
@@ -1129,6 +1270,65 @@ const AdminDashboard = () => {
     }
   ];
 
+  // Table columns for packages
+  const packageColumns = [
+    { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
+    { title: 'Tên gói', dataIndex: 'packageName', key: 'packageName' },
+    { title: 'Cấp độ', dataIndex: 'level', key: 'level', render: (level) => (
+      <Tag color={level === 'PREMIUM' ? 'gold' : 'blue'}>{level}</Tag>
+    ) },
+    { 
+      title: 'Giá', 
+      dataIndex: 'price', 
+      key: 'price', 
+      render: (v, r) => r.level === 'FREE' ? <span style={{ color: '#52c41a', fontWeight: 500 }}>Miễn phí</span> : (v ? v.toLocaleString() + ' VNĐ' : '-')
+    },
+    { 
+      title: 'Thời hạn', 
+      dataIndex: 'durationInUnit', 
+      key: 'durationInUnit', 
+      render: (v, r) => r.level === 'FREE' ? <span style={{ color: '#aaa' }}>-</span> : (v && r.unitOfDuration ? `${v} ${unitOfDurationToText(r.unitOfDuration)}` : '-')
+    },
+    { 
+      title: 'Tính năng', 
+      dataIndex: 'feature', 
+      key: 'feature', 
+      render: (arr) => arr && arr.length ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {arr.map((f, idx) => <Tag color="geekblue" key={idx} style={{ marginBottom: 2 }}>{f}</Tag>)}
+        </div>
+      ) : <span style={{ color: '#aaa' }}>-</span>
+    },
+    { title: 'Trạng thái', dataIndex: 'active', key: 'active', render: (active) => (
+      <Tag color={active ? 'green' : 'red'}>{active ? 'Đang bán' : 'Đã ẩn'}</Tag>
+    ) },
+    {
+      title: 'Thao tác',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          <Button size="small" onClick={() => handleEditPackage(record)}>Sửa</Button>
+          {record.active ? (
+            <Button size="small" danger onClick={() => handleDisablePackage(record.id)}>Vô hiệu hóa</Button>
+          ) : (
+            <Button size="small" type="primary" onClick={() => handleReEnablePackage(record.id)}>Kích hoạt lại</Button>
+          )}
+        </Space>
+      )
+    }
+  ];
+
+  // Helper for duration unit
+  function unitOfDurationToText(unit) {
+    switch(unit) {
+      case 'DAY': return 'ngày';
+      case 'WEEK': return 'tuần';
+      case 'MONTH': return 'tháng';
+      case 'YEAR': return 'năm';
+      default: return unit || '';
+    }
+  }
+
   // Prepare chart data from dashboard stats
   const prepareUserRoleData = () => {
     const { totalMembers = 0, totalCoaches = 0, totalUsers = 0 } = dashboardStats;
@@ -1419,6 +1619,11 @@ const AdminDashboard = () => {
                 rowKey="id"
                 loading={usersLoading}
                 pagination={false}
+                bordered
+                size="middle"
+                rowClassName={(_, idx) => idx % 2 === 0 ? 'ant-table-row-striped' : ''}
+                className="custom-admin-table"
+                hover
               />
               <div className="mt-4 text-center">
                 <Pagination
@@ -1750,12 +1955,12 @@ const AdminDashboard = () => {
                     <Col span={24}>
                       <Statistic 
                         title="Tỉ lệ thành công"
-                        value={dashboardStats.successRateOfQuitPlans || 0}
+                        value={((dashboardStats.successRateOfQuitPlans || 0) * 100).toFixed(2)}
                         suffix="%"
                         valueStyle={{ color: '#52c41a' }}
                       />
                       <Progress 
-                        percent={dashboardStats.successRateOfQuitPlans || 0}
+                        percent={Math.round((dashboardStats.successRateOfQuitPlans || 0) * 100)}
                         strokeColor="#52c41a"
                         showInfo={false}
                       />
@@ -1802,6 +2007,103 @@ const AdminDashboard = () => {
               </div>
             </Card>
           </TabPane>
+
+          <TabPane tab="Quản lý gói thành viên" key="6">
+            <Card title="Quản lý gói thành viên" extra={<Button type="primary" onClick={handleCreatePackage}>Tạo gói mới</Button>}>
+              <Table
+                dataSource={packages}
+                columns={packageColumns}
+                rowKey="id"
+                loading={packageLoading}
+                pagination={false}
+                bordered
+                size="middle"
+                rowClassName={(_, idx) => idx % 2 === 0 ? 'ant-table-row-striped' : ''}
+                className="custom-admin-table"
+                hover
+              />
+            </Card>
+            <Modal
+              title={editingPackage ? 'Chỉnh sửa gói' : 'Tạo gói mới'}
+              visible={packageModalVisible}
+              onCancel={() => { setPackageModalVisible(false); setEditingPackage(null); packageForm.resetFields(); }}
+              onOk={handlePackageSubmit}
+              okText={editingPackage ? 'Cập nhật' : 'Tạo mới'}
+              destroyOnClose
+            >
+              <Form form={packageForm} layout="vertical">
+                <Form.Item name="packageName" label="Tên gói" rules={[{ required: true, message: 'Nhập tên gói' }]}> 
+                  <Input />
+                </Form.Item>
+                <Form.Item name="level" label="Cấp độ" rules={[{ required: true, message: 'Chọn cấp độ' }]}> 
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Select
+                      onChange={value => {
+                        packageForm.setFieldsValue({ level: value });
+                        // trigger re-render for conditional fields
+                        packageForm.validateFields(["level"]);
+                      }}
+                      style={{ flex: 1 }}
+                    >
+                      <Select.Option value="FREE">FREE</Select.Option>
+                      <Select.Option value="PREMIUM">PREMIUM</Select.Option>
+                    </Select>
+                    <span style={{ color: '#faad14', fontSize: 13 }}>
+                      (Chỉ <b>PREMIUM</b> mới nhập được giá, thời hạn, đơn vị)
+                    </span>
+                  </div>
+                </Form.Item>
+                {/* Các trường chỉ required nếu không phải FREE */}
+                <Form.Item
+                  noStyle
+                  shouldUpdate={(prev, curr) => prev.level !== curr.level}
+                >
+                  {({ getFieldValue }) => getFieldValue('level') !== 'FREE' && (
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                      <Form.Item name="price" label="Giá" style={{ flex: 1, minWidth: 160 }} rules={[{ required: true, message: 'Nhập giá' }]}> 
+                        <Input
+                          type="number"
+                          min={0}
+                          step={1000}
+                          addonAfter={<span style={{ color: '#1890ff', fontWeight: 500 }}>VNĐ</span>}
+                          placeholder="Nhập giá gói..."
+                        />
+                      </Form.Item>
+                      <Form.Item label="Thời hạn" style={{ flex: 1, minWidth: 160, marginBottom: 0 }} required>
+                        <Input.Group compact>
+                          <Form.Item name="durationInUnit" noStyle rules={[{ required: true, message: 'Nhập thời hạn' }]}> 
+                            <Input
+                              type="number"
+                              min={1}
+                              style={{ width: '60%' }}
+                              placeholder="Số lượng"
+                            />
+                          </Form.Item>
+                          <Form.Item name="unitOfDuration" noStyle rules={[{ required: true, message: 'Chọn đơn vị' }]}> 
+                            <Select style={{ width: '40%' }} placeholder="Đơn vị">
+                              <Select.Option value="DAY">Ngày</Select.Option>
+                              <Select.Option value="WEEK">Tuần</Select.Option>
+                              <Select.Option value="MONTH">Tháng</Select.Option>
+                              <Select.Option value="YEAR">Năm</Select.Option>
+                            </Select>
+                          </Form.Item>
+                        </Input.Group>
+                      </Form.Item>
+                    </div>
+                  )}
+                </Form.Item>
+                <Form.Item name="feature" label="Tính năng (mỗi dòng 1 tính năng)" rules={[{ required: true, message: 'Nhập ít nhất 1 tính năng' }]}> 
+                  <Input.TextArea
+                    rows={4}
+                    placeholder={
+                      'Ví dụ:\nTrò chuyện trên diễn đàn cộng đồng\nĐặt câu hỏi trong Q&A\nTạo kế hoạch cho riêng mình\n(Mỗi dòng 1 tính năng)'
+                    }
+                    style={{ resize: 'vertical', borderRadius: 8, background: '#fafcff' }}
+                  />
+                </Form.Item>
+              </Form>
+            </Modal>
+          </TabPane>
         </Tabs>
 
         {/* Reminder Management Modal */}
@@ -1841,7 +2143,6 @@ const AdminDashboard = () => {
                 <Select.Option value="SMOKING_FACTS">Sự thật về thuốc lá</Select.Option>
               </Select>
             </Form.Item>
-            
             <Form.Item>
               <Space>
                 <Button type="primary" htmlType="submit" loading={reminderLoading}>

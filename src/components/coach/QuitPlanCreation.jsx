@@ -909,7 +909,6 @@ const QuitPlanCreation = () => {
               </Button>
             </Space>
           </Card>
-
           {/* Main Form */}
           {!showPhaseCreation && (
             <>
@@ -991,7 +990,6 @@ const QuitPlanCreation = () => {
                 <Title level={4} style={{ color: '#1890ff', marginBottom: 16 }}>
                   <CalendarOutlined /> Thông Tin Cơ Bản
                 </Title>
-                
                 <Row gutter={16}>
                   <Col xs={24} md={12}>
                     <Form.Item
@@ -1038,12 +1036,8 @@ const QuitPlanCreation = () => {
                         onChange={(e) => {
                           const value = e.target.value;
                           if (value) {
-                            // Parse to number immediately
                             const numValue = Number(value);
-                            console.log('Input changed to:', numValue, 'Type:', typeof numValue);
-                            form.setFieldsValue({ 
-                              durationInDays: numValue 
-                            });
+                            form.setFieldsValue({ durationInDays: numValue });
                           }
                         }}
                       />
@@ -1051,13 +1045,11 @@ const QuitPlanCreation = () => {
                   </Col>
                 </Row>
               </Card>
-
               {/* Medication Section */}
               <Card type="inner" style={{ marginBottom: 24 }}>
                 <Title level={4} style={{ color: '#1890ff', marginBottom: 16 }}>
                   <MedicineBoxOutlined /> Thuốc và Hướng Dẫn
                 </Title>
-                
                 <Form.Item
                   label="💉 Thuốc sử dụng"
                   name="medicationsToUse"
@@ -1074,7 +1066,6 @@ const QuitPlanCreation = () => {
                     maxLength={500}
                   />
                 </Form.Item>
-                
                 <Form.Item
                   label="📝 Hướng dẫn sử dụng thuốc"
                   name="medicationInstructions"
@@ -1092,13 +1083,11 @@ const QuitPlanCreation = () => {
                   />
                 </Form.Item>
               </Card>
-
               {/* Strategies Section */}
               <Card type="inner" style={{ marginBottom: 24 }}>
                 <Title level={4} style={{ color: '#1890ff', marginBottom: 16 }}>
                   <BulbOutlined /> Chiến Lược và Phương Pháp
                 </Title>
-                
                 <Form.Item
                   label="⚠️ Tránh các tác nhân kích thích"
                   name="smokingTriggersToAvoid"
@@ -1115,7 +1104,6 @@ const QuitPlanCreation = () => {
                     maxLength={1000}
                   />
                 </Form.Item>
-                
                 <Form.Item
                   label="💪 Chiến lược đối phó"
                   name="copingStrategies"
@@ -1132,7 +1120,6 @@ const QuitPlanCreation = () => {
                     maxLength={1000}
                   />
                 </Form.Item>
-                
                 <Form.Item
                   label="🛡️ Chiến lược phòng ngừa tái nghiện"
                   name="relapsePreventionStrategies"
@@ -1153,13 +1140,11 @@ const QuitPlanCreation = () => {
                   />
                 </Form.Item>
               </Card>
-
               {/* Support and Motivation */}
               <Card type="inner" style={{ marginBottom: 24 }}>
                 <Title level={4} style={{ color: '#1890ff', marginBottom: 16 }}>
                   <HeartOutlined /> Hỗ Trợ và Động Lực
                 </Title>
-                
                 <Form.Item
                   label="📞 Nguồn hỗ trợ"
                   name="supportResources"
@@ -1176,7 +1161,6 @@ const QuitPlanCreation = () => {
                     maxLength={1000}
                   />
                 </Form.Item>
-                
                 <Form.Item
                   label="🔥 Động lực cai thuốc"
                   name="motivation"
@@ -1193,7 +1177,6 @@ const QuitPlanCreation = () => {
                     maxLength={500}
                   />
                 </Form.Item>
-                
                 <Form.Item
                   label="🎁 Kế hoạch thưởng"
                   name="rewardPlan"
@@ -1211,13 +1194,11 @@ const QuitPlanCreation = () => {
                   />
                 </Form.Item>
               </Card>
-
               {/* Additional Notes */}
               <Card type="inner" style={{ marginBottom: 24 }}>
                 <Title level={4} style={{ color: '#1890ff', marginBottom: 16 }}>
                   <FileTextOutlined /> Ghi Chú Bổ Sung
                 </Title>
-                
                 <Form.Item
                   label="💭 Ghi chú"
                   name="additionalNotes"
@@ -1238,7 +1219,6 @@ const QuitPlanCreation = () => {
                   />
                 </Form.Item>
               </Card>
-
               {/* Submit Actions */}
               <Divider />
               <div style={{ textAlign: 'center' }}>

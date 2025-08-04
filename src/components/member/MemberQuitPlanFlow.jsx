@@ -817,15 +817,6 @@ const MemberQuitPlanFlow = () => {
                 extra={
                   currentPlan.canAccept || currentPlan.canDeny ? (
                     <Space>
-                      {currentPlan.canDeny && (
-                        <Button
-                          danger
-                          icon={<CloseCircleOutlined />}
-                          onClick={() => handlePlanAction("deny")}
-                        >
-                          Từ chối
-                        </Button>
-                      )}
                       {currentPlan.canAccept && (
                         <Button
                           type="primary"

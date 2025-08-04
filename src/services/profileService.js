@@ -1097,9 +1097,18 @@ export const register = async (registrationData) => {
 export const getProfileImage = async (userId) => {
   try {
     const response = await axiosInstance.get('/profile/image', {
-      params: { userId }
+      params: { userId },
+      responseType: 'arraybuffer',
     });
-    return handleApiResponse(response);
+    // Convert arraybuffer to base64 (browser compatible)
+    const contentType = response.headers['content-type'] || 'image/jpeg';
+    const bytes = new Uint8Array(response.data);
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64 = window.btoa(binary);
+    return `data:${contentType};base64,${base64}`;
   } catch (error) {
     throw handleApiError(error);
   }

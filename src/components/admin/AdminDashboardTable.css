@@ -1,0 +1,23 @@
+.custom-admin-table .ant-table-thead > tr > th {
+  background: #f5f7fa;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.custom-admin-table .ant-table-row-striped {
+  background: #fafcff !important;
+}
+
+.custom-admin-table .ant-table-tbody > tr:hover > td {
+  background: #e6f7ff !important;
+  transition: background 0.2s;
+}
+
+.custom-admin-table .ant-table-tbody > tr > td {
+  font-size: 14px;
+}
+
+.custom-admin-table .ant-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
