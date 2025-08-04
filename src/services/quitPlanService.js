@@ -42,14 +42,19 @@ export const getSuggestedMedications = () => {
 // REAL API FUNCTIONS - ALIGNED WITH BACKEND
 // ========================
 
+// Missing "Thành viên tự tạo kế hoạch cai thuốc" endpoint --> /api/quit-plans/create-by-member
+// Missing "Kiểm tra thành viên còn có thể edit kế hoạch cai thuốc hay không" endpoint 
+// --> /api/quit-plans/self-adjust
+// Missing "Thành viên edit kế hoạch cai thuốc" endpoint --> /api/quit-plans/self-adjust
+
 /**
  * Coach creates quit plan for member
- * POST /api/quit-plans/create
+ * POST /api/quit-plans/coach/create
  */
 export const createQuitPlan = async (memberId, quitPlanData) => {
   try {
     console.log('Creating quit plan for member:', memberId, 'Data:', quitPlanData);
-    const response = await axiosInstance.post('/api/quit-plans/create', quitPlanData, {
+    const response = await axiosInstance.post('/api/quit-plans/coach/create', quitPlanData, {
       params: { memberId }
     });
     console.log('Create quit plan response:', response.data);
