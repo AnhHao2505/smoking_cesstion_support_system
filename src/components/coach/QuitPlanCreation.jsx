@@ -29,7 +29,7 @@ import {
   SaveOutlined,
   ArrowLeftOutlined
 } from '@ant-design/icons';
-import { createQuitPlan, getNewestQuitPlan } from '../../services/quitPlanService';
+import { createQuitPlan, createQuitPlanByMember, getNewestQuitPlan } from '../../services/quitPlanService';
 import { getAssignedMembers } from '../../services/coachManagementService';
 import { getCurrentUser } from '../../services/authService';
 import { getDefaultPhases, createGoalsOfPhases } from '../../services/quitPhaseService';
@@ -61,15 +61,22 @@ const QuitPlanCreation = () => {
 
   const user = getCurrentUser();
   const coachId = user?.userId;
+  const isCoach = user?.role === 'COACH';
+  const isMember = user?.role === 'MEMBER';
 
-  // Set member ID from URL on component mount and fetch assigned members
+  // Set member ID from URL on component mount and fetch assigned members (only for coach)
   useEffect(() => {
-    if (memberIdFromUrl) {
-      setSelectedMemberId(memberIdFromUrl);
-      form.setFieldsValue({ memberId: memberIdFromUrl });
+    if (isCoach) {
+      if (memberIdFromUrl) {
+        setSelectedMemberId(memberIdFromUrl);
+        form.setFieldsValue({ memberId: memberIdFromUrl });
+      }
+      fetchAssignedMembers();
+    } else if (isMember) {
+      // For members, set their own userId as selectedMemberId
+      setSelectedMemberId(user?.userId || '');
     }
-    fetchAssignedMembers();
-  }, [memberIdFromUrl, coachId, form]);
+  }, [memberIdFromUrl, coachId, form, isCoach, isMember, user?.userId]);
 
   // Set member name when members are loaded and there's a selected member ID
   useEffect(() => {
@@ -104,7 +111,8 @@ const QuitPlanCreation = () => {
   }, [createdPlanId, showPhaseCreation, memberAddictionLevel]);
 
   const fetchAssignedMembers = async () => {
-    if (!coachId) return;
+    // Only fetch assigned members for coaches
+    if (!coachId || !isCoach) return;
     
     setLoadingMembers(true);
     try {
@@ -482,13 +490,18 @@ const QuitPlanCreation = () => {
     // Enhanced form validation - ALL FIELDS REQUIRED
     const validationErrors = [];
     
-    // Get memberId from form values or state
-    const memberId = values.memberId || selectedMemberId;
+    // Get memberId from form values or state - different logic for coach vs member
+    const memberId = isCoach ? (values.memberId || selectedMemberId) : (user?.userId);
     console.log('Final memberId to use:', memberId);
+    console.log('User role:', user?.role);
 
-    if (!memberId) {
-      console.log('ERROR: No member ID found');
+    // Different validation for coach vs member
+    if (isCoach && !memberId) {
+      console.log('ERROR: Coach - No member ID found');
       validationErrors.push('Vui lòng chọn thành viên');
+    } else if (isMember && !memberId) {
+      console.log('ERROR: Member - No user ID found');
+      validationErrors.push('Lỗi hệ thống: Không tìm thấy thông tin người dùng');
     }
 
     // Validate duration with enhanced checks
@@ -705,11 +718,23 @@ const QuitPlanCreation = () => {
       // Log the final data being sent to API
       console.log('Sending to API:', {
         memberId,
-        formData
+        formData,
+        userRole: user?.role
       });
 
-      const response = await createQuitPlan(memberId, formData);
-      console.log('createQuitPlan response:', response);
+      // Use different API calls based on user role
+      let response;
+      if (isCoach) {
+        console.log('Using COACH service: createQuitPlan');
+        response = await createQuitPlan(memberId, formData);
+      } else if (isMember) {
+        console.log('Using MEMBER service: createQuitPlanByMember');
+        response = await createQuitPlanByMember(formData);
+      } else {
+        throw new Error('Unauthorized role: ' + user?.role);
+      }
+      
+      console.log('Quit plan creation response:', response);
 
       // Log detailed response for debugging
       if (response && typeof response === 'object') {
@@ -728,54 +753,88 @@ const QuitPlanCreation = () => {
       console.log('Plan creation success status:', hasSuccess);
       
       if (hasSuccess) {
-        message.success('🎉 Tạo kế hoạch cai thuốc thành công!');
-        
-        // Extract plan ID from QuitPlanCreationResponse format
-        const planId = response.planId;
-        console.log('=== PLAN ID EXTRACTION ===');
-        console.log('Extracted planId:', planId);
-        console.log('Type of planId:', typeof planId);
-        console.log('=== END EXTRACTION ===');
-        
-        console.log('Extracted plan ID:', planId);
+        // Different success messages and flows for coach vs member
+        if (isCoach) {
+          message.success('🎉 Tạo kế hoạch cai thuốc thành công!');
+          
+          // Extract plan ID from QuitPlanCreationResponse format
+          const planId = response.planId;
+          console.log('=== PLAN ID EXTRACTION ===');
+          console.log('Extracted planId:', planId);
+          console.log('Type of planId:', typeof planId);
+          console.log('=== END EXTRACTION ===');
+          
+          console.log('Extracted plan ID:', planId);
+              
+          if (planId) {
+            // setCreatedPlanId(planId);
+            // setShowPhaseCreation(false);
             
-        if (planId) {
-          setCreatedPlanId(planId);
-          setShowPhaseCreation(true);
-          
-          // According to the flow: Plan created → Show member sidebar to get AddictionLevel → Get default phases
-          console.log('Plan created successfully with ID:', planId);
-          console.log('Now need to get member addiction level to determine phase template...');
-          
-          // Note: We need member's AddictionLevel (from MemberSmokingStatusSidebar) 
-          // to call getDefaultPhases(AddictionLevel), not currentSmokingStatus from form
-          message.info('✅ Kế hoạch đã tạo! Hệ thống đang tự động tải template phases dựa trên mức độ nghiện của thành viên...');
-          
-          // If we already have addiction level, fetch phases immediately
-          if (memberAddictionLevel) {
-            console.log('Already have addiction level, fetching phases immediately:', memberAddictionLevel);
-            fetchDefaultPhases(memberAddictionLevel);
+            // // According to the flow: Plan created → Show member sidebar to get AddictionLevel → Get default phases
+            // console.log('Plan created successfully with ID:', planId);
+            // console.log('Now need to get member addiction level to determine phase template...');
+            
+            // // Note: We need member's AddictionLevel (from MemberSmokingStatusSidebar) 
+            // // to call getDefaultPhases(AddictionLevel), not currentSmokingStatus from form
+            // message.info('✅ Kế hoạch đã tạo! Hệ thống đang tự động tải template phases dựa trên mức độ nghiện của thành viên...');
+            
+            // // If we already have addiction level, fetch phases immediately
+            // if (memberAddictionLevel) {
+            //   console.log('Already have addiction level, fetching phases immediately:', memberAddictionLevel);
+            //   fetchDefaultPhases(memberAddictionLevel);
+            // }
+          } else {
+            // If no plan ID found, skip phase creation and navigate back
+            message.warning('⚠️ Kế hoạch đã được tạo nhưng không thể tạo phases chi tiết. Bạn có thể tạo phases sau.');
+            // TEMPORARILY COMMENTED OUT FOR DEBUGGING
+            // setTimeout(() => {
+            //   navigate(-1);
+            // }, 2000);
+            console.log('=== WOULD NAVIGATE BACK DUE TO NO PLAN ID ===');
           }
-        } else {
-          // If no plan ID found, skip phase creation and navigate back
-          message.warning('⚠️ Kế hoạch đã được tạo nhưng không thể tạo phases chi tiết. Bạn có thể tạo phases sau.');
-          // TEMPORARILY COMMENTED OUT FOR DEBUGGING
-          // setTimeout(() => {
-          //   navigate(-1);
-          // }, 2000);
-          console.log('=== WOULD NAVIGATE BACK DUE TO NO PLAN ID ===');
+        } else if (isMember) {
+          // Member created their own plan - different flow
+          message.success('🎉 Tạo kế hoạch cai thuốc thành công! Kế hoạch của bạn đã được lưu.');
+          
+          const planId = response.planId;
+          if (planId) {
+            // // For members, we can also show phase creation if they want to customize
+            // setCreatedPlanId(planId);
+            // setShowPhaseCreation(true);
+            
+            // // Members can customize their own plan phases
+            // message.info('✅ Bạn có thể tùy chỉnh các giai đoạn cho kế hoạch của mình...');
+            
+            // // Use member's form addiction level for phase creation
+            // const memberFormAddictionLevel = values.currentSmokingStatus || 'NONE';
+            // console.log('Member form addiction level:', memberFormAddictionLevel);
+            // setMemberAddictionLevel(memberFormAddictionLevel);
+            // fetchDefaultPhases(memberFormAddictionLevel);
+          } else {
+            // Navigate to member dashboard to view their plan
+            message.info('Chuyển đến dashboard để xem kế hoạch của bạn...');
+            setTimeout(() => {
+              navigate('/member/dashboard');
+            }, 2000);
+          }
         }
       } else {
         // Handle error response from QuitPlanCreationResponse
         const errorMessage = response?.message || 'Có lỗi xảy ra khi tạo kế hoạch';
         
-        if (errorMessage.includes('chưa nhận được yêu cầu từ thành viên')) {
-          message.error('❌ Thành viên chưa gửi yêu cầu tạo kế hoạch. Vui lòng yêu cầu thành viên gửi request trước.');
-          message.info('💡 Thành viên cần vào dashboard và nhấn "Yêu cầu tạo kế hoạch" trước khi coach có thể tạo.');
-        } else if (errorMessage.includes('Không tồn tại mối liên hệ')) {
-          message.error('❌ Không có mối liên hệ coach-member. Vui lòng kiểm tra lại.');
-        } else {
-          message.error(`❌ ${errorMessage}`);
+        if (isCoach) {
+          // Coach-specific error messages
+          if (errorMessage.includes('chưa nhận được yêu cầu từ thành viên')) {
+            message.error('❌ Thành viên chưa gửi yêu cầu tạo kế hoạch. Vui lòng yêu cầu thành viên gửi request trước.');
+            message.info('💡 Thành viên cần vào dashboard và nhấn "Yêu cầu tạo kế hoạch" trước khi coach có thể tạo.');
+          } else if (errorMessage.includes('Không tồn tại mối liên hệ')) {
+            message.error('❌ Không có mối liên hệ coach-member. Vui lòng kiểm tra lại.');
+          } else {
+            message.error(`❌ ${errorMessage}`);
+          }
+        } else if (isMember) {
+          // Member-specific error messages
+          message.error(`❌ Không thể tạo kế hoạch: ${errorMessage}`);
         }
       }
     } catch (error) {
@@ -792,49 +851,54 @@ const QuitPlanCreation = () => {
 
   return (
     <Layout className="quit-plan-creation">
-      {/* Smoking Status Sidebar - Fixed on left */}
-      <MemberSmokingStatusSidebar 
-        memberId={selectedMemberId} 
-        memberName={selectedMemberName}
-        onAddictionLevelChange={(addictionLevel) => {
-          console.log('=== ONADDICTIONLEVELCHANGE CALLED ===');
-          console.log('Received addiction level:', addictionLevel);
-          console.log('Current state - createdPlanId:', createdPlanId);
-          console.log('Current state - showPhaseCreation:', showPhaseCreation);
-          console.log('=== END ONADDICTIONLEVELCHANGE ===');
-          
-          setMemberAddictionLevel(addictionLevel);
-          
-          // Only auto-fetch phases if we have a created plan and are in phase creation mode
-          if (createdPlanId && showPhaseCreation && addictionLevel) {
-            console.log('=== AUTO-FETCHING PHASES ===');
-            console.log('Conditions met for auto-fetch:', {
-              createdPlanId: !!createdPlanId,
-              showPhaseCreation: showPhaseCreation,
-              addictionLevel: addictionLevel
-            });
-            fetchDefaultPhases(addictionLevel);
-          } else {
-            console.log('=== AUTO-FETCH SKIPPED ===');
-            console.log('Conditions not met:', {
-              createdPlanId: !!createdPlanId,
-              showPhaseCreation: showPhaseCreation, 
-              addictionLevel: !!addictionLevel
-            });
-          }
-        }}
-      />
+      {/* Smoking Status Sidebar - Only show for coaches */}
+      {isCoach && (
+        <MemberSmokingStatusSidebar 
+          memberId={selectedMemberId} 
+          memberName={selectedMemberName}
+          onAddictionLevelChange={(addictionLevel) => {
+            console.log('=== ONADDICTIONLEVELCHANGE CALLED ===');
+            console.log('Received addiction level:', addictionLevel);
+            console.log('Current state - createdPlanId:', createdPlanId);
+            console.log('Current state - showPhaseCreation:', showPhaseCreation);
+            console.log('=== END ONADDICTIONLEVELCHANGE ===');
+            
+            setMemberAddictionLevel(addictionLevel);
+            
+            // Only auto-fetch phases if we have a created plan and are in phase creation mode
+            if (createdPlanId && showPhaseCreation && addictionLevel) {
+              console.log('=== AUTO-FETCHING PHASES ===');
+              console.log('Conditions met for auto-fetch:', {
+                createdPlanId: !!createdPlanId,
+                showPhaseCreation: showPhaseCreation,
+                addictionLevel: addictionLevel
+              });
+              fetchDefaultPhases(addictionLevel);
+            } else {
+              console.log('=== AUTO-FETCH SKIPPED ===');
+              console.log('Conditions not met:', {
+                createdPlanId: !!createdPlanId,
+                showPhaseCreation: showPhaseCreation, 
+                addictionLevel: !!addictionLevel
+              });
+            }
+          }}
+        />
+      )}
       
-      <Content style={{ padding: '24px', marginLeft: '390px' }}>
+      <Content style={{ padding: '24px', marginLeft: isCoach ? '390px' : '0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           {/* Header */}
           <Card className="header-card" style={{ marginBottom: 24, textAlign: 'center' }}>
             <Space direction="vertical" size="middle">
               <Title level={2} style={{ margin: 0, color: '#1890ff' }}>
-                ✨ Tạo Kế Hoạch Cai Thuốc
+                ✨ {isCoach ? 'Tạo Kế Hoạch Cai Thuốc' : 'Tạo Kế Hoạch Cai Thuốc Của Tôi'}
               </Title>
               <Paragraph style={{ margin: 0, fontSize: 16 }}>
-                Tạo kế hoạch cai thuốc cá nhân hóa và khoa học cho thành viên của bạn
+                {isCoach 
+                  ? 'Tạo kế hoạch cai thuốc cá nhân hóa và khoa học cho thành viên của bạn'
+                  : 'Tạo kế hoạch cai thuốc cá nhân hóa và khoa học cho chính bạn'
+                }
               </Paragraph>
               <Button 
                 icon={<ArrowLeftOutlined />} 
@@ -855,7 +919,7 @@ const QuitPlanCreation = () => {
                 description={
                   <div>
                     <p><strong>⚠️ Lưu ý quan trọng:</strong> Tất cả các trường thông tin đều phải được điền đầy đủ</p>
-                    <p><strong>📝 Bắt buộc điền:</strong> Thành viên, tình trạng hút thuốc, thời lượng, thuốc, hướng dẫn, trigger, chiến lược, phòng ngừa, hỗ trợ, động lực, thưởng, ghi chú</p>
+                    <p><strong>📝 Bắt buộc điền:</strong> {isCoach ? 'Thành viên, t' : 'T'}ình trạng hút thuốc, thời lượng, thuốc, hướng dẫn, trigger, chiến lược, phòng ngừa, hỗ trợ, động lực, thưởng, ghi chú</p>
                     <p><strong>🚫 Không thể tạo kế hoạch:</strong> Nếu bỏ trống bất kỳ trường nào</p>
                   </div>
                 }
@@ -874,51 +938,53 @@ const QuitPlanCreation = () => {
                     durationInDays: Number(30) // Đảm bảo là primitive number
                   }}
                 >
-              {/* Member Selection */}
-              <Card type="inner" style={{ marginBottom: 24 }}>
-                <Title level={4} style={{ color: '#1890ff', marginBottom: 16 }}>
-                  <UserOutlined /> Chọn Thành Viên
-                </Title>
-                
-                <Form.Item
-                  label="Thành viên"
-                  name="memberId"
-                  rules={[{ required: true, message: 'Vui lòng chọn thành viên' }]}
-                >
-                  <Select
-                    placeholder={loadingMembers ? "🔄 Đang tải..." : "-- Chọn thành viên --"}
-                    value={selectedMemberId}
-                    onChange={(value) => {
-                      console.log('Member selected:', value);
-                      setSelectedMemberId(value);
-                      
-                      // Find and set member name
-                      const selectedMember = members.find(member => member.memberId === value);
-                      setSelectedMemberName(selectedMember ? selectedMember.name : '');
-                      
-                      form.setFieldsValue({ memberId: value });
-                    }}
-                    disabled={!!memberIdFromUrl || loadingMembers}
-                    loading={loadingMembers}
-                    size="large"
+              {/* Member Selection - Only show for coaches */}
+              {isCoach && (
+                <Card type="inner" style={{ marginBottom: 24 }}>
+                  <Title level={4} style={{ color: '#1890ff', marginBottom: 16 }}>
+                    <UserOutlined /> Chọn Thành Viên
+                  </Title>
+                  
+                  <Form.Item
+                    label="Thành viên"
+                    name="memberId"
+                    rules={isCoach ? [{ required: true, message: 'Vui lòng chọn thành viên' }] : []}
                   >
-                    {members.map(member => (
-                      <Option key={member.memberId} value={member.memberId}>
-                        👤 {member.name} ({member.email})
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                
-                {memberIdFromUrl && (
-                  <Alert
-                    message="✅ Thành viên đã được chọn từ dashboard"
-                    type="info"
-                    showIcon
-                    style={{ marginTop: 8 }}
-                  />
-                )}
-              </Card>
+                    <Select
+                      placeholder={loadingMembers ? "🔄 Đang tải..." : "-- Chọn thành viên --"}
+                      value={selectedMemberId}
+                      onChange={(value) => {
+                        console.log('Member selected:', value);
+                        setSelectedMemberId(value);
+                        
+                        // Find and set member name
+                        const selectedMember = members.find(member => member.memberId === value);
+                        setSelectedMemberName(selectedMember ? selectedMember.name : '');
+                        
+                        form.setFieldsValue({ memberId: value });
+                      }}
+                      disabled={!!memberIdFromUrl || loadingMembers}
+                      loading={loadingMembers}
+                      size="large"
+                    >
+                      {members.map(member => (
+                        <Option key={member.memberId} value={member.memberId}>
+                          👤 {member.name} ({member.email})
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                  
+                  {memberIdFromUrl && (
+                    <Alert
+                      message="✅ Thành viên đã được chọn từ dashboard"
+                      type="info"
+                      showIcon
+                      style={{ marginTop: 8 }}
+                    />
+                  )}
+                </Card>
+              )}
 
               {/* Basic Information */}
               <Card type="inner" style={{ marginBottom: 24 }}>
@@ -1078,7 +1144,10 @@ const QuitPlanCreation = () => {
                 >
                   <TextArea
                     rows={4}
-                    placeholder="Kế hoạch xử lý khi có nguy cơ tái nghiện: nhận biết dấu hiệu sớm, liên hệ coach, sử dụng kỹ thuật khẩn cấp..."
+                    placeholder={isCoach 
+                      ? "Kế hoạch xử lý khi có nguy cơ tái nghiện: nhận biết dấu hiệu sớm, liên hệ coach, sử dụng kỹ thuật khẩn cấp..."
+                      : "Kế hoạch xử lý khi có nguy cơ tái nghiện: nhận biết dấu hiệu sớm, tìm sự hỗ trợ, sử dụng kỹ thuật khẩn cấp..."
+                    }
                     showCount
                     maxLength={1000}
                   />
@@ -1160,7 +1229,10 @@ const QuitPlanCreation = () => {
                 >
                   <TextArea
                     rows={4}
-                    placeholder="Ghi chú thêm về tình trạng sức khỏe, tiền sử bệnh, mối quan tâm đặc biệt của thành viên..."
+                    placeholder={isCoach 
+                      ? "Ghi chú thêm về tình trạng sức khỏe, tiền sử bệnh, mối quan tâm đặc biệt của thành viên..."
+                      : "Ghi chú thêm về tình trạng sức khỏe, tiền sử bệnh, mối quan tâm đặc biệt của bạn..."
+                    }
                     showCount
                     maxLength={1500}
                   />
@@ -1185,7 +1257,7 @@ const QuitPlanCreation = () => {
                     size="large"
                     icon={<SaveOutlined />}
                   >
-                    {loading ? 'Đang tạo...' : '🚀 Tạo Kế Hoạch'}
+                    {loading ? 'Đang tạo...' : (isCoach ? '🚀 Tạo Kế Hoạch' : '🚀 Tạo Kế Hoạch Của Tôi')}
                   </Button>
                 </Space>
               </div>

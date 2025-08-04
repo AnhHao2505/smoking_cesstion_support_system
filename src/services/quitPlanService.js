@@ -49,7 +49,7 @@ export const getSuggestedMedications = () => {
 export const createQuitPlan = async (memberId, quitPlanData) => {
   try {
     console.log('Creating quit plan for member:', memberId, 'Data:', quitPlanData);
-    const response = await axiosInstance.post('/api/quit-plans/create', quitPlanData, {
+    const response = await axiosInstance.post('/api/quit-plans/coach/create', quitPlanData, {
       params: { memberId }
     });
     console.log('Create quit plan response:', response.data);
@@ -185,6 +185,22 @@ export const viewMemberNewestPlan = async (memberId) => {
       error: error.message || 'UNKNOWN_ERROR',
       message: 'Có lỗi xảy ra khi tải kế hoạch'
     };
+  }
+};
+
+/**
+ * Member creates their own quit plan
+ * POST /api/quit-plans/create-by-member
+ */
+export const createQuitPlanByMember = async (quitPlanData) => {
+  try {
+    console.log('Member creating their own quit plan:', quitPlanData);
+    const response = await axiosInstance.post('/api/quit-plans/create-by-member', quitPlanData);
+    console.log('Create quit plan by member response:', response.data);
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('Error creating quit plan by member:', error);
+    throw handleApiError(error);
   }
 };
 

@@ -107,6 +107,11 @@ const NavBar = () => {
           label: "Lịch sử kế hoạch",
           path: "/member/quit-plan-history",
         },
+        {
+          key: "/create-quit-plan",
+          label: "Tạo kế hoạch",
+          path: "/create-quit-plan",
+        },
       ],
     },
     tracking: {
@@ -169,9 +174,9 @@ const NavBar = () => {
       icon: <FileTextOutlined />,
       items: [
         {
-          key: "/coach/create-quit-plan",
+          key: "/create-quit-plan",
           label: "Tạo kế hoạch",
-          path: "/coach/create-quit-plan",
+          path: "/create-quit-plan",
         },
         // { key: '/coach/quit-plan-approval', label: 'Phê duyệt kế hoạch', path: '/coach/quit-plan-approval' },
         // { key: '/coach/quit-plan-approval-new', label: 'Phê duyệt - Luồng mới', path: '/coach/quit-plan-approval-new' }

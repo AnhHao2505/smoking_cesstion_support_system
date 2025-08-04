@@ -126,9 +126,9 @@ const App = () => {
               />
               
               <Route 
-                path="/coach/create-quit-plan" 
+                path="/create-quit-plan" 
                 element={
-                  <PrivateRoute allowedRoles={['COACH']}>
+                  <PrivateRoute allowedRoles={['COACH', 'MEMBER']}>
                     <QuitPlanCreation />
                   </PrivateRoute>
                 }
