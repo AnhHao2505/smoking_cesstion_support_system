@@ -52,6 +52,7 @@ const BookingSteps = ({ visible, onCancel, onSuccess }) => {
   
   // Step data
   const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedCoach, setSelectedCoach] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [appointmentInfo, setAppointmentInfo] = useState({});
   
@@ -134,11 +135,14 @@ const BookingSteps = ({ visible, onCancel, onSuccess }) => {
     }
   }, [visible]);
 
+  // Khi chọn coach hoặc ngày, load slot cho coach đó
   useEffect(() => {
-    if (selectedDate && coaches.length > 0) {
-      generateAvailableSlots();
+    if (selectedDate && selectedCoach) {
+      generateAvailableSlotsForCoach(selectedCoach);
+    } else {
+      setAvailableSlots([]);
     }
-  }, [selectedDate, coaches]);
+  }, [selectedDate, selectedCoach]);
 
   const fetchCoaches = async () => {
     try {
@@ -155,50 +159,26 @@ const BookingSteps = ({ visible, onCancel, onSuccess }) => {
     }
   };
 
-  // Lấy schedule khả dụng của coach từ API, sau đó sinh slot
-  const generateAvailableSlots = async () => {
-    if (!selectedDate) return;
+  // Lấy schedule khả dụng của coach được chọn
+  const generateAvailableSlotsForCoach = async (coach) => {
+    if (!selectedDate || !coach) return;
     try {
       setLoading(true);
-      let slots = [];
       const dateStr = selectedDate.format('YYYY-MM-DD');
-      for (const coach of coaches) {
-        try {
-          const schedules = await getAvailableSchedulesOfCoach(coach.coachId);
-          // Lấy working hours của coach cho ngày đã chọn
-          const workingHours = coach.workingHours?.filter(wh => wh.dayOfWeek === selectedDate.format('dddd')) || [];
-          // Lấy các schedule đã book hoặc chưa book trong ngày
-          const bookedSlots = (Array.isArray(schedules) ? schedules : []).filter(sch => sch.date === dateStr);
-          // Sử dụng generateTimeSlots để sinh slot cho từng working hour
-          const coachSlots = generateTimeSlots(
-            workingHours.map(wh => ({
-              ...wh,
-              coachId: coach.coachId,
-              coachName: coach.name
-            })),
-            bookedSlots.map(sch => ({
-              startTime: `${sch.startHour.toString().padStart(2, '0')}:${sch.startMinute.toString().padStart(2, '0')}`
-            }))
-          );
-          // Gán scheduleId và trạng thái booked cho từng slot nếu trùng với schedule
-          coachSlots.forEach(slot => {
-            const found = bookedSlots.find(sch =>
-              slot.startTime === `${sch.startHour.toString().padStart(2, '0')}:${sch.startMinute.toString().padStart(2, '0')}`
-            );
-            if (found) {
-              slot.scheduleId = found.scheduleId;
-              slot.isBooked = found.booked;
-            } else {
-              slot.scheduleId = undefined;
-              slot.isBooked = false;
-            }
-          });
-          slots = slots.concat(coachSlots);
-        } catch (e) {
-          console.error(`Error fetching schedules for coach ${coach.name}:`, e);
-        }
-      }
-      setAvailableSlots(slots);
+      const schedules = await getAvailableSchedulesOfCoach(coach.coachId);
+      // Filter schedules by exact date match
+      const daySchedules = (Array.isArray(schedules) ? schedules : []).filter(sch => sch.date === dateStr && sch.active);
+      const coachSlots = daySchedules.map(sch => ({
+        scheduleId: sch.scheduleId,
+        coachId: sch.coachId,
+        coachName: coach.name,
+        startTime: `${sch.startHour.toString().padStart(2, '0')}:${sch.startMinute.toString().padStart(2, '0')}`,
+        endTime: `${sch.endHour.toString().padStart(2, '0')}:${sch.endMinute.toString().padStart(2, '0')}`,
+        displayTime: `${sch.startHour.toString().padStart(2, '0')}:${sch.startMinute.toString().padStart(2, '0')} - ${sch.endHour.toString().padStart(2, '0')}:${sch.endMinute.toString().padStart(2, '0')}`,
+        isBooked: sch.booked,
+        active: sch.active
+      }));
+      setAvailableSlots(coachSlots);
     } catch (error) {
       console.error('Error generating available slots:', error);
       message.error('Không thể tải lịch trống. Vui lòng thử lại!');
@@ -210,6 +190,7 @@ const BookingSteps = ({ visible, onCancel, onSuccess }) => {
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
+    setSelectedCoach(null);
     setSelectedSlot(null);
     setCurrentStep(1);
   };
@@ -235,6 +216,7 @@ const BookingSteps = ({ visible, onCancel, onSuccess }) => {
   const handleModalClose = () => {
     setCurrentStep(0);
     setSelectedDate(null);
+    setSelectedCoach(null);
     setSelectedSlot(null);
     setAppointmentInfo({});
     form.resetFields();
@@ -287,184 +269,193 @@ const BookingSteps = ({ visible, onCancel, onSuccess }) => {
     </div>
   );
 
-  // Render Step 2: Time Selection
+  // Render Step 2: Coach & Time Selection
   const renderTimeSelection = () => {
+    const selectedDayOfWeek = selectedDate?.format('dddd');
+    const coachesWorkingToday = coaches.filter(coach => 
+      coach.workingHours?.some(schedule => schedule.dayOfWeek === selectedDayOfWeek)
+    );
     const groupedSlots = groupSlotsByPeriod(availableSlots);
-    
+
     return (
       <div style={{ padding: '20px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <Title level={3} style={{ color: '#1890ff' }}>
-            <ClockCircleOutlined /> Chọn thời gian
+            <ClockCircleOutlined /> Chọn huấn luyện viên & thời gian
           </Title>
           <Text strong>
             Ngày đã chọn: {selectedDate?.format('DD/MM/YYYY')}
           </Text>
         </div>
 
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <Spin size="large" />
-            <div style={{ marginTop: 16 }}>
-              <Text>Đang tải lịch trình...</Text>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Morning Slots */}
-            {groupedSlots.morning.length > 0 && (
-              <div style={{ marginBottom: 24 }}>
-                <div className="booking-period-title">
-                  <Title level={4} style={{ color: '#fa8c16', marginBottom: 0 }}>
-                    🌅 Buổi sáng
-                  </Title>
-                </div>
-                <Row gutter={[12, 12]}>
-                  {groupedSlots.morning.map((slot, index) => (
-                    <Col xs={12} sm={8} md={6} key={index}>
-                      <Button
-                        block
-                        type={selectedSlot?.scheduleId === slot.scheduleId ? 'primary' : 'default'}
-                        disabled={slot.isBooked}
-                        onClick={() => handleSlotSelect(slot)}
-                        className="booking-time-slot"
-                        style={{ 
-                          height: 'auto', 
-                          padding: '8px',
-                          borderRadius: '8px'
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontWeight: 'bold' }}>
-                            {slot.displayTime}
-                          </div>
-                          <div style={{ fontSize: '12px', opacity: 0.8 }}>
-                            {slot.coachName}
-                          </div>
-                        </div>
-                      </Button>
-                    </Col>
-                  ))}
-                </Row>
-              </div>
-            )}
-
-            {/* Afternoon Slots */}
-            {groupedSlots.afternoon.length > 0 && (
-              <div>
-                <div className="booking-period-title">
-                  <Title level={4} style={{ color: '#722ed1', marginBottom: 0 }}>
-                    🌆 Buổi chiều
-                  </Title>
-                </div>
-                <Row gutter={[12, 12]}>
-                  {groupedSlots.afternoon.map((slot, index) => (
-                    <Col xs={12} sm={8} md={6} key={index}>
-                      <Button
-                        block
-                        type={selectedSlot?.scheduleId === slot.scheduleId ? 'primary' : 'default'}
-                        disabled={slot.isBooked}
-                        onClick={() => handleSlotSelect(slot)}
-                        className="booking-time-slot"
-                        style={{ 
-                          height: 'auto', 
-                          padding: '8px',
-                          borderRadius: '8px'
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontWeight: 'bold' }}>
-                            {slot.displayTime}
-                          </div>
-                          <div style={{ fontSize: '12px', opacity: 0.8 }}>
-                            {slot.coachName}
-                          </div>
-                        </div>
-                      </Button>
-                    </Col>
-                  ))}
-                </Row>
-              </div>
-            )}
-
-            {availableSlots.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                <Text type="secondary">
-                  Không có khung giờ trống cho ngày này
-                </Text>
-              </div>
-            )}
-          </>
-        )}
-
-        <Divider />
-        
-        {/* Coach working hours info for selected day */}
-        <div>
-          <Title level={5}>Huấn luyện viên làm việc trong ngày {selectedDate?.format('DD/MM/YYYY')} ({selectedDate?.format('dddd')}):</Title>
-          {(() => {
-            const selectedDayOfWeek = selectedDate?.format('dddd');
-            const coachesWorkingToday = coaches.filter(coach => 
-              coach.workingHours?.some(schedule => schedule.dayOfWeek === selectedDayOfWeek)
-            );
-            
-            if (coachesWorkingToday.length === 0) {
-              return (
+        {/* Coach selection */}
+        <div style={{ marginBottom: 24 }}>
+          <Title level={5} style={{ marginBottom: 8 }}>Chọn huấn luyện viên làm việc trong ngày này:</Title>
+          <Row gutter={[16, 8]}>
+            {coachesWorkingToday.length === 0 && (
+              <Col span={24}>
                 <Alert
                   message="Không có huấn luyện viên nào làm việc trong ngày này"
                   type="warning"
                   showIcon
                   style={{ marginBottom: 16 }}
                 />
+              </Col>
+            )}
+            {coachesWorkingToday.map(coach => {
+              const todaySchedule = coach.workingHours.find(
+                schedule => schedule.dayOfWeek === selectedDayOfWeek
               );
-            }
-            
-            return (
-              <Row gutter={[16, 8]}>
-                {coachesWorkingToday.map(coach => {
-                  const todaySchedule = coach.workingHours.find(
-                    schedule => schedule.dayOfWeek === selectedDayOfWeek
-                  );
-                  
-                  return (
-                    <Col xs={24} sm={12} md={8} key={coach.coachId}>
-                      <Card size="small" style={{ marginBottom: 8, border: '1px solid #1890ff' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                          <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: '#1890ff' }} />
-                          <div style={{ marginLeft: 8 }}>
-                            <Text strong style={{ fontSize: '14px', display: 'block' }}>
-                              {coach.name}
-                            </Text>
-                            <Text type="secondary" style={{ fontSize: '12px' }}>
-                              {coach.email}
-                            </Text>
-                          </div>
-                        </div>
-                        <div style={{ 
-                          padding: '6px 10px', 
-                          backgroundColor: '#f0f9ff', 
-                          borderRadius: '4px',
-                          textAlign: 'center'
-                        }}>
-                          <Text strong style={{ color: '#1890ff', fontSize: '13px' }}>
-                            {todaySchedule.startTime} - {todaySchedule.endTime}
-                          </Text>
-                        </div>
-                        {coach.certificates && (
-                          <div style={{ marginTop: 8 }}>
-                            <Tag color="green" style={{ fontSize: '10px', marginBottom: 0 }}>
-                              {coach.certificates}
-                            </Tag>
-                          </div>
-                        )}
-                      </Card>
-                    </Col>
-                  );
-                })}
-              </Row>
-            );
-          })()}
+              return (
+                <Col xs={24} sm={12} md={8} key={coach.coachId}>
+                  <Card
+                    size="small"
+                    style={{
+                      marginBottom: 8,
+                      border: selectedCoach?.coachId === coach.coachId ? '2px solid #1890ff' : '1px solid #d9d9d9',
+                      cursor: 'pointer',
+                      background: selectedCoach?.coachId === coach.coachId ? '#e6f7ff' : '#fff',
+                      transition: 'border 0.2s'
+                    }}
+                    onClick={() => {
+                      setSelectedCoach(coach);
+                      setSelectedSlot(null);
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                      <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: '#1890ff' }} />
+                      <div style={{ marginLeft: 8 }}>
+                        <Text strong style={{ fontSize: '14px', display: 'block' }}>
+                          {coach.name}
+                        </Text>
+                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                          {coach.email}
+                        </Text>
+                      </div>
+                    </div>
+                    <div style={{
+                      padding: '6px 10px',
+                      backgroundColor: '#f0f9ff',
+                      borderRadius: '4px',
+                      textAlign: 'center'
+                    }}>
+                      <Text strong style={{ color: '#1890ff', fontSize: '13px' }}>
+                        {todaySchedule.startTime} - {todaySchedule.endTime}
+                      </Text>
+                    </div>
+                    {coach.certificates && (
+                      <div style={{ marginTop: 8 }}>
+                        <Tag color="green" style={{ fontSize: '10px', marginBottom: 0 }}>
+                          {coach.certificates}
+                        </Tag>
+                      </div>
+                    )}
+                  </Card>
+                </Col>
+              );
+            })}
+          </Row>
         </div>
+
+        {/* Slot selection for selected coach */}
+        {selectedCoach && (
+          <>
+            <Divider />
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <Title level={4} style={{ color: '#fa8c16', marginBottom: 0 }}>
+                Chọn khung giờ với {selectedCoach.name}
+              </Title>
+            </div>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <Spin size="large" />
+                <div style={{ marginTop: 16 }}>
+                  <Text>Đang tải lịch trình...</Text>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Morning Slots */}
+                {groupedSlots.morning.length > 0 && (
+                  <div style={{ marginBottom: 24 }}>
+                    <div className="booking-period-title">
+                      <Title level={5} style={{ color: '#fa8c16', marginBottom: 0 }}>
+                        � Buổi sáng
+                      </Title>
+                    </div>
+                    <Row gutter={[12, 12]}>
+                      {groupedSlots.morning.map((slot, index) => (
+                        <Col xs={12} sm={8} md={6} key={index}>
+                          <Button
+                            block
+                            type={selectedSlot?.scheduleId === slot.scheduleId ? 'primary' : 'default'}
+                            disabled={slot.isBooked}
+                            onClick={() => handleSlotSelect(slot)}
+                            className="booking-time-slot"
+                            style={{
+                              height: 'auto',
+                              padding: '8px',
+                              borderRadius: '8px'
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: 'bold' }}>
+                                {slot.displayTime}
+                              </div>
+                            </div>
+                          </Button>
+                        </Col>
+                      ))}
+                    </Row>
+                  </div>
+                )}
+
+                {/* Afternoon Slots */}
+                {groupedSlots.afternoon.length > 0 && (
+                  <div>
+                    <div className="booking-period-title">
+                      <Title level={5} style={{ color: '#722ed1', marginBottom: 0 }}>
+                        🌆 Buổi chiều
+                      </Title>
+                    </div>
+                    <Row gutter={[12, 12]}>
+                      {groupedSlots.afternoon.map((slot, index) => (
+                        <Col xs={12} sm={8} md={6} key={index}>
+                          <Button
+                            block
+                            type={selectedSlot?.scheduleId === slot.scheduleId ? 'primary' : 'default'}
+                            disabled={slot.isBooked}
+                            onClick={() => handleSlotSelect(slot)}
+                            className="booking-time-slot"
+                            style={{
+                              height: 'auto',
+                              padding: '8px',
+                              borderRadius: '8px'
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: 'bold' }}>
+                                {slot.displayTime}
+                              </div>
+                            </div>
+                          </Button>
+                        </Col>
+                      ))}
+                    </Row>
+                  </div>
+                )}
+
+                {availableSlots.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                    <Text type="secondary">
+                      Không có khung giờ trống cho huấn luyện viên này trong ngày này
+                    </Text>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
       </div>
     );
   };
