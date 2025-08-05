@@ -15,6 +15,88 @@
   padding: 8px 12px;
   border-radius: 4px;
 }
+
+/* Booking Modal Styles */
+.booking-modal .ant-steps {
+  margin-bottom: 32px;
+}
+
+.booking-modal .ant-steps-item-title {
+  font-size: 14px !important;
+}
+
+.booking-time-slot {
+  transition: all 0.3s ease;
+  border-radius: 8px !important;
+  margin-bottom: 8px;
+}
+
+.booking-time-slot:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.booking-time-slot.ant-btn-primary {
+  background: linear-gradient(45deg, #1890ff, #52c41a);
+  border: none;
+}
+
+.booking-coach-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  margin-bottom: 8px;
+}
+
+.booking-coach-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.booking-period-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.booking-confirmation-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.booking-time-slot:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Calendar styling for booking */
+.ant-picker-calendar {
+  background: #fff;
+}
+
+.ant-picker-calendar .ant-picker-cell-selected .ant-picker-cell-inner {
+  background: #1890ff;
+  color: #fff;
+}
+
+.ant-picker-calendar .ant-picker-cell:hover .ant-picker-cell-inner {
+  background: #e6f7ff;
+}
+
+/* Steps styling */
+.ant-steps-item-title {
+  font-weight: 600 !important;
+}
+
+.ant-steps-item-description {
+  color: #666 !important;
+  font-size: 12px !important;
+}
+
+.booking-confirmation-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 /* Chat Page Styles */
 .chat-page {
   height: 100vh;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import VideoCallWithProps from '../videos/VideoCallWithProps';
 import { AgoraProvider } from '../videos/AgoraContext';
+import BookingSteps from './BookingSteps';
 import {
   Layout,
   Typography,
@@ -29,7 +30,8 @@ import {
   PhoneOutlined,
   VideoCameraOutlined,
   MoreOutlined,
-  CommentOutlined
+  CommentOutlined,
+  CalendarOutlined
 } from '@ant-design/icons';
 import { getAllCoaches, chooseCoach } from '../../services/coachManagementService';
 import { 
@@ -66,6 +68,8 @@ const ChatPage = () => {
   // Video call states
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [currentCallData, setCurrentCallData] = useState(null);
+  // Booking modal states
+  const [bookingModalVisible, setBookingModalVisible] = useState(false);
 
   // Khởi tạo video call
   const initiateVideoCall = async (roomId, coachInfo = null) => {
@@ -263,7 +267,7 @@ const ChatPage = () => {
         webSocketService.unsubscribeFromPrivateChat(selectedChatRoom.roomId);
       }
       
-      setSelectedChatRoom(room);
+      setSelectedChatRoom(room); 
       setSelectedCoach(null); // Clear selected coach when selecting room
       
       // Load messages for this room
@@ -703,6 +707,14 @@ const ChatPage = () => {
                 </Space>
                 <Space>
                   <Button
+                    type="default"
+                    icon={<CalendarOutlined />}
+                    onClick={() => setBookingModalVisible(true)}
+                    style={{ marginRight: 8 }}
+                  >
+                    Đặt lịch hẹn
+                  </Button>
+                  <Button
                     type="primary"
                     icon={<VideoCameraOutlined />}
                     onClick={() => {
@@ -918,6 +930,17 @@ const ChatPage = () => {
           />
         </Modal>
       )}
+      
+      {/* Booking Modal */}
+      <BookingSteps
+        visible={bookingModalVisible}
+        onCancel={() => setBookingModalVisible(false)}
+        onSuccess={(appointment) => {
+          setBookingModalVisible(false);
+          message.success('Đặt lịch hẹn thành công!');
+        }}
+        selectedCoach={selectedCoach}
+      />
     </Layout>
   );
 };
