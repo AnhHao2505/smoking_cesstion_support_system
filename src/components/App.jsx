@@ -46,6 +46,7 @@ import SmokingStatusComprehensive from './member/SmokingStatusComprehensive';
 
 // Coach components  
 import CoachQnA from './coach/CoachQnA';
+import CreateCoachSchedule from './coach/CreateCoachSchedule';
 
 // Admin components
 import AdminDashboard from './admin/AdminDashboard';
@@ -294,6 +295,15 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['COACH', 'ADMIN']}>
                     <CoachDashboard />
+                  </PrivateRoute>
+                }
+              />
+
+              <Route
+                path="/coach/create-schedule"
+                element={
+                  <PrivateRoute allowedRoles={['COACH']}>
+                    <CreateCoachSchedule />
                   </PrivateRoute>
                 }
               />
