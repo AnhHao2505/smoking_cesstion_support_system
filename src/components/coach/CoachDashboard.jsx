@@ -705,7 +705,7 @@ const CoachDashboard = () => {
               danger
               onClick={() => {
                 // Navigate to create quit plan
-                window.location.href = `/coach/create-quit-plan?memberId=${record.user_id}`;
+                window.location.href = `/create-quit-plan?memberId=${record.user_id}`;
               }}
               icon={<RiseOutlined />}
             >
