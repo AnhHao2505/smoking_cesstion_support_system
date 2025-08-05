@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import moment from 'moment';
 import {
   Layout,
   Typography,
@@ -24,7 +25,10 @@ import {
   Input,
   Alert,
   Descriptions,
-  Empty
+  Empty,
+  DatePicker,
+  TimePicker,
+  Select
 } from 'antd';
 import {
   UserOutlined,
@@ -35,12 +39,17 @@ import {
   BarChartOutlined,
   EyeOutlined,
   FileTextOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  CalendarOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  EditOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAssignedMembers, getCoachProfile } from '../../services/coachManagementService';
 import { getFeedbacksForCoach } from '../../services/feebackService';
 import { viewMemberNewestPlan, addFinalEvaluation } from '../../services/quitPlanService';
+import { createCoachSchedule, getAvailableSchedulesOfCoach } from '../../services/appointmentService';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -64,6 +73,13 @@ const CoachDashboard = () => {
   const [evaluationForm] = Form.useForm();
   const [evaluationSubmitting, setEvaluationSubmitting] = useState(false);
 
+  // State variables for schedule management
+  const [schedules, setSchedules] = useState([]);
+  const [schedulesLoading, setSchedulesLoading] = useState(false);
+  const [createScheduleModalVisible, setCreateScheduleModalVisible] = useState(false);
+  const [scheduleForm] = Form.useForm();
+  const [scheduleSubmitting, setScheduleSubmitting] = useState(false);
+
   // Always use current user's ID as coachId - this dashboard is only for the coach themselves
   const [coachId, setCoachId] = useState(null);
 
@@ -73,6 +89,13 @@ const CoachDashboard = () => {
       setCoachId(currentUser.userId);
     }
   }, [currentUser]);
+
+  // Load schedules when coachId is available - moved before early returns
+  useEffect(() => {
+    if (coachId) {
+      refreshSchedules();
+    }
+  }, [coachId]);
 
   useEffect(() => {
     const fetchCoachDashboardData = async () => {
@@ -382,30 +405,100 @@ const CoachDashboard = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Không xác định';
-    return new Date(dateString).toLocaleString();
+  // Schedule management functions
+  const refreshSchedules = async () => {
+    if (!coachId) return;
+    
+    try {
+      setSchedulesLoading(true);
+      const response = await getAvailableSchedulesOfCoach(coachId);
+      setSchedules(response || []);
+    } catch (error) {
+      console.error('Error fetching schedules:', error);
+      message.error('Không thể tải danh sách lịch hẹn');
+    } finally {
+      setSchedulesLoading(false);
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="dashboard loading-container">
-        <Spin size="large" />
-      </div>
-    );
-  }
+  const handleCreateSchedule = async (values) => {
+    try {
+      setScheduleSubmitting(true);
+      
+      const startTime = values.startTime;
+      const endTime = values.endTime;
+      const selectedDate = values.date.format('YYYY-MM-DD');
+      
+      // Frontend validation 1: Validate time range - end time must be after start time
+      if (endTime.isBefore(startTime) || endTime.isSame(startTime)) {
+        message.error('Thời gian kết thúc phải sau thời gian bắt đầu!');
+        return;
+      }
+      
+      // Frontend validation 2: Validate at least 1 hour gap
+      const durationInMinutes = endTime.diff(startTime, 'minutes');
+      if (durationInMinutes < 60) {
+        message.error('Khung giờ phải cách nhau ít nhất 1 tiếng!');
+        return;
+      }
+      
+      // Frontend validation 3: Check for duplicate/overlapping schedules
+      const startHour = startTime.hour();
+      const startMinute = startTime.minute();
+      const endHour = endTime.hour();
+      const endMinute = endTime.minute();
+      
+      const overlap = schedules.some(schedule => {
+        // Only check active schedules on the same date
+        if (!schedule.active || schedule.date !== selectedDate) {
+          return false;
+        }
+        
+        // Check if times exactly match existing schedule
+        return (schedule.startHour === startHour && 
+                schedule.startMinute === startMinute &&
+                schedule.endHour === endHour && 
+                schedule.endMinute === endMinute);
+      });
+      
+      if (overlap) {
+        message.error('Khung giờ này đã bị trùng với lịch hẹn khác!');
+        return;
+      }
+      
+      const scheduleData = {
+        date: selectedDate,
+        startHour: startHour,
+        startMinute: startMinute,
+        endHour: endHour,
+        endMinute: endMinute
+      };
 
-  // Show error if we still can't determine coachId after loading
+      const response = await createCoachSchedule(scheduleData);
+      
+      if (response.success) {
+        message.success('Tạo lịch hẹn thành công');
+        setCreateScheduleModalVisible(false);
+        scheduleForm.resetFields();
+        refreshSchedules();
+      } else {
+        message.error(response.message || 'Không thể tạo lịch hẹn');
+      }
+    } catch (error) {
+      console.error('Error creating schedule:', error);
+      message.error('Đã xảy ra lỗi khi tạo lịch hẹn');
+    } finally {
+      setScheduleSubmitting(false);
+    }
+  };
+
+  // Show different loading state while determining coachId
   if (!coachId && currentUser?.role === 'COACH') {
     return (
       <div className="dashboard loading-container">
-        <div style={{ textAlign: 'center', padding: '40px 0' }}>
-          <Text type="danger">Không thể tải bảng điều khiển huấn luyện viên. Vui lòng thử đăng nhập lại.</Text>
-          <div style={{ marginTop: 16 }}>
-            <Button type="primary" onClick={() => window.location.href = '/auth/login'}>
-              Đi đến Đăng nhập
-            </Button>
-          </div>
+        <Spin size="large" />
+        <div style={{ marginTop: 16, textAlign: 'center' }}>
+          <Text type="secondary">Đang tải hồ sơ huấn luyện viên...</Text>
         </div>
       </div>
     );
@@ -490,6 +583,37 @@ const CoachDashboard = () => {
           {/* Đã xóa nút "Theo dõi kế hoạch hiện tại" theo yêu cầu */}
         </Space>
       )
+    }
+  ];
+
+  // Column configuration for schedule table
+  const scheduleColumns = [
+    {
+      title: 'Ngày',
+      dataIndex: 'date',
+      key: 'date',
+      render: (date) => new Date(date).toLocaleDateString('vi-VN')
+    },
+    {
+      title: 'Thời gian bắt đầu',
+      key: 'startTime',
+      render: (_, record) => `${record.startHour.toString().padStart(2, '0')}:${record.startMinute.toString().padStart(2, '0')}`
+    },
+    {
+      title: 'Thời gian kết thúc',
+      key: 'endTime', 
+      render: (_, record) => `${record.endHour.toString().padStart(2, '0')}:${record.endMinute.toString().padStart(2, '0')}`
+    },
+    {
+      title: 'Trạng thái',
+      key: 'status',
+      render: (_, record) => {
+        if (record.booked) {
+          return <Tag color="red">Đã đặt</Tag>;
+        } else if (record.active) {
+          return <Tag color="green">Đang chờ</Tag>;
+        }
+      }
     }
   ];
   
@@ -627,6 +751,42 @@ const CoachDashboard = () => {
                 <Text type="secondary">Chưa nhận được đánh giá nào</Text>
               </div>
             )}
+          </Card>
+        </TabPane>
+
+        <TabPane tab={<span><CalendarOutlined /> Quản lý lịch hẹn</span>} key="3">
+          <Card
+            title="Lịch hẹn của tôi"
+            extra={
+              <Space>
+                <Button
+                  size="small"
+                  onClick={refreshSchedules}
+                  loading={schedulesLoading}
+                >
+                  Làm mới
+                </Button>
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<PlusOutlined />}
+                  onClick={() => setCreateScheduleModalVisible(true)}
+                >
+                  Tạo lịch hẹn
+                </Button>
+              </Space>
+            }
+          >
+            <Table
+              dataSource={schedules}
+              columns={scheduleColumns}
+              rowKey="scheduleId"
+              pagination={{ pageSize: 10 }}
+              loading={schedulesLoading}
+              locale={{
+                emptyText: 'Chưa có lịch hẹn nào'
+              }}
+            />
           </Card>
         </TabPane>   
       </Tabs>
@@ -846,6 +1006,86 @@ const CoachDashboard = () => {
             )}
           </div>
         )}
+      </Modal>
+
+      {/* Modal tạo lịch hẹn */}
+      <Modal
+        title="Tạo lịch hẹn mới"
+        open={createScheduleModalVisible}
+        onCancel={() => {
+          setCreateScheduleModalVisible(false);
+          scheduleForm.resetFields();
+        }}
+        footer={null}
+      >
+        <Form
+          form={scheduleForm}
+          layout="vertical"
+          onFinish={handleCreateSchedule}
+        >
+          <Form.Item
+            name="date"
+            label="Ngày"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày' }]}
+          >
+            <DatePicker
+              style={{ width: '100%' }}
+              placeholder="Chọn ngày"
+              format="DD/MM/YYYY"
+              disabledDate={(current) => current && current < new Date().setHours(0, 0, 0, 0)}
+            />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="startTime"
+                label="Thời gian bắt đầu"
+                rules={[{ required: true, message: 'Vui lòng chọn thời gian bắt đầu' }]}
+              >
+                <TimePicker
+                  style={{ width: '100%' }}
+                  format="HH:mm"
+                  placeholder="Chọn giờ bắt đầu"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="endTime"
+                label="Thời gian kết thúc"
+                rules={[{ required: true, message: 'Vui lòng chọn thời gian kết thúc' }]}
+              >
+                <TimePicker
+                  style={{ width: '100%' }}
+                  format="HH:mm"
+                  placeholder="Chọn giờ kết thúc"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item>
+            <Space>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={scheduleSubmitting}
+                icon={<PlusOutlined />}
+              >
+                Tạo lịch hẹn
+              </Button>
+              <Button
+                onClick={() => {
+                  setCreateScheduleModalVisible(false);
+                  scheduleForm.resetFields();
+                }}
+              >
+                Hủy
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );
