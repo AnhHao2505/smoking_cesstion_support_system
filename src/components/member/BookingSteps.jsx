@@ -45,14 +45,14 @@ const { Step } = Steps;
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
-const BookingSteps = ({ visible, onCancel, onSuccess }) => {
+const BookingSteps = ({ visible, onCancel, onSuccess, selectedCoach: selectedCoachProp }) => {
   const { currentUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
   
   // Step data
   const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedCoach, setSelectedCoach] = useState(null);
+  const [selectedCoach, setSelectedCoach] = useState(selectedCoachProp || null);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [appointmentInfo, setAppointmentInfo] = useState({});
   
@@ -130,10 +130,13 @@ const BookingSteps = ({ visible, onCancel, onSuccess }) => {
 
 
   useEffect(() => {
+      console.log(selectedCoachProp);
     if (visible) {
       fetchCoaches();
+      // Nếu có selectedCoachProp truyền vào thì set lại khi mở modal
+      setSelectedCoach(selectedCoachProp || null);
     }
-  }, [visible]);
+  }, [visible, selectedCoachProp]);
 
   // Khi chọn coach hoặc ngày, load slot cho coach đó
   useEffect(() => {
@@ -190,9 +193,20 @@ const BookingSteps = ({ visible, onCancel, onSuccess }) => {
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
-    setSelectedCoach(null);
-    setSelectedSlot(null);
-    setCurrentStep(1);
+    // Nếu có selectedCoachProp thì auto chọn coach và load slot luôn
+    if (selectedCoachProp) {
+      setSelectedCoach(selectedCoachProp);
+      setSelectedSlot(null);
+      setCurrentStep(1);
+      // Gọi generateAvailableSlotsForCoach ngay khi chọn ngày
+      setTimeout(() => {
+        generateAvailableSlotsForCoach(selectedCoachProp);
+      }, 0);
+    } else {
+      setSelectedCoach(null);
+      setSelectedSlot(null);
+      setCurrentStep(1);
+    }
   };
 
   const handleSlotSelect = (slot) => {
@@ -272,9 +286,6 @@ const BookingSteps = ({ visible, onCancel, onSuccess }) => {
   // Render Step 2: Coach & Time Selection
   const renderTimeSelection = () => {
     const selectedDayOfWeek = selectedDate?.format('dddd');
-    const coachesWorkingToday = coaches.filter(coach => 
-      coach.workingHours?.some(schedule => schedule.dayOfWeek === selectedDayOfWeek)
-    );
     const groupedSlots = groupSlotsByPeriod(availableSlots);
 
     return (
@@ -290,20 +301,21 @@ const BookingSteps = ({ visible, onCancel, onSuccess }) => {
 
         {/* Coach selection */}
         <div style={{ marginBottom: 24 }}>
-          <Title level={5} style={{ marginBottom: 8 }}>Chọn huấn luyện viên làm việc trong ngày này:</Title>
+          <Title level={5} style={{ marginBottom: 8 }}>Chọn huấn luyện viên:</Title>
           <Row gutter={[16, 8]}>
-            {coachesWorkingToday.length === 0 && (
+            {coaches.length === 0 && (
               <Col span={24}>
                 <Alert
-                  message="Không có huấn luyện viên nào làm việc trong ngày này"
+                  message="Không có huấn luyện viên nào"
                   type="warning"
                   showIcon
                   style={{ marginBottom: 16 }}
                 />
               </Col>
             )}
-            {coachesWorkingToday.map(coach => {
-              const todaySchedule = coach.workingHours.find(
+            {coaches.map(coach => {
+              // Tìm lịch làm việc hôm nay nếu có
+              const todaySchedule = coach.workingHours?.find(
                 schedule => schedule.dayOfWeek === selectedDayOfWeek
               );
               return (
@@ -333,16 +345,18 @@ const BookingSteps = ({ visible, onCancel, onSuccess }) => {
                         </Text>
                       </div>
                     </div>
-                    <div style={{
-                      padding: '6px 10px',
-                      backgroundColor: '#f0f9ff',
-                      borderRadius: '4px',
-                      textAlign: 'center'
-                    }}>
-                      <Text strong style={{ color: '#1890ff', fontSize: '13px' }}>
-                        {todaySchedule.startTime} - {todaySchedule.endTime}
-                      </Text>
-                    </div>
+                    {todaySchedule && (
+                      <div style={{
+                        padding: '6px 10px',
+                        backgroundColor: '#f0f9ff',
+                        borderRadius: '4px',
+                        textAlign: 'center'
+                      }}>
+                        <Text strong style={{ color: '#1890ff', fontSize: '13px' }}>
+                          {todaySchedule.startTime} - {todaySchedule.endTime}
+                        </Text>
+                      </div>
+                    )}
                     {coach.certificates && (
                       <div style={{ marginTop: 8 }}>
                         <Tag color="green" style={{ fontSize: '10px', marginBottom: 0 }}>

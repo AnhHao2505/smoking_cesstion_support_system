@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import BookingSteps from './BookingSteps';
 import {
   Card,
   Table,
@@ -71,6 +72,9 @@ const AppointmentManagement = () => {
   const [profileLoading, setProfileLoading] = useState(false);
   const [coachProfile, setCoachProfile] = useState(null);
   const [totalCoaches, setTotalCoaches] = useState(0);
+  // Booking modal state
+  const [bookingModalVisible, setBookingModalVisible] = useState(false);
+  const [bookingCoach, setBookingCoach] = useState(null);
   
   const userId = currentUser?.userId;
 
@@ -413,14 +417,28 @@ const AppointmentManagement = () => {
           <Space size="small" direction="vertical">
             <Space size="small">
               {canSelect ? (
-                <Button
-                  type="primary"
-                  icon={<CheckCircleOutlined />}
-                  onClick={() => handleChooseCoach(record)}
-                  size="small"
-                >
-                  Chọn HLV
-                </Button>
+                <>
+                  <Button
+                    type="primary"
+                    icon={<CheckCircleOutlined />}
+                    onClick={() => handleChooseCoach(record)}
+                    size="small"
+                  >
+                    Chọn HLV
+                  </Button>
+                  <Button
+                    type="default"
+                    icon={<CalendarOutlined />}
+                    size="small"
+                    onClick={() => {
+                      console.log(record)
+                      setBookingCoach(record);
+                      setBookingModalVisible(true);
+                    }}
+                  >
+                    Xếp lịch
+                  </Button>
+                </>
               ) : (
                 <Tooltip
                   title={
@@ -919,6 +937,13 @@ const AppointmentManagement = () => {
           )}
         </Modal>
       </div>
+      {/* Booking Modal */}
+      <BookingSteps
+        visible={bookingModalVisible}
+        onCancel={() => setBookingModalVisible(false)}
+        onSuccess={() => setBookingModalVisible(false)}
+        selectedCoach={bookingCoach}
+      />
     </div>
   );
 };

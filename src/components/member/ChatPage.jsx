@@ -267,7 +267,7 @@ const ChatPage = () => {
         webSocketService.unsubscribeFromPrivateChat(selectedChatRoom.roomId);
       }
       
-      setSelectedChatRoom(room);
+      setSelectedChatRoom(room); 
       setSelectedCoach(null); // Clear selected coach when selecting room
       
       // Load messages for this room
@@ -939,6 +939,7 @@ const ChatPage = () => {
           setBookingModalVisible(false);
           message.success('Đặt lịch hẹn thành công!');
         }}
+        selectedCoach={selectedCoach}
       />
     </Layout>
   );
