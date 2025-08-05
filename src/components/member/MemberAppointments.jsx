@@ -18,7 +18,7 @@ import {
   CalendarOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { getAppointmentsOfMember, cancelAppointmentByMember } from '../../services/appointmentService';
+import { getAppointmentsOfMember, cancelAppointmentByMember, giveFeedbackForAppointment } from '../../services/appointmentService';
 import VideoCallWithProps from '../videos/VideoCallWithProps';
 import { AgoraProvider } from '../videos/AgoraContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -33,6 +33,11 @@ const MemberAppointments = () => {
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [currentAppointment, setCurrentAppointment] = useState(null);
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
+
+  // Feedback modal states
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackForm] = Form.useForm();
 
   // Video call states
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
@@ -89,6 +94,45 @@ const MemberAppointments = () => {
   const showCancelModal = (appointment) => {
     setCurrentAppointment(appointment);
     setCancelModalVisible(true);
+  };
+
+  // Feedback functions
+  const showFeedbackModal = (appointment) => {
+    setCurrentAppointment(appointment);
+    setFeedbackModalVisible(true);
+    feedbackForm.resetFields();
+  };
+
+  const handleSubmitFeedback = async (values) => {
+    if (!currentAppointment?.appointmentId) {
+      message.error('Không thể gửi đánh giá - thiếu thông tin cuộc hẹn');
+      return;
+    }
+
+    try {
+      setFeedbackSubmitting(true);
+      
+      const feedbackData = {
+        stars: values.star || 5,
+        comment: values.content || ''
+      };
+
+      const response = await giveFeedbackForAppointment(currentAppointment.appointmentId, feedbackData);
+      
+      if (response.success !== false) {
+        message.success('Gửi đánh giá thành công');
+        setFeedbackModalVisible(false);
+        feedbackForm.resetFields();
+        fetchAppointments(); // Refresh to show updated feedback
+      } else {
+        message.error(response.message || 'Không thể gửi đánh giá');
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      message.error('Đã xảy ra lỗi khi gửi đánh giá');
+    } finally {
+      setFeedbackSubmitting(false);
+    }
   };
 
   // Video call functions
@@ -253,6 +297,25 @@ const MemberAppointments = () => {
               >
                 Hủy cuộc hẹn
               </Button>
+              <Button
+                type="default"
+                size="small"
+                onClick={() => showFeedbackModal(record)}
+              >
+                Đánh giá
+              </Button>
+            </Space>
+          );
+        } else if (record.status === 'COMPLETED') {
+          return (
+            <Space>
+              <Button
+                type="default"
+                size="small"
+                onClick={() => showFeedbackModal(record)}
+              >
+                Đánh giá
+              </Button>
             </Space>
           );
         }
@@ -345,6 +408,78 @@ const MemberAppointments = () => {
             }</p>
           </div>
         )}
+      </Modal>
+
+      {/* Modal đánh giá huấn luyện viên */}
+      <Modal
+        title="Đánh giá huấn luyện viên"
+        open={feedbackModalVisible}
+        onCancel={() => {
+          setFeedbackModalVisible(false);
+          feedbackForm.resetFields();
+        }}
+        footer={null}
+        width={600}
+      >
+        <Form
+          form={feedbackForm}
+          layout="vertical"
+          onFinish={handleSubmitFeedback}
+          initialValues={{ star: 5 }}
+        >
+          {currentAppointment && (
+            <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
+              <p><strong>Ngày hẹn:</strong> {currentAppointment.date ? new Date(currentAppointment.date).toLocaleDateString('vi-VN') : 'Không xác định'}</p>
+              <p><strong>Thời gian:</strong> {
+                currentAppointment.startHour !== undefined && currentAppointment.startMinute !== undefined && 
+                currentAppointment.endHour !== undefined && currentAppointment.endMinute !== undefined
+                  ? `${currentAppointment.startHour.toString().padStart(2, '0')}:${currentAppointment.startMinute.toString().padStart(2, '0')} - ${currentAppointment.endHour.toString().padStart(2, '0')}:${currentAppointment.endMinute.toString().padStart(2, '0')}`
+                  : 'Không xác định'
+              }</p>
+            </div>
+          )}
+
+          <Form.Item
+            label="Đánh giá sao"
+            name="star"
+            rules={[{ required: true, message: 'Vui lòng chọn số sao đánh giá' }]}
+          >
+            <Rate />
+          </Form.Item>
+
+          <Form.Item
+            label="Nhận xét"
+            name="content"
+            rules={[{ required: true, message: 'Vui lòng nhập nhận xét của bạn' }]}
+          >
+            <Input.TextArea
+              rows={4}
+              placeholder="Chia sẻ trải nghiệm của bạn với huấn luyện viên..."
+              maxLength={500}
+              showCount
+            />
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Space>
+              <Button 
+                onClick={() => {
+                  setFeedbackModalVisible(false);
+                  feedbackForm.resetFields();
+                }}
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={feedbackSubmitting}
+              >
+                Gửi đánh giá
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
       </Modal>
 
       {/* Video Call Modal */}

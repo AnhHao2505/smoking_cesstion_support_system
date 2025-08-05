@@ -51,7 +51,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getAssignedMembers, getCoachProfile } from '../../services/coachManagementService';
 import { getFeedbacksForCoach } from '../../services/feebackService';
 import { viewMemberNewestPlan, addFinalEvaluation } from '../../services/quitPlanService';
-import { createCoachSchedule, getAvailableSchedulesOfCoach, getAppointmentsOfCoach, cancelAppointmentByCoach } from '../../services/appointmentService';
+import { createCoachSchedule, getAvailableSchedulesOfCoach, getAppointmentsOfCoach, cancelAppointmentByCoach, completeAppointmentByCoach } from '../../services/appointmentService';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -93,6 +93,7 @@ const CoachDashboard = () => {
   // Video call states
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [currentCallData, setCurrentCallData] = useState(null);
+  const [endMeetingModalVisible, setEndMeetingModalVisible] = useState(false);
 
   // Always use current user's ID as coachId - this dashboard is only for the coach themselves
   const [coachId, setCoachId] = useState(null);
@@ -595,9 +596,43 @@ const CoachDashboard = () => {
   // Xử lý khi rời khỏi video call
   const handleVideoCallLeave = async () => {
     console.log('Left video call');
+    setEndMeetingModalVisible(true);
+  };
+
+  // Xử lý tạm dừng meeting (không call API)
+  const handlePauseMeeting = () => {
+    setEndMeetingModalVisible(false);
     setIsVideoCallOpen(false);
     setCurrentCallData(null);
-    message.info('Đã kết thúc cuộc gọi video');
+    message.info('Đã tạm dừng cuộc gọi video');
+  };
+
+  // Xử lý kết thúc meeting (call API complete)
+  const handleCompleteMeeting = async () => {
+    try {
+      // Nếu có thông tin cuộc hẹn, gọi API để hoàn thành cuộc hẹn
+      if (currentCallData?.appointmentId) {
+        console.log('Completing appointment:', currentCallData.appointmentId);
+        
+        const response = await completeAppointmentByCoach(currentCallData.appointmentId);
+        
+        if (response && response.success !== false) {
+          message.success('Cuộc hẹn đã được đánh dấu hoàn thành');
+          // Refresh appointments list to show updated status
+          refreshAppointments();
+        } else {
+          message.warning('Không thể cập nhật trạng thái cuộc hẹn: ' + (response?.message || 'Lỗi không xác định'));
+        }
+      }
+    } catch (error) {
+      console.error('Error completing appointment:', error);
+      message.error('Lỗi khi cập nhật trạng thái cuộc hẹn');
+    }
+    
+    setEndMeetingModalVisible(false);
+    setIsVideoCallOpen(false);
+    setCurrentCallData(null);
+    message.success('Đã kết thúc và hoàn thành cuộc hẹn');
   };
 
   // Show different loading state while determining coachId
@@ -1343,6 +1378,26 @@ const CoachDashboard = () => {
           />
         </Modal>
       )}
+
+      {/* End Meeting Confirmation Modal */}
+      <Modal
+        title="Xác nhận kết thúc cuộc họp"
+        open={endMeetingModalVisible}
+        onCancel={() => setEndMeetingModalVisible(false)}
+        footer={[
+          <Button key="pause" onClick={handlePauseMeeting}>
+            Tạm dừng meeting
+          </Button>,
+          <Button key="complete" type="primary" onClick={handleCompleteMeeting}>
+            Kết thúc
+          </Button>
+        ]}
+        width={400}
+      >
+        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <Text>Khi kết thúc sẽ hoàn thành meeting</Text>
+        </div>
+      </Modal>
     </div>
   );
 };
