@@ -121,7 +121,14 @@ const MemberQuitPlanFlow = () => {
   const handleEditSubmit = async (values) => {
     setEditLoading(true);
     try {
-      const res = await selfAdjustQuitPlan(currentPlan.quit_plan_id, values);
+    // Convert array fields to string
+    const payload = {
+      ...values,
+      medicationsToUse: Array.isArray(values.medicationsToUse) ? values.medicationsToUse.join(', ') : values.medicationsToUse,
+      smokingTriggersToAvoid: Array.isArray(values.smokingTriggersToAvoid) ? values.smokingTriggersToAvoid.join(', ') : values.smokingTriggersToAvoid,
+      copingStrategies: Array.isArray(values.copingStrategies) ? values.copingStrategies.join(', ') : values.copingStrategies,
+    };
+      const res = await selfAdjustQuitPlan(currentPlan.quit_plan_id, payload);
       if (res && res.success) {
         message.success("Chỉnh sửa kế hoạch thành công!");
         setEditModalVisible(false);
@@ -356,8 +363,8 @@ const MemberQuitPlanFlow = () => {
         const actionMessage =
           actionType === "accept"
             ? `Kế hoạch đã được chấp nhận! Hành trình cai thuốc của bạn sẽ bắt đầu từ ${selectedDateObj.format(
-                "DD/MM/YYYY"
-              )}.`
+              "DD/MM/YYYY"
+            )}.`
             : "Kế hoạch đã bị từ chối. Huấn luyện viên của bạn sẽ tạo kế hoạch mới.";
         message.success(actionMessage);
 
@@ -559,7 +566,7 @@ const MemberQuitPlanFlow = () => {
         onFinish={handleEditSubmit}
         initialValues={{}}
       >
-        <Form.Item name="currentSmokingStatus" label="Tình trạng hút thuốc hiện tại" rules={[{ required: true, message: 'Vui lòng chọn tình trạng' }]}> 
+        <Form.Item name="currentSmokingStatus" label="Tình trạng hút thuốc hiện tại" rules={[{ required: true, message: 'Vui lòng chọn tình trạng' }]}>
           <Select>
             <Option value="NONE">Không hút thuốc</Option>
             <Option value="LIGHT">Hút ít (1-10 điếu/ngày)</Option>
@@ -567,40 +574,40 @@ const MemberQuitPlanFlow = () => {
             <Option value="SEVERE">Hút nhiều (&gt;20 điếu/ngày)</Option>
           </Select>
         </Form.Item>
-        <Form.Item name="durationInDays" label="Thời gian thực hiện (ngày)" rules={[{ required: true, message: 'Vui lòng nhập số ngày' }]}> 
+        <Form.Item name="durationInDays" label="Thời gian thực hiện (ngày)" rules={[{ required: true, message: 'Vui lòng nhập số ngày' }]}>
           <Input type="number" min={1} />
         </Form.Item>
-        <Form.Item name="medicationInstructions" label="Hướng dẫn dùng thuốc"> 
+        <Form.Item name="medicationInstructions" label="Hướng dẫn dùng thuốc">
           <TextArea rows={2} />
         </Form.Item>
-        <Form.Item name="medicationsToUse" label="Thuốc sử dụng"> 
+        <Form.Item name="medicationsToUse" label="Thuốc sử dụng">
           <Select mode="multiple" allowClear>
             {suggestedMedications.map(med => <Option key={med} value={med}>{med}</Option>)}
           </Select>
         </Form.Item>
-        <Form.Item name="smokingTriggersToAvoid" label="Tác nhân kích thích cần tránh"> 
+        <Form.Item name="smokingTriggersToAvoid" label="Tác nhân kích thích cần tránh">
           <Select mode="multiple" allowClear>
             {circumstances.map(c => <Option key={c.id} value={c.name}>{c.name}</Option>)}
           </Select>
         </Form.Item>
-        <Form.Item name="copingStrategies" label="Chiến lược đối phó"> 
+        <Form.Item name="copingStrategies" label="Chiến lược đối phó">
           <Select mode="multiple" allowClear>
             {suggestedStrategies.map(s => <Option key={s} value={s}>{s}</Option>)}
           </Select>
         </Form.Item>
-        <Form.Item name="relapsePreventionStrategies" label="Chiến lược phòng ngừa tái nghiện"> 
+        <Form.Item name="relapsePreventionStrategies" label="Chiến lược phòng ngừa tái nghiện">
           <TextArea rows={2} />
         </Form.Item>
-        <Form.Item name="supportResources" label="Nguồn lực hỗ trợ"> 
+        <Form.Item name="supportResources" label="Nguồn lực hỗ trợ">
           <TextArea rows={2} />
         </Form.Item>
-        <Form.Item name="motivation" label="Động lực" rules={[{ required: true, message: 'Vui lòng nhập động lực' }]}> 
+        <Form.Item name="motivation" label="Động lực" rules={[{ required: true, message: 'Vui lòng nhập động lực' }]}>
           <TextArea rows={2} />
         </Form.Item>
-        <Form.Item name="rewardPlan" label="Kế hoạch phần thưởng"> 
+        <Form.Item name="rewardPlan" label="Kế hoạch phần thưởng">
           <TextArea rows={2} />
         </Form.Item>
-        <Form.Item name="additionalNotes" label="Ghi chú thêm"> 
+        <Form.Item name="additionalNotes" label="Ghi chú thêm">
           <TextArea rows={2} />
         </Form.Item>
         <Form.Item>
@@ -762,7 +769,7 @@ const MemberQuitPlanFlow = () => {
                         } catch (error) {
                           message.error(
                             "Có lỗi xảy ra: " +
-                              (error.message || "Không thể gửi yêu cầu")
+                            (error.message || "Không thể gửi yêu cầu")
                           );
                         }
                       },
@@ -890,89 +897,89 @@ const MemberQuitPlanFlow = () => {
                     {(currentPlan.status === "IN_PROGRESS" ||
                       currentPlan.status === "COMPLETED" ||
                       currentPlan.status === "FAILED") && (
-                      <div>
-                        <Title level={4}>Tiến độ</Title>
-                        {(() => {
-                          const progress = calculateProgress();
-                          return (
-                            <>
-                              <Progress
-                                type="circle"
-                                percent={Math.round(progress.percent)}
-                                status={progress.status}
-                                strokeColor={progress.color}
-                                width={120}
-                                format={(percent) => `${percent}%`}
-                                style={{ marginBottom: "15px" }}
-                              />
-                              <div className="mt-3">
-                                <Statistic
-                                  title="Số ngày đã hoàn thành"
-                                  value={progress.passedDays}
-                                  suffix={`/ ${progress.totalDays}`}
+                        <div>
+                          <Title level={4}>Tiến độ</Title>
+                          {(() => {
+                            const progress = calculateProgress();
+                            return (
+                              <>
+                                <Progress
+                                  type="circle"
+                                  percent={Math.round(progress.percent)}
+                                  status={progress.status}
+                                  strokeColor={progress.color}
+                                  width={120}
+                                  format={(percent) => `${percent}%`}
+                                  style={{ marginBottom: "15px" }}
                                 />
+                                <div className="mt-3">
+                                  <Statistic
+                                    title="Số ngày đã hoàn thành"
+                                    value={progress.passedDays}
+                                    suffix={`/ ${progress.totalDays}`}
+                                  />
 
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "flex-end",
-                                    marginTop: "10px",
-                                  }}
-                                >
-                                  {currentPlan.status === "COMPLETED" && (
-                                    <Tag
-                                      color={
-                                        currentPlan.completionQuality
-                                          ?.toLowerCase()
-                                          .includes("cải thiện")
-                                          ? "orange"
-                                          : "green"
-                                      }
-                                      style={{
-                                        fontSize: "11px",
-                                        fontWeight: "bold",
-                                        padding: "2px 6px",
-                                        border: `1px solid ${progress.color}`,
-                                        backgroundColor: progress.color,
-                                        color: "white",
-                                        textShadow: "0 1px 1px rgba(0,0,0,0.2)",
-                                        boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                                      }}
-                                      icon={<CheckCircleOutlined />}
-                                    >
-                                      {currentPlan.completionQuality ||
-                                        progress.quality ||
-                                        "Hoàn thành"}
-                                    </Tag>
-                                  )}
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "flex-end",
+                                      marginTop: "10px",
+                                    }}
+                                  >
+                                    {currentPlan.status === "COMPLETED" && (
+                                      <Tag
+                                        color={
+                                          currentPlan.completionQuality
+                                            ?.toLowerCase()
+                                            .includes("cải thiện")
+                                            ? "orange"
+                                            : "green"
+                                        }
+                                        style={{
+                                          fontSize: "11px",
+                                          fontWeight: "bold",
+                                          padding: "2px 6px",
+                                          border: `1px solid ${progress.color}`,
+                                          backgroundColor: progress.color,
+                                          color: "white",
+                                          textShadow: "0 1px 1px rgba(0,0,0,0.2)",
+                                          boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                                        }}
+                                        icon={<CheckCircleOutlined />}
+                                      >
+                                        {currentPlan.completionQuality ||
+                                          progress.quality ||
+                                          "Hoàn thành"}
+                                      </Tag>
+                                    )}
 
-                                  {currentPlan.status === "FAILED" && (
-                                    <Tag
-                                      color="red"
-                                      style={{
-                                        fontSize: "11px",
-                                        fontWeight: "bold",
-                                        padding: "2px 6px",
-                                        border: "1px solid #ad891fff",
-                                        backgroundColor: "#ff4d4f",
-                                        color: "white",
-                                        textShadow: "0 1px 1px rgba(0,0,0,0.2)",
-                                        boxShadow:
-                                          "0 1px 2px rgba(255,77,79,0.2)",
-                                      }}
-                                      icon={<CloseCircleOutlined />}
-                                    >
-                                      Offline quá 1/2 thời lượng kế hoạch
-                                    </Tag>
-                                  )}
+                                    {currentPlan.status === "FAILED" && (
+                                      <Tag
+                                        color="red"
+                                        style={{
+                                          fontSize: "11px",
+                                          fontWeight: "bold",
+                                          padding: "2px 6px",
+                                          border: "1px solid #ad891fff",
+                                          backgroundColor: "#ff4d4f",
+                                          color: "white",
+                                          textShadow: "0 1px 1px rgba(0,0,0,0.2)",
+                                          boxShadow:
+                                            "0 1px 2px rgba(255,77,79,0.2)",
+                                        }}
+                                        icon={<CloseCircleOutlined />}
+                                      >
+                                        Offline quá 1/2 thời lượng kế hoạch
+                                      </Tag>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    )}
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
                   </Col>
                 </Row>
               </Card>
@@ -1009,15 +1016,35 @@ const MemberQuitPlanFlow = () => {
                   </Descriptions.Item>
                   <Descriptions.Item label="Tình trạng hút thuốc hiện tại">
                     <Tag
-                      color={
-                        currentPlan.current_smoking_status === "NONE"
-                          ? "green"
-                          : "orange"
-                      }
+                      color={(() => {
+                        switch (currentPlan.current_smoking_status) {
+                          case "NONE":
+                            return "green";
+                          case "LIGHT":
+                            return "blue";
+                          case "MEDIUM":
+                            return "orange";
+                          case "SEVERE":
+                            return "red";
+                          default:
+                            return "default";
+                        }
+                      })()}
                     >
-                      {currentPlan.current_smoking_status === "NONE"
-                        ? "Không hút thuốc"
-                        : currentPlan.current_smoking_status || "Chưa xác định"}
+                      {(() => {
+                        switch (currentPlan.current_smoking_status) {
+                          case "NONE":
+                            return "Không hút thuốc";
+                          case "LIGHT":
+                            return "Hút ít (1-10 điếu/ngày)";
+                          case "MEDIUM":
+                            return "Hút vừa (11-20 điếu/ngày)";
+                          case "SEVERE":
+                            return "Hút nhiều (>20 điếu/ngày)";
+                          default:
+                            return "Chưa xác định";
+                        }
+                      })()}
                     </Tag>
                   </Descriptions.Item>
                   {currentPlan.note && (
@@ -1069,8 +1096,8 @@ const MemberQuitPlanFlow = () => {
                               <div>
                                 <Text strong>Mục tiêu cụ thể:</Text>
                                 {phase.goals &&
-                                Array.isArray(phase.goals) &&
-                                phase.goals.length > 0 ? (
+                                  Array.isArray(phase.goals) &&
+                                  phase.goals.length > 0 ? (
                                   <ul style={{ marginTop: 8, paddingLeft: 16 }}>
                                     {phase.goals.map((goal, goalIndex) => (
                                       <li key={goalIndex}>
@@ -1145,86 +1172,86 @@ const MemberQuitPlanFlow = () => {
               {/* Add "Request Plan" for completed or failed plans */}
               {(currentPlan.status === "COMPLETED" ||
                 currentPlan.status === "FAILED") && (
-                <Card title="Kế hoạch tiếp theo" className="mt-4">
-                  <div className="text-center">
-                    {currentPlan.status === "COMPLETED" ? (
-                      <>
-                        <CheckCircleOutlined
-                          style={{ fontSize: "32px", color: "#52c41a" }}
-                        />
-                        <Title level={4}>Chúc mừng bạn đã hoàn thành!</Title>
+                  <Card title="Kế hoạch tiếp theo" className="mt-4">
+                    <div className="text-center">
+                      {currentPlan.status === "COMPLETED" ? (
+                        <>
+                          <CheckCircleOutlined
+                            style={{ fontSize: "32px", color: "#52c41a" }}
+                          />
+                          <Title level={4}>Chúc mừng bạn đã hoàn thành!</Title>
 
-                        {currentPlan.finalEvaluation ? (
-                          <>
-                            <Alert
-                              message="Đánh giá cuối cùng của huấn luyện viên"
-                              description={currentPlan.finalEvaluation}
-                              type="success"
-                              showIcon
-                              style={{
-                                textAlign: "left",
-                                marginBottom: "16px",
-                              }}
-                            />
-                          </>
-                        ) : (
+                          {currentPlan.finalEvaluation ? (
+                            <>
+                              <Alert
+                                message="Đánh giá cuối cùng của huấn luyện viên"
+                                description={currentPlan.finalEvaluation}
+                                type="success"
+                                showIcon
+                                style={{
+                                  textAlign: "left",
+                                  marginBottom: "16px",
+                                }}
+                              />
+                            </>
+                          ) : (
+                            <Paragraph>
+                              Đang chờ huấn luyện viên {currentPlan.coach_name}{" "}
+                              đánh giá cuối cùng về kế hoạch cai thuốc của bạn.
+                            </Paragraph>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <ExclamationCircleOutlined
+                            style={{ fontSize: "32px", color: "#ff4d4f" }}
+                          />
+                          <Title level={4}>Không sao, hãy thử lại!</Title>
                           <Paragraph>
-                            Đang chờ huấn luyện viên {currentPlan.coach_name}{" "}
-                            đánh giá cuối cùng về kế hoạch cai thuốc của bạn.
+                            Cai thuốc là một hành trình khó khăn. Đừng nản lòng,
+                            hãy rút kinh nghiệm và thử lại với kế hoạch mới.
                           </Paragraph>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <ExclamationCircleOutlined
-                          style={{ fontSize: "32px", color: "#ff4d4f" }}
-                        />
-                        <Title level={4}>Không sao, hãy thử lại!</Title>
-                        <Paragraph>
-                          Cai thuốc là một hành trình khó khăn. Đừng nản lòng,
-                          hãy rút kinh nghiệm và thử lại với kế hoạch mới.
-                        </Paragraph>
-                      </>
-                    )}
-                    <Divider />
-                    <Button
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      onClick={() => {
-                        Modal.confirm({
-                          title: "Xác nhận yêu cầu kế hoạch cai thuốc mới",
-                          content:
-                            "Khi gửi yêu cầu, huấn luyện viên sẽ nhận thông báo và tạo kế hoạch cai thuốc cá nhân hóa mới cho bạn.",
-                          okText: "Gửi yêu cầu",
-                          cancelText: "Hủy",
-                          onOk: async () => {
-                            try {
-                              const response = await requestQuitPlan();
-                              if (response.success) {
-                                message.success(
-                                  response.message ||
+                        </>
+                      )}
+                      <Divider />
+                      <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => {
+                          Modal.confirm({
+                            title: "Xác nhận yêu cầu kế hoạch cai thuốc mới",
+                            content:
+                              "Khi gửi yêu cầu, huấn luyện viên sẽ nhận thông báo và tạo kế hoạch cai thuốc cá nhân hóa mới cho bạn.",
+                            okText: "Gửi yêu cầu",
+                            cancelText: "Hủy",
+                            onOk: async () => {
+                              try {
+                                const response = await requestQuitPlan();
+                                if (response.success) {
+                                  message.success(
+                                    response.message ||
                                     "Đã gửi yêu cầu kế hoạch mới thành công!"
-                                );
-                              } else {
+                                  );
+                                } else {
+                                  message.error(
+                                    response.message || "Không thể gửi yêu cầu"
+                                  );
+                                }
+                              } catch (error) {
                                 message.error(
-                                  response.message || "Không thể gửi yêu cầu"
+                                  "Có lỗi xảy ra: " +
+                                  (error.message || "Không thể gửi yêu cầu")
                                 );
                               }
-                            } catch (error) {
-                              message.error(
-                                "Có lỗi xảy ra: " +
-                                  (error.message || "Không thể gửi yêu cầu")
-                              );
-                            }
-                          },
-                        });
-                      }}
-                    >
-                      Yêu cầu kế hoạch mới
-                    </Button>
-                  </div>
-                </Card>
-              )}
+                            },
+                          });
+                        }}
+                      >
+                        Yêu cầu kế hoạch mới
+                      </Button>
+                    </div>
+                  </Card>
+                )}
             </Col>
           </Row>
         )}

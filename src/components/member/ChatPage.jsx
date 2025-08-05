@@ -667,12 +667,14 @@ const ChatPage = () => {
               style={{ marginTop: '50px' }}
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             >
-              <Button 
-                type="primary"
-                onClick={() => window.location.href = '/member/appointments'}
-              >
-                Đặt lịch hẹn
-              </Button>
+              {currentUser?.role !== 'COACH' && (
+                <Button 
+                  type="primary"
+                  onClick={() => window.location.href = '/member/appointments'}
+                >
+                  Chọn 1 huấn luyện viên
+                </Button>
+              )}
             </Empty>
           )}
         </div>
@@ -706,14 +708,16 @@ const ChatPage = () => {
                   </div>
                 </Space>
                 <Space>
-                  <Button
-                    type="default"
-                    icon={<CalendarOutlined />}
-                    onClick={() => setBookingModalVisible(true)}
-                    style={{ marginRight: 8 }}
-                  >
-                    Đặt lịch hẹn
-                  </Button>
+                  {currentUser?.role !== 'COACH' && (
+                    <Button
+                      type="default"
+                      icon={<CalendarOutlined />}
+                      onClick={() => setBookingModalVisible(true)}
+                      style={{ marginRight: 8 }}
+                    >
+                      Đặt lịch hẹn
+                    </Button>
+                  )}
                   <Button
                     type="primary"
                     icon={<VideoCameraOutlined />}
@@ -750,7 +754,7 @@ const ChatPage = () => {
               ) : messages.length > 0 ? (
                 <div>
                   {messages.map((msg) => (
-                    (msg.sender_id && 
+                    (msg.sender_id && (
                       <div
                         key={msg.id || msg.messageId}
                         style={{
@@ -801,7 +805,8 @@ const ChatPage = () => {
                                 <span>Kết thúc cuộc gọi video</span>
                               </div>
                             )}
-                            {msg.type === 'text' && (
+                            {/* Always show content if exists */}
+                            {msg.content && msg.type !== 'video_call_start' && msg.type !== 'video_call_end' && (
                               <div>{msg.content}</div>
                             )}
                             <div style={{
@@ -843,7 +848,7 @@ const ChatPage = () => {
                           </Card>
                         </div>
                       </div>
-                    )
+                    ))
                   ))}
                   <div ref={messagesEndRef} />
                 </div>
