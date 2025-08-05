@@ -667,7 +667,7 @@ const ChatPage = () => {
                 type="primary"
                 onClick={() => window.location.href = '/member/appointments'}
               >
-                Đặt lịch hẹn
+                Chọn 1 huấn luyện viên
               </Button>
             </Empty>
           )}

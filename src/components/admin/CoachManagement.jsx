@@ -151,80 +151,80 @@ const CoachManagement = () => {
   // Regex cho số điện thoại Việt Nam
   const phoneRegex = /^(0[1-9][0-9]{8,9})$/;
 
-  const addWorkingHour = () => {
-    workingHoursForm.validateFields()
-      .then(values => {
-        // Kiểm tra đầy đủ thông tin
-        if (!values.dayOfWeek || !values.startTime || !values.endTime) {
-          message.error('Vui lòng nhập đầy đủ thông tin lịch làm việc');
-          return;
-        }
+  // const addWorkingHour = () => {
+  //   workingHoursForm.validateFields()
+  //     .then(values => {
+  //       // Kiểm tra đầy đủ thông tin
+  //       if (!values.dayOfWeek || !values.startTime || !values.endTime) {
+  //         message.error('Vui lòng nhập đầy đủ thông tin lịch làm việc');
+  //         return;
+  //       }
 
-        // Kiểm tra trùng lặp ngày trong tuần
-        const existingDay = workingHours.find(hour => hour.dayOfWeek === values.dayOfWeek);
-        if (existingDay) {
-          message.error(`Ngày ${getDayVN(values.dayOfWeek)} đã có lịch làm việc. Vui lòng chọn ngày khác.`);
-          return;
-        }
+  //       // Kiểm tra trùng lặp ngày trong tuần
+  //       const existingDay = workingHours.find(hour => hour.dayOfWeek === values.dayOfWeek);
+  //       if (existingDay) {
+  //         message.error(`Ngày ${getDayVN(values.dayOfWeek)} đã có lịch làm việc. Vui lòng chọn ngày khác.`);
+  //         return;
+  //       }
 
-        const startTime = values.startTime.format('HH:mm');
-        const endTime = values.endTime.format('HH:mm');
+  //       const startTime = values.startTime.format('HH:mm');
+  //       const endTime = values.endTime.format('HH:mm');
 
-        // Kiểm tra giờ bắt đầu phải trước giờ kết thúc
-        if (startTime >= endTime) {
-          message.error('Giờ bắt đầu phải trước giờ kết thúc');
-          return;
-        }
+  //       // Kiểm tra giờ bắt đầu phải trước giờ kết thúc
+  //       if (startTime >= endTime) {
+  //         message.error('Giờ bắt đầu phải trước giờ kết thúc');
+  //         return;
+  //       }
 
-        // Kiểm tra thời gian hợp lý (6:00 - 23:00)
-        const startHour = parseInt(startTime.split(':')[0]);
-        const endHour = parseInt(endTime.split(':')[0]);
+  //       // Kiểm tra thời gian hợp lý (6:00 - 23:00)
+  //       const startHour = parseInt(startTime.split(':')[0]);
+  //       const endHour = parseInt(endTime.split(':')[0]);
         
-        if (startHour < 6 || startHour > 23) {
-          message.error('Giờ bắt đầu phải trong khoảng 06:00 - 23:00');
-          return;
-        }
+  //       if (startHour < 6 || startHour > 23) {
+  //         message.error('Giờ bắt đầu phải trong khoảng 06:00 - 23:00');
+  //         return;
+  //       }
         
-        if (endHour < 6 || endHour > 23) {
-          message.error('Giờ kết thúc phải trong khoảng 06:00 - 23:00');
-          return;
-        }
+  //       if (endHour < 6 || endHour > 23) {
+  //         message.error('Giờ kết thúc phải trong khoảng 06:00 - 23:00');
+  //         return;
+  //       }
 
-        // Kiểm tra thời gian làm việc tối thiểu 1 tiếng
-        const startMinutes = startHour * 60 + parseInt(startTime.split(':')[1]);
-        const endMinutes = endHour * 60 + parseInt(endTime.split(':')[1]);
-        const duration = endMinutes - startMinutes;
+  //       // Kiểm tra thời gian làm việc tối thiểu 1 tiếng
+  //       const startMinutes = startHour * 60 + parseInt(startTime.split(':')[1]);
+  //       const endMinutes = endHour * 60 + parseInt(endTime.split(':')[1]);
+  //       const duration = endMinutes - startMinutes;
         
-        if (duration < 60) {
-          message.error('Thời gian làm việc phải ít nhất 1 tiếng');
-          return;
-        }
+  //       if (duration < 60) {
+  //         message.error('Thời gian làm việc phải ít nhất 1 tiếng');
+  //         return;
+  //       }
 
-        // Kiểm tra thời gian làm việc tối đa 8 tiếng
-        if (duration > 480) {
-          message.error('Thời gian làm việc không được quá 8 tiếng');
-          return;
-        }
+  //       // Kiểm tra thời gian làm việc tối đa 8 tiếng
+  //       if (duration > 480) {
+  //         message.error('Thời gian làm việc không được quá 8 tiếng');
+  //         return;
+  //       }
 
-        const newWorkingHour = {
-          dayOfWeek: values.dayOfWeek,
-          startTime: startTime,
-          endTime: endTime
-        };
+  //       const newWorkingHour = {
+  //         dayOfWeek: values.dayOfWeek,
+  //         startTime: startTime,
+  //         endTime: endTime
+  //       };
         
-        setWorkingHours([...workingHours, newWorkingHour]);
-        workingHoursForm.resetFields();
-        message.success(`Thêm lịch làm việc ${getDayVN(values.dayOfWeek)} thành công`);
-      })
-      .catch(() => {
-        message.error('Vui lòng nhập đầy đủ thông tin lịch làm việc');
-      });
-  };
+  //       setWorkingHours([...workingHours, newWorkingHour]);
+  //       workingHoursForm.resetFields();
+  //       message.success(`Thêm lịch làm việc ${getDayVN(values.dayOfWeek)} thành công`);
+  //     })
+  //     .catch(() => {
+  //       message.error('Vui lòng nhập đầy đủ thông tin lịch làm việc');
+  //     });
+  // };
 
-  const removeWorkingHour = (index) => {
-    const newWorkingHours = workingHours.filter((_, i) => i !== index);
-    setWorkingHours(newWorkingHours);
-  };
+  // const removeWorkingHour = (index) => {
+  //   const newWorkingHours = workingHours.filter((_, i) => i !== index);
+  //   setWorkingHours(newWorkingHours);
+  // };
 
   const handleSubmit = async () => {
     try {
@@ -268,11 +268,11 @@ const CoachManagement = () => {
         setCreating(false);
         return;
       }
-      if (!workingHours || workingHours.length === 0) {
-        message.error('Vui lòng thêm ít nhất một lịch làm việc');
-        setCreating(false);
-        return;
-      }
+      // if (!workingHours || workingHours.length === 0) {
+      //   message.error('Vui lòng thêm ít nhất một lịch làm việc');
+      //   setCreating(false);
+      //   return;
+      // }
 
       // Format data
       const formattedData = {
@@ -409,30 +409,30 @@ const CoachManagement = () => {
       ),
       width: 140
     },
-    {
-      title: 'Lịch làm việc',
-      dataIndex: 'workingHours',
-      key: 'workingHours',
-      render: (workingHours) => (
-        <div>
-          {workingHours && workingHours.length > 0 ? (
-            workingHours.slice(0, 2).map((schedule, index) => (
-              <div key={index} style={{ fontSize: '12px' }}>
-                <Text><ClockCircleOutlined /> {getDayVN(schedule.dayOfWeek)}: {schedule.startTime} - {schedule.endTime}</Text>
-              </div>
-            ))
-          ) : (
-            <Text type="secondary">Chưa có lịch</Text>
-          )}
-          {workingHours && workingHours.length > 2 && (
-            <Text type="secondary" style={{ fontSize: '11px' }}>
-              +{workingHours.length - 2} lịch khác...
-            </Text>
-          )}
-        </div>
-      ),
-      width: 200
-    },
+    // {
+    //   title: 'Lịch làm việc',
+    //   dataIndex: 'workingHours',
+    //   key: 'workingHours',
+    //   render: (workingHours) => (
+    //     <div>
+    //       {workingHours && workingHours.length > 0 ? (
+    //         workingHours.slice(0, 2).map((schedule, index) => (
+    //           <div key={index} style={{ fontSize: '12px' }}>
+    //             <Text><ClockCircleOutlined /> {getDayVN(schedule.dayOfWeek)}: {schedule.startTime} - {schedule.endTime}</Text>
+    //           </div>
+    //         ))
+    //       ) : (
+    //         <Text type="secondary">Chưa có lịch</Text>
+    //       )}
+    //       {workingHours && workingHours.length > 2 && (
+    //         <Text type="secondary" style={{ fontSize: '11px' }}>
+    //           +{workingHours.length - 2} lịch khác...
+    //         </Text>
+    //       )}
+    //     </div>
+    //   ),
+    //   width: 200
+    // },
     {
       title: 'Thành viên hiện tại',
       dataIndex: 'currentMemberAssignedCount',
@@ -697,7 +697,7 @@ const CoachManagement = () => {
             </Form.Item>
 
             {/* Lịch làm việc */}
-            <div style={{ marginTop: 24 }}>
+            {/* <div style={{ marginTop: 24 }}>
               <Title level={5}>Lịch làm việc</Title>
               <Form form={workingHoursForm} layout="inline" style={{ marginBottom: 16 }}>
                 <Form.Item
@@ -733,7 +733,6 @@ const CoachManagement = () => {
                 </Form.Item>
               </Form>
 
-              {/* Hiển thị lịch đã thêm */}
               {workingHours.length > 0 && (
                 <div>
                   <Text strong>Lịch đã thêm:</Text>
@@ -755,7 +754,7 @@ const CoachManagement = () => {
                   ))}
                 </div>
               )}
-            </div>
+            </div> */}
           </Form>
         </Modal>
 
@@ -815,7 +814,7 @@ const CoachManagement = () => {
                     </Space>
                   </Card>
                 </Col>
-                <Col span={12}>
+                {/*<Col span={12}>
                   <Card size="small" title="Lịch làm việc">
                     {selectedCoach.workingHours && selectedCoach.workingHours.length > 0 ? (
                       <Space direction="vertical" size={4} style={{ width: '100%' }}>
@@ -843,7 +842,7 @@ const CoachManagement = () => {
                       <Text type="secondary">Chưa có lịch làm việc</Text>
                     ))}
                   </Card>
-                </Col>
+                </Col>*/}
               </Row>
 
               {/* Biography */}

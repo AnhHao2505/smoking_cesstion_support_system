@@ -487,30 +487,7 @@ const CoachDashboard = () => {
               Chờ yêu cầu
             </Button>
           )}
-          {/* Nút "Theo dõi kế hoạch hiện tại" - style khi chưa có đánh giá cuối cùng */}
-          <Button
-            type="primary"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewMemberPlan(record)}
-            style={
-              record.needFinalEvaluation
-                ? {
-                    background: '#faad14',
-                    borderColor: '#faad14',
-                    color: '#fff',
-                    fontWeight: 700,
-                    boxShadow: '0 0 12px #faad1440',
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.5,
-                  }
-                : {}
-            }
-          >
-            {record.needFinalEvaluation
-              ? 'CẦN ĐÁNH GIÁ CUỐI - XEM KẾ HOẠCH'
-              : 'Theo dõi kế hoạch hiện tại'}
-          </Button>
+          {/* Đã xóa nút "Theo dõi kế hoạch hiện tại" theo yêu cầu */}
         </Space>
       )
     }
@@ -560,7 +537,7 @@ const CoachDashboard = () => {
                 </div>
               )}
 
-              {profileData.workingHours && (
+              {/* {profileData.workingHours && (
                 <div className="mb-3">
                   <Text strong>Giờ làm việc: </Text>
                   <div style={{ marginTop: 8, background: '#f9f9f9', padding: '8px 12px', borderRadius: '4px', border: '1px solid #f0f0f0' }}>
@@ -579,7 +556,7 @@ const CoachDashboard = () => {
                     }
                   </div>
                 </div>
-              )}
+              )} */}
 
               {/* Coach profile info only - performance metrics removed */}
             </Col>

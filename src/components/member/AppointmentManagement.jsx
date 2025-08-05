@@ -131,7 +131,7 @@ const AppointmentManagement = () => {
           
           // Thông báo hướng dẫn người dùng bước tiếp theo
           setTimeout(() => {
-            message.info("Bạn có thể trò chuyện với huấn luyện viên trong mục 'Tin nhắn'");
+            message.info("Bạn có thể trò chuyện với huấn luyện viên trong mục 'Nhắn tin'");
           }, 1000);
         }
       } else {
@@ -316,32 +316,32 @@ const AppointmentManagement = () => {
     //   ),
     //   ellipsis: true
     // },
-    {
-      title: "Giờ làm việc",
-      dataIndex: "workingHours",
-      key: "workingHours",
-      render: (workingHours) => (
-        <div>
-          {workingHours && workingHours.length > 0 ? (
-            workingHours.slice(0, 2).map((schedule, index) => (
-              <div key={index} style={{ fontSize: "12px" }}>
-                <Text>
-                  <ClockCircleOutlined /> {translateDayOfWeek(schedule.dayOfWeek)}:{" "}
-                  {formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}
-                </Text>
-              </div>
-            ))
-          ) : (
-            <Text type="secondary">Chưa có lịch</Text>
-          )}
-          {workingHours && workingHours.length > 2 && (
-            <Text type="secondary" style={{ fontSize: "11px" }}>
-              +{workingHours.length - 2} khung giờ khác...
-            </Text>
-          )}
-        </div>
-      ),
-    },
+    // {
+    //   title: "Giờ làm việc",
+    //   dataIndex: "workingHours",
+    //   key: "workingHours",
+    //   render: (workingHours) => (
+    //     <div>
+    //       {workingHours && workingHours.length > 0 ? (
+    //         workingHours.slice(0, 2).map((schedule, index) => (
+    //           <div key={index} style={{ fontSize: "12px" }}>
+    //             <Text>
+    //               <ClockCircleOutlined /> {translateDayOfWeek(schedule.dayOfWeek)}:{" "}
+    //               {formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}
+    //             </Text>
+    //           </div>
+    //         ))
+    //       ) : (
+    //         <Text type="secondary">Chưa có lịch</Text>
+    //       )}
+    //       {workingHours && workingHours.length > 2 && (
+    //         <Text type="secondary" style={{ fontSize: "11px" }}>
+    //           +{workingHours.length - 2} khung giờ khác...
+    //         </Text>
+    //       )}
+    //     </div>
+    //   ),
+    // },
     {
       title: "Thành viên hiện tại",
       dataIndex: "currentMemberAssignedCount",
@@ -619,7 +619,7 @@ const AppointmentManagement = () => {
                   <Text>{selectedCoach.certificates || "Chưa cập nhật"}</Text>
                 </div>
 
-                <div style={{ marginTop: 12 }}>
+                {/*<div style={{ marginTop: 12 }}>
                   <Text strong>Giờ làm việc:</Text>
                   <br />
                   {selectedCoach.workingHours &&
@@ -635,7 +635,7 @@ const AppointmentManagement = () => {
                   ) : (
                     <Text type="secondary">Không có lịch trình</Text>
                   )}
-                </div>
+                </div> */}
 
                 <div style={{ marginTop: 12 }}>
                   <Text strong>Thành viên hiện tại: </Text>
@@ -895,18 +895,20 @@ const AppointmentManagement = () => {
                 <br />
                 {coachProfile.certificates}
               </div>
-              <div style={{ marginBottom: 12 }}>
-                <Text strong>Giờ làm việc:</Text>
-                <br />
-                {coachProfile.workingHour && coachProfile.workingHour.length > 0
-                  ? coachProfile.workingHour.map((schedule, idx) => (
-                      <div key={idx}>
-                        <Text>{schedule.dayOfWeek}: {schedule.startTime} - {schedule.endTime}</Text>
-                      </div>
-                    ))
-                  : <Text type="secondary">Không có lịch trình</Text>
-                }
-              </div>
+             {/* 
+<div style={{ marginBottom: 12 }}>
+  <Text strong>Giờ làm việc:</Text>
+  <br />
+  {coachProfile.workingHour && coachProfile.workingHour.length > 0
+    ? coachProfile.workingHour.map((schedule, idx) => (
+        <div key={idx}>
+          <Text>{schedule.dayOfWeek}: {schedule.startTime} - {schedule.endTime}</Text>
+        </div>
+      ))
+    : <Text type="secondary">Không có lịch trình</Text>
+  }
+</div>
+*/}
               <div style={{ marginBottom: 12 }}>
                 <Text strong>Giới thiệu:</Text>
                 <Paragraph>{coachProfile.bio || 'Chưa có thông tin.'}</Paragraph>
