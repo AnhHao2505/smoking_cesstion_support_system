@@ -30,6 +30,8 @@ import {
   TimePicker,
   Select
 } from 'antd';
+import VideoCallWithProps from '../videos/VideoCallWithProps';
+import { AgoraProvider } from '../videos/AgoraContext';
 import {
   UserOutlined,
   StarOutlined,
@@ -87,6 +89,10 @@ const CoachDashboard = () => {
   const [currentAppointment, setCurrentAppointment] = useState(null);
   const [cancelForm] = Form.useForm();
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
+
+  // Video call states
+  const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
+  const [currentCallData, setCurrentCallData] = useState(null);
 
   // Always use current user's ID as coachId - this dashboard is only for the coach themselves
   const [coachId, setCoachId] = useState(null);
@@ -546,6 +552,54 @@ const CoachDashboard = () => {
     cancelForm.resetFields();
   };
 
+  // Video call functions
+  const initiateVideoCall = async (appointment) => {
+    try {
+      if (!appointment?.appointmentId) {
+        message.error('Không thể khởi tạo cuộc gọi - thiếu thông tin cuộc hẹn');
+        return;
+      }
+      
+      // Chuẩn bị data cho video call
+      const callData = {
+        channelName: `appointment-${appointment.appointmentId}`,
+        userId: currentUser.userId,
+        appointmentId: appointment.appointmentId,
+        appointmentInfo: appointment
+      };
+      
+      setCurrentCallData(callData);
+      setIsVideoCallOpen(true);
+      
+      message.info('Đang khởi tạo cuộc gọi video...');
+    } catch (error) {
+      console.error('Error initiating video call:', error);
+      message.error('Không thể khởi tạo cuộc gọi video');
+    }
+  };
+
+  // Xử lý khi join video call thành công
+  const handleVideoCallJoinSuccess = (credentials) => {
+    console.log('Video call joined successfully:', credentials);
+    message.success('Đã tham gia cuộc gọi video thành công');
+  };
+
+  // Xử lý khi join video call thất bại
+  const handleVideoCallJoinError = (error) => {
+    console.error('Video call join failed:', error);
+    message.error(`Không thể tham gia cuộc gọi: ${error.message}`);
+    setIsVideoCallOpen(false);
+    setCurrentCallData(null);
+  };
+
+  // Xử lý khi rời khỏi video call
+  const handleVideoCallLeave = async () => {
+    console.log('Left video call');
+    setIsVideoCallOpen(false);
+    setCurrentCallData(null);
+    message.info('Đã kết thúc cuộc gọi video');
+  };
+
   // Show different loading state while determining coachId
   if (!coachId && currentUser?.role === 'COACH') {
     return (
@@ -751,10 +805,7 @@ const CoachDashboard = () => {
               <Button
                 type="primary"
                 size="small"
-                onClick={() => {
-                  // TODO: Implement meeting functionality
-                  message.info('Chức năng vào meeting sẽ được thêm sau');
-                }}
+                onClick={() => initiateVideoCall(record)}
               >
                 Vào meetings
               </Button>
@@ -1269,8 +1320,38 @@ const CoachDashboard = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Video Call Modal */}
+      {isVideoCallOpen && currentCallData && (
+        <Modal
+          title={`Video Call - Appointment ${currentCallData.appointmentId}`}
+          open={isVideoCallOpen}
+          onCancel={handleVideoCallLeave}
+          footer={null}
+          width="90%"
+          style={{ top: 20 }}
+          bodyStyle={{ padding: 0, height: '80vh' }}
+          destroyOnClose={true}
+        >
+          <VideoCallWithProps
+            channelName={currentCallData.channelName}
+            userId={currentCallData.userId}
+            appointmentId={currentCallData.appointmentId}
+            onJoinSuccess={handleVideoCallJoinSuccess}
+            onJoinError={handleVideoCallJoinError}
+            onLeave={handleVideoCallLeave}
+          />
+        </Modal>
+      )}
     </div>
   );
 };
 
-export default CoachDashboard;
+// Export với AgoraProvider wrapper
+const CoachDashboardWithAgora = () => (
+  <AgoraProvider>
+    <CoachDashboard />
+  </AgoraProvider>
+);
+
+export default CoachDashboardWithAgora;

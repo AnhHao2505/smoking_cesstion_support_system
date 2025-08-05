@@ -19,20 +19,37 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getAppointmentsOfMember, cancelAppointmentByMember } from '../../services/appointmentService';
+import VideoCallWithProps from '../videos/VideoCallWithProps';
+import { AgoraProvider } from '../videos/AgoraContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const { Title, Text } = Typography;
 
 const MemberAppointments = () => {
   const navigate = useNavigate();
+  const { currentUser, loading } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(false);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [currentAppointment, setCurrentAppointment] = useState(null);
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
 
+  // Video call states
+  const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
+  const [currentCallData, setCurrentCallData] = useState(null);
+
   useEffect(() => {
-    fetchAppointments();
-  }, []);
+    // Check if user is authenticated before fetching appointments
+    if (!loading && !currentUser) {
+      message.error('Vui lòng đăng nhập để xem cuộc hẹn');
+      navigate('/login');
+      return;
+    }
+    
+    if (currentUser) {
+      fetchAppointments();
+    }
+  }, [currentUser, loading, navigate]);
 
   const fetchAppointments = async () => {
     try {
@@ -72,6 +89,67 @@ const MemberAppointments = () => {
   const showCancelModal = (appointment) => {
     setCurrentAppointment(appointment);
     setCancelModalVisible(true);
+  };
+
+  // Video call functions
+  const initiateVideoCall = async (appointment) => {
+    try {
+      // Check if user is still authenticated
+      if (!currentUser) {
+        message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+        navigate('/login');
+        return;
+      }
+
+      if (!appointment?.appointmentId) {
+        message.error('Không thể khởi tạo cuộc gọi - thiếu thông tin cuộc hẹn');
+        return;
+      }
+
+      if (!currentUser?.userId) {
+        message.error('Không thể khởi tạo cuộc gọi - thiếu thông tin người dùng');
+        console.error('Current user data:', currentUser);
+        return;
+      }
+      
+      // Chuẩn bị data cho video call
+      const callData = {
+        channelName: `appointment-${appointment.appointmentId}`,
+        userId: currentUser.userId,
+        appointmentId: appointment.appointmentId,
+        appointmentInfo: appointment
+      };
+      
+      setCurrentCallData(callData);
+      setIsVideoCallOpen(true);
+      
+      message.info('Đang khởi tạo cuộc gọi video...');
+    } catch (error) {
+      console.error('Error initiating video call:', error);
+      message.error('Không thể khởi tạo cuộc gọi video');
+    }
+  };
+
+  // Xử lý khi join video call thành công
+  const handleVideoCallJoinSuccess = (credentials) => {
+    console.log('Video call joined successfully:', credentials);
+    message.success('Đã tham gia cuộc gọi video thành công');
+  };
+
+  // Xử lý khi join video call thất bại
+  const handleVideoCallJoinError = (error) => {
+    console.error('Video call join failed:', error);
+    message.error(`Không thể tham gia cuộc gọi: ${error.message}`);
+    setIsVideoCallOpen(false);
+    setCurrentCallData(null);
+  };
+
+  // Xử lý khi rời khỏi video call
+  const handleVideoCallLeave = async () => {
+    console.log('Left video call');
+    setIsVideoCallOpen(false);
+    setCurrentCallData(null);
+    message.info('Đã kết thúc cuộc gọi video');
   };
 
   // Column configuration for appointments table
@@ -164,10 +242,7 @@ const MemberAppointments = () => {
               <Button
                 type="primary"
                 size="small"
-                onClick={() => {
-                  // TODO: Implement meeting functionality
-                  message.info('Chức năng vào meeting sẽ được thêm sau');
-                }}
+                onClick={() => initiateVideoCall(record)}
               >
                 Vào meetings
               </Button>
@@ -188,20 +263,29 @@ const MemberAppointments = () => {
 
   return (
     <div style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
-      <Card>
-        <div style={{ marginBottom: '24px' }}>
-          <Space>
-            <Button 
-              icon={<ArrowLeftOutlined />} 
-              onClick={() => navigate(-1)}
-            >
-              Quay lại
-            </Button>
-            <Title level={3} style={{ margin: 0 }}>
-              <CalendarOutlined /> Cuộc hẹn của tôi
-            </Title>
-          </Space>
+      {/* Show loading spinner if auth is still loading */}
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '50px' }}>
+          <Text>Đang tải...</Text>
         </div>
+      )}
+      
+      {/* Show content only when user is authenticated */}
+      {!loading && currentUser && (
+        <Card>
+          <div style={{ marginBottom: '24px' }}>
+            <Space>
+              <Button 
+                icon={<ArrowLeftOutlined />} 
+                onClick={() => navigate(-1)}
+              >
+                Quay lại
+              </Button>
+              <Title level={3} style={{ margin: 0 }}>
+                <CalendarOutlined /> Cuộc hẹn của tôi
+              </Title>
+            </Space>
+          </div>
 
         <Card
           title="Danh sách cuộc hẹn"
@@ -226,7 +310,8 @@ const MemberAppointments = () => {
             }}
           />
         </Card>
-      </Card>
+        </Card>
+      )}
 
       {/* Modal hủy cuộc hẹn */}
       <Modal
@@ -261,8 +346,38 @@ const MemberAppointments = () => {
           </div>
         )}
       </Modal>
+
+      {/* Video Call Modal */}
+      {isVideoCallOpen && currentCallData && (
+        <Modal
+          title={`Video Call - Appointment ${currentCallData.appointmentId}`}
+          open={isVideoCallOpen}
+          onCancel={handleVideoCallLeave}
+          footer={null}
+          width="90%"
+          style={{ top: 20 }}
+          bodyStyle={{ padding: 0, height: '80vh' }}
+          destroyOnClose={true}
+        >
+          <VideoCallWithProps
+            channelName={currentCallData.channelName}
+            userId={currentCallData.userId}
+            appointmentId={currentCallData.appointmentId}
+            onJoinSuccess={handleVideoCallJoinSuccess}
+            onJoinError={handleVideoCallJoinError}
+            onLeave={handleVideoCallLeave}
+          />
+        </Modal>
+      )}
     </div>
   );
 };
 
-export default MemberAppointments;
+// Export với AgoraProvider wrapper
+const MemberAppointmentsWithAgora = () => (
+  <AgoraProvider>
+    <MemberAppointments />
+  </AgoraProvider>
+);
+
+export default MemberAppointmentsWithAgora;
