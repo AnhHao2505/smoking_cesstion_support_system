@@ -161,7 +161,7 @@ const NavBar = () => {
       label: "Hỗ trợ thành viên",
       icon: <UserOutlined />,
       items: [
-        { key: "/coach/create-schedule", label: "Tạo lịch làm việc", path: "/coach/create-schedule" },
+        // { key: "/coach/create-schedule", label: "Tạo lịch làm việc", path: "/coach/create-schedule" },
         { key: "/coach/qna", label: "Q&A", path: "/coach/qna" },
         { key: "/member/chat", label: "Nhắn tin", path: "/member/chat" },
       ],

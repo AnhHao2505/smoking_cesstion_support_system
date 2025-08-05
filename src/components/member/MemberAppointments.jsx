@@ -280,6 +280,11 @@ const MemberAppointments = () => {
       title: 'Thao tác',
       key: 'actions',
       render: (_, record) => {
+        // Check if feedback already exists
+        const hasFeedback = record.feedbackStars || record.feedbackComment;
+        // Check if appointment is completed (only show rating button for completed appointments)
+        const isCompleted = record.status === 'COMPLETED';
+        
         if (record.status === 'BOOKED') {
           return (
             <Space>
@@ -297,25 +302,20 @@ const MemberAppointments = () => {
               >
                 Hủy cuộc hẹn
               </Button>
-              <Button
-                type="default"
-                size="small"
-                onClick={() => showFeedbackModal(record)}
-              >
-                Đánh giá
-              </Button>
             </Space>
           );
         } else if (record.status === 'COMPLETED') {
           return (
             <Space>
-              <Button
-                type="default"
-                size="small"
-                onClick={() => showFeedbackModal(record)}
-              >
-                Đánh giá
-              </Button>
+              {isCompleted && !hasFeedback && (
+                <Button
+                  type="default"
+                  size="small"
+                  onClick={() => showFeedbackModal(record)}
+                >
+                  Đánh giá
+                </Button>
+              )}
             </Space>
           );
         }
