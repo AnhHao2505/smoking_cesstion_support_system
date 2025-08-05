@@ -27,6 +27,7 @@ import MemberProfile from './member/MemberProfile';
 import QuitPlanCreation from './coach/QuitPlanCreation';
 import DailyRecordForm from './member/DailyRecordForm';
 import AppointmentManagement from './member/AppointmentManagement';
+import MemberAppointments from './member/MemberAppointments';
 import CoachSelection from './member/CoachSelection';
 import QuitPlanHistory from './member/QuitPlanHistory';
 import PhaseTaskManager from './member/PhaseTaskManager';
@@ -173,6 +174,15 @@ const App = () => {
                 element={
                   <PrivateRoute allowedRoles={['MEMBER']}>
                     <AppointmentManagement />
+                  </PrivateRoute>
+                }
+              />
+
+              <Route 
+                path="/member/my-appointments" 
+                element={
+                  <PrivateRoute allowedRoles={['MEMBER']}>
+                    <MemberAppointments />
                   </PrivateRoute>
                 }
               />

@@ -49,7 +49,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getAssignedMembers, getCoachProfile } from '../../services/coachManagementService';
 import { getFeedbacksForCoach } from '../../services/feebackService';
 import { viewMemberNewestPlan, addFinalEvaluation } from '../../services/quitPlanService';
-import { createCoachSchedule, getAvailableSchedulesOfCoach } from '../../services/appointmentService';
+import { createCoachSchedule, getAvailableSchedulesOfCoach, getAppointmentsOfCoach, cancelAppointmentByCoach } from '../../services/appointmentService';
 import '../../styles/Dashboard.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -80,6 +80,14 @@ const CoachDashboard = () => {
   const [scheduleForm] = Form.useForm();
   const [scheduleSubmitting, setScheduleSubmitting] = useState(false);
 
+  // State variables for appointments
+  const [appointments, setAppointments] = useState([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(false);
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [currentAppointment, setCurrentAppointment] = useState(null);
+  const [cancelForm] = Form.useForm();
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+
   // Always use current user's ID as coachId - this dashboard is only for the coach themselves
   const [coachId, setCoachId] = useState(null);
 
@@ -94,6 +102,7 @@ const CoachDashboard = () => {
   useEffect(() => {
     if (coachId) {
       refreshSchedules();
+      refreshAppointments();
     }
   }, [coachId]);
 
@@ -492,6 +501,51 @@ const CoachDashboard = () => {
     }
   };
 
+  // Appointments management functions
+  const refreshAppointments = async () => {
+    if (!coachId) return;
+    
+    try {
+      setAppointmentsLoading(true);
+      const response = await getAppointmentsOfCoach();
+      setAppointments(response || []);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      message.error('Không thể tải danh sách cuộc hẹn');
+    } finally {
+      setAppointmentsLoading(false);
+    }
+  };
+
+  const handleCancelAppointment = async (values) => {
+    if (!currentAppointment) return;
+    
+    try {
+      setCancelSubmitting(true);
+      const response = await cancelAppointmentByCoach(currentAppointment.appointmentId, values.absenceReason);
+      
+      if (response.success !== false) {
+        message.success('Hủy cuộc hẹn thành công');
+        setCancelModalVisible(false);
+        cancelForm.resetFields();
+        refreshAppointments(); // Refresh the appointments list
+      } else {
+        message.error(response.message || 'Không thể hủy cuộc hẹn');
+      }
+    } catch (error) {
+      console.error('Error canceling appointment:', error);
+      message.error('Đã xảy ra lỗi khi hủy cuộc hẹn');
+    } finally {
+      setCancelSubmitting(false);
+    }
+  };
+
+  const showCancelModal = (appointment) => {
+    setCurrentAppointment(appointment);
+    setCancelModalVisible(true);
+    cancelForm.resetFields();
+  };
+
   // Show different loading state while determining coachId
   if (!coachId && currentUser?.role === 'COACH') {
     return (
@@ -613,6 +667,108 @@ const CoachDashboard = () => {
         } else if (record.active) {
           return <Tag color="green">Đang chờ</Tag>;
         }
+      }
+    }
+  ];
+
+  // Column configuration for appointments table
+  const appointmentColumns = [
+    {
+      title: 'Ngày hẹn',
+      dataIndex: 'date',
+      key: 'date',
+      render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : 'Không xác định'
+    },
+    {
+      title: 'Thời gian',
+      key: 'time',
+      render: (_, record) => {
+        if (record.startHour !== undefined && record.startMinute !== undefined && 
+            record.endHour !== undefined && record.endMinute !== undefined) {
+          const startTime = `${record.startHour.toString().padStart(2, '0')}:${record.startMinute.toString().padStart(2, '0')}`;
+          const endTime = `${record.endHour.toString().padStart(2, '0')}:${record.endMinute.toString().padStart(2, '0')}`;
+          return `${startTime} - ${endTime}`;
+        }
+        return 'Không xác định';
+      }
+    },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'status',
+      key: 'appointmentStatus',
+      render: (status) => {
+        let color = 'default';
+        let text = status || 'Không xác định';
+        
+        switch (status) {
+          case 'BOOKED':
+            color = 'blue';
+            text = 'Đã lên lịch';
+            break;
+          case 'COMPLETED':
+            color = 'green';
+            text = 'Hoàn thành';
+            break;
+          case 'CANCELLED':
+            color = 'red';
+            text = 'Đã hủy';
+            break;
+          default:
+            break;
+        }
+        
+        return <Tag color={color}>{text}</Tag>;
+      }
+    },
+    {
+      title: 'Đánh giá',
+      key: 'feedback',
+      render: (_, record) => {
+        if (record.feedbackStars || record.feedbackComment) {
+          return (
+            <Space direction="vertical" size="small">
+              {record.feedbackStars && (
+                <Rate disabled value={record.feedbackStars} style={{ fontSize: '14px' }} />
+              )}
+              {record.feedbackComment && (
+                <Text type="secondary" style={{ fontSize: '12px', fontStyle: 'italic' }}>
+                  "{record.feedbackComment}"
+                </Text>
+              )}
+            </Space>
+          );
+        }
+        return <Text type="secondary">Chưa có đánh giá</Text>;
+      }
+    },
+    {
+      title: 'Thao tác',
+      key: 'actions',
+      render: (_, record) => {
+        if (record.status === 'BOOKED') {
+          return (
+            <Space>
+              <Button
+                type="primary"
+                size="small"
+                onClick={() => {
+                  // TODO: Implement meeting functionality
+                  message.info('Chức năng vào meeting sẽ được thêm sau');
+                }}
+              >
+                Vào meetings
+              </Button>
+              <Button
+                danger
+                size="small"
+                onClick={() => showCancelModal(record)}
+              >
+                Hủy cuộc hẹn
+              </Button>
+            </Space>
+          );
+        }
+        return <Text type="secondary">-</Text>;
       }
     }
   ];
@@ -756,7 +912,7 @@ const CoachDashboard = () => {
 
         <TabPane tab={<span><CalendarOutlined /> Quản lý lịch hẹn</span>} key="3">
           <Card
-            title="Lịch hẹn của tôi"
+            title="Schedule của tôi"
             extra={
               <Space>
                 <Button
@@ -772,8 +928,8 @@ const CoachDashboard = () => {
                   icon={<PlusOutlined />}
                   onClick={() => setCreateScheduleModalVisible(true)}
                 >
-                  Tạo lịch hẹn
-                </Button>
+                  Tạo schedule
+                </Button> 
               </Space>
             }
           >
@@ -785,6 +941,32 @@ const CoachDashboard = () => {
               loading={schedulesLoading}
               locale={{
                 emptyText: 'Chưa có lịch hẹn nào'
+              }}
+            />
+          </Card>
+        </TabPane>
+
+        <TabPane tab={<span><ClockCircleOutlined /> Cuộc hẹn</span>} key="4">
+          <Card
+            title="Danh sách cuộc hẹn"
+            extra={
+              <Button
+                size="small"
+                onClick={refreshAppointments}
+                loading={appointmentsLoading}
+              >
+                Làm mới
+              </Button>
+            }
+          >
+            <Table
+              dataSource={appointments}
+              columns={appointmentColumns}
+              rowKey="appointmentId"
+              pagination={{ pageSize: 10 }}
+              loading={appointmentsLoading}
+              locale={{
+                emptyText: 'Chưa có cuộc hẹn nào'
               }}
             />
           </Card>

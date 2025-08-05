@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import BookingSteps from './BookingSteps';
+import { useNavigate } from 'react-router-dom';
 import {
   Card,
   Table,
@@ -49,6 +50,7 @@ const { TextArea } = Input;
 
 const AppointmentManagement = () => {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [coaches, setCoaches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selecting, setSelecting] = useState(false);
@@ -517,9 +519,18 @@ const AppointmentManagement = () => {
   return (
     <div className="coach-selection">
       <div className="container py-4">
-        <Title level={2}>
-          <TeamOutlined /> Chọn Huấn Luyện Viên
-        </Title>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <Title level={2} style={{ margin: 0 }}>
+            <TeamOutlined /> Chọn Huấn Luyện Viên
+          </Title>
+          <Button 
+            type="primary" 
+            icon={<CalendarOutlined />}
+            onClick={() => navigate('/member/my-appointments')}
+          >
+            Xem cuộc hẹn của tôi
+          </Button>
+        </div>
 
         <Paragraph>
           Chọn một huấn luyện viên có trình độ để hướng dẫn bạn trong hành trình
