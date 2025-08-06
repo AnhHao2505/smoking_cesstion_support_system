@@ -1356,6 +1356,60 @@ const CoachDashboard = () => {
         </Form>
       </Modal>
 
+      {/* Modal hủy cuộc hẹn */}
+      <Modal
+        title="Xác nhận hủy cuộc hẹn"
+        open={cancelModalVisible}
+        onCancel={() => setCancelModalVisible(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setCancelModalVisible(false)}>
+            Hủy bỏ
+          </Button>,
+          <Button
+            key="confirm"
+            type="primary"
+            danger
+            loading={cancelSubmitting}
+            onClick={() => cancelForm.submit()}
+          >
+            Xác nhận hủy
+          </Button>
+        ]}
+      >
+        <Form
+          form={cancelForm}
+          onFinish={handleCancelAppointment}
+          layout="vertical"
+        >
+          <p>Bạn có chắc chắn muốn hủy cuộc hẹn này không?</p>
+          {currentAppointment && (
+            <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
+              <p><strong>Ngày hẹn:</strong> {currentAppointment.date ? new Date(currentAppointment.date).toLocaleDateString('vi-VN') : 'Không xác định'}</p>
+              <p><strong>Thời gian:</strong> {
+                currentAppointment.startHour !== undefined && currentAppointment.startMinute !== undefined && 
+                currentAppointment.endHour !== undefined && currentAppointment.endMinute !== undefined
+                  ? `${currentAppointment.startHour.toString().padStart(2, '0')}:${currentAppointment.startMinute.toString().padStart(2, '0')} - ${currentAppointment.endHour.toString().padStart(2, '0')}:${currentAppointment.endMinute.toString().padStart(2, '0')}`
+                  : 'Không xác định'
+              }</p>
+            </div>
+          )}
+          
+          <Form.Item
+            name="absenceReason"
+            label="Lý do hủy cuộc hẹn"
+            rules={[{ required: true, message: 'Vui lòng nhập lý do hủy cuộc hẹn' }]}
+            style={{ marginTop: '16px' }}
+          >
+            <Input.TextArea
+              rows={3}
+              placeholder="Nhập lý do hủy cuộc hẹn..."
+              maxLength={200}
+              showCount
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
       {/* Video Call Modal */}
       {isVideoCallOpen && currentCallData && (
         <Modal
